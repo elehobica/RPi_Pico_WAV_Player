@@ -39,6 +39,10 @@ typedef unsigned long u32;
 #define FRAME_SIZE  25600
 
 //-----------------OLED端口定义---------------- 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define OLED_SCLK_Clr() 
 #define OLED_SCLK_Set() 
 
@@ -122,5 +126,9 @@ void LCD_ShowPicture(u16 x1, u16 y1, u16 x2, u16 y2);
 #define DARKGREEN        0x03E0
 
 #define DARKRED          0x7800
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

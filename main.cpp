@@ -9,17 +9,23 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
-#include "pico/util/queue.h"
-#include "adc_util.h"
-#include "st7735_80x160/my_lcd.h"
+#include "stack.h"
+#include "ui_control.h"
+#include "LcdCanvas.h"
 #include "fatfs/ff.h"
+#include "ImageFitter.h"
 
 const int Version = 0*100*100 + 0*100 + 1;
-unsigned char image[160*80*2/2];
-queue_t btn_evt_queue;
-const int FIFO_LENGTH = 32;
+unsigned char image[160*80*2];
+stack_t *dir_stack;
+const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
 
-void power_off(char *msg, int is_error)
+static inline uint32_t _millis(void)
+{
+	return to_ms_since_boot(get_absolute_time());
+}
+
+void power_off(const char *msg, int is_error)
 {
     LCD_Clear(BLACK);
     if (strlen(msg) > 0) {
@@ -67,9 +73,7 @@ int main() {
     pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
 
     // init LCD
-    Lcd_Init();
-    LCD_Clear(BLACK);
-    BACK_COLOR=BLACK;
+    LcdCanvas lcd = LcdCanvas();
 
     // Progress Bar display before stable power-on for 1 sec
     // to avoid unintended power-on when Headphone plug in
@@ -78,14 +82,9 @@ int main() {
         sleep_ms(25);
     }
 
-    // button event queue
-    queue_init(&btn_evt_queue, sizeof(element_t), FIFO_LENGTH);
-
-    // ADC Initialize
-    adc_util_init(&btn_evt_queue);
-
+    dir_stack = stack_init();
     // Mount FAT
-    while (1) {
+    while (true) {
         fr = f_mount(&fs, "", 1); // 0: mount successful ; 1: mount failed
         if (fr == FR_OK || count++ > 10) break;
         sleep_ms(10);
@@ -98,29 +97,28 @@ int main() {
     printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
     printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
 
+    // Display Logo
     LCD_Clear(WHITE);
-    fr = f_open(&fil, "logo.bin", FA_READ);
-    if (fr != FR_OK) {
-        printf("open error: logo.bin %d\n", (int) fr);
-    } else {
-        for (int i = 0; i < 2; i++) {
-            fr = f_read(&fil, image, sizeof(image), &br);
-            LCD_ShowPicture(0, 40*i, 159, 40*(i+1)-1);
-        }
-    }
-    f_close(&fil);
+    imgFit.config((uint16_t *) image, 160, 80);
+    imgFit.loadJpegFile("logo.jpg");
+    uint16_t w, h;
+    imgFit.getSizeAfterFit(&w, &h);
+    LCD_ShowPicture(0, 0, w-1, h-1);
+    sleep_ms(1000);
+    LCD_Clear(BLACK);
 
-    sleep_ms(500);
+    // UI initialize
+    ui_init(FileViewMode, dir_stack, &lcd, fs.fs_type);
+
+    // UI Loop
     while (true) {
-        int count = queue_get_level(&btn_evt_queue);
-        while (count) {
-            element_t element;
-            queue_remove_blocking(&btn_evt_queue, &element);
-            printf("Event %d\n", (int) element.button_action);
-            gpio_put(LED_PIN, 1);
-            sleep_ms(50);
-            gpio_put(LED_PIN, 0);
-            count--;
+        uint32_t time = _millis();
+        ui_update();
+        time = _millis() - time;
+        if (time < LoopCycleMs) {
+            sleep_ms(LoopCycleMs - time);
+        } else {
+            sleep_ms(1);
         }
     }
 

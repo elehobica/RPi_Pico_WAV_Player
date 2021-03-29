@@ -11,6 +11,7 @@ void LCD_ShowIcon(u16 x,u16 y,u8 index,u8 mode,u16 color)
     u8 pos,t;
 	u8 *temp,size1;
 	u8 size = 16;
+	if (index == ICON16x16_UNDEF) { return; }
 	temp=Icon16;
 	LCD_Address_Set(x,y,x+size-1,y+size-1); //设置一个汉字的区域
 	size1=size*size/8;//一个汉字所占的字节
@@ -137,7 +138,7 @@ u16 LCD_ShowStringLnOL(int16_t x,int16_t y,u16 x_min,u16 x_max,const u8 *p,u16 c
 void LCD_Scroll_ShowString(u16 x, u16 y, u16 x_min, u16 x_max, u8 *p, u16 color, uint16_t *sft_val, uint32_t tick)
 {
     if (*sft_val == 0) { // Head display
-        if (LCD_ShowStringLnOL(x,  y, x_min, x_max, (u8 *) p, color) && (tick % 16 == 0)) {
+        if (LCD_ShowStringLnOL(x,  y, x_min, x_max, (u8 *) p, color) && (tick % 32 == 16)) {
             LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);
             (*sft_val)++;
         }
@@ -149,7 +150,7 @@ void LCD_Scroll_ShowString(u16 x, u16 y, u16 x_min, u16 x_max, u8 *p, u16 color,
         }
 		if (LCD_ShowStringLn((int16_t) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], color)) {
             (*sft_val)++;
-        } else if (tick % 16 == 7) { // Tail display returns back to Head display
+        } else if (tick % 32 == 23) { // Tail display returns back to Head display
             LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);
             *sft_val = 0;
         }

@@ -13,11 +13,18 @@ pico_sdk_init()
 add_subdirectory(hardware_gpio_ex)
 add_subdirectory(st7735_80x160)
 add_subdirectory(fatfs)
+add_subdirectory(file_menu)
+add_subdirectory(picojpeg)
+add_subdirectory(LcdElementBox)
 
 set(bin_name "android_hp_button")
 add_executable(${bin_name}
-    main.c
-    adc_util.c
+    main.cpp
+    ui_control.cpp
+    UIMode.cpp
+    ImageFitter.cpp
+    LcdCanvas.cpp
+    stack.c
 )
 
 pico_enable_stdio_usb(${bin_name} 0)
@@ -31,5 +38,8 @@ target_link_libraries(${bin_name}
         hardware_gpio_ex
         st7735_80x160
         fatfs
+        file_menu
+        picojpeg
+        LcdElementBox
 )
 pico_add_extra_outputs(${bin_name})
