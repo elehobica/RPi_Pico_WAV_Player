@@ -116,8 +116,8 @@ void UIFileViewMode::listIdxItems()
             lcd->setListItem(i, ""); // delete
             continue;
         }
-        uint8_t icon = file_menu_is_dir(vars->idx_head+i) ? ICON16x16_FOLDER : ICON16x16_FILE;
         file_menu_get_fname(vars->idx_head+i, str, sizeof(str));
+        uint8_t icon = file_menu_is_dir(vars->idx_head+i) ? ICON16x16_FOLDER : ICON16x16_FILE;
         lcd->setListItem(i, str, icon, (i == vars->idx_column));
     }
 }
