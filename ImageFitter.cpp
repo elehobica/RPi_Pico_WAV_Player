@@ -26,13 +26,14 @@ ImageFitter::~ImageFitter()
 
 }
 
-void ImageFitter::config(uint16_t *img_rgb565, uint16_t width, uint16_t height, bool resizeFit, bool keepAspectRatio)
+void ImageFitter::config(uint16_t *img_rgb565, uint16_t width, uint16_t height, bool resizeFit, bool keepAspectRatio, bool packHBlank)
 {
     this->img_rgb565 = img_rgb565;
     this->width = width;
     this->height = height;
     this->resizeFit = resizeFit;
     this->keepAspectRatio = keepAspectRatio;
+    this->packHBlank = packHBlank;
 }
 
 // MCU block 1/2 Accumulation (Shrink) x count times
@@ -240,7 +241,7 @@ void ImageFitter::loadJpeg(bool reduce)
         Serial.println(str);
     }
     #endif // DEBUG_LCD_ELEMENT_BOX
-    if (img_w < width) { // delete horizontal blank
+    if (packHBlank && img_w < width) { // delete horizontal blank
         for (int16_t plot_y = 1; plot_y < img_h; plot_y++) {
             memmove(&img_rgb565[img_w*plot_y], &img_rgb565[width*plot_y], img_w*2);
         }

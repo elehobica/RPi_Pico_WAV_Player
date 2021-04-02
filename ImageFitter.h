@@ -24,6 +24,7 @@ private:
 	uint16_t src_w, src_h; // dimention of source image (JPEG/PNG)
     bool resizeFit; // true: resize to fit ImageBox size, false: original size (1:1)
     bool keepAspectRatio; // keep Aspect Ratio when resizeFit == true
+    bool packHBlank; // pack (delete) Horizontal Blank if width > img_w
     ImageFitter();
     virtual ~ImageFitter();
     ImageFitter(const ImageFitter&) = delete;
@@ -32,7 +33,7 @@ private:
     void loadJpeg(bool reduce);
 public:
     static ImageFitter& instance(); // Singleton
-    void config(uint16_t *img_rgb565, uint16_t width, uint16_t height, bool resizeFit = true, bool keepAspectRatio = true);
+    void config(uint16_t *img_rgb565, uint16_t width, uint16_t height, bool resizeFit = true, bool keepAspectRatio = true, bool packHBlank = false);
     bool loadJpegFile(const char *filename, uint64_t pos = 0, size_t size = 0);
     void getSizeAfterFit(uint16_t *img_w, uint16_t *img_h);
 };

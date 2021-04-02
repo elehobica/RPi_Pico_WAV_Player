@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstring>
 #include "LcdCanvas.h"
+#include "ImageFitter.h"
 //#include "fonts/iconfont.h"
 
 #if 0
@@ -62,6 +63,15 @@ LcdCanvas::~LcdCanvas()
 {
 }
 
+void LcdCanvas::switchToInitial()
+{
+    clear();
+    msg.setText("");
+    for (int i = 0; i < (int) (sizeof(groupInitial)/sizeof(*groupInitial)); i++) {
+        groupInitial[i]->update();
+    }
+}
+
 void LcdCanvas::switchToListView()
 {
     clear();
@@ -100,6 +110,13 @@ void LcdCanvas::switchToPowerOff(const char *msg_str)
 void LcdCanvas::clear()
 {
     LCD_Clear(BLACK);
+}
+
+void LcdCanvas::drawInitial()
+{
+    for (int i = 0; i < (int) (sizeof(groupInitial)/sizeof(*groupInitial)); i++) {
+        groupInitial[i]->draw();
+    }
 }
 
 void LcdCanvas::drawListView()
@@ -178,6 +195,23 @@ void LcdCanvas::drawPowerOff()
     for (int i = 0; i < (int) (sizeof(groupPowerOff)/sizeof(*groupPowerOff)); i++) {
         groupPowerOff[i]->draw();
     }
+}
+
+void LcdCanvas::setLogoJpeg(const char *filename)
+{
+    uint16_t *img_ptr;
+    uint16_t w, h;
+    image.getImagePtr(&img_ptr, &w, &h);
+    imgFit.config(img_ptr, w, h);
+    imgFit.loadJpegFile(filename);
+    imgFit.getSizeAfterFit(&w, &h);
+    image.setImageSize(w, h);
+    image.update();
+}
+
+void LcdCanvas::setMsg(const char *str)
+{
+    msg.setText(str);
 }
 
 void LcdCanvas::setListItem(int column, const char *str, uint8_t icon, bool isFocused)

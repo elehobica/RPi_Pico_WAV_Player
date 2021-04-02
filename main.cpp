@@ -12,8 +12,6 @@
 #include "stack.h"
 #include "ui_control.h"
 #include "LcdCanvas.h"
-#include "fatfs/ff.h"
-#include "ImageFitter.h"
 
 const int Version = 0*100*100 + 0*100 + 1;
 unsigned char image[160*80*2];
@@ -97,15 +95,8 @@ int main() {
     printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
     printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
 
-    // Display Logo
-    LCD_Clear(WHITE);
-    imgFit.config((uint16_t *) image, 160, 80);
-    imgFit.loadJpegFile("logo.jpg");
-    uint16_t w, h;
-    imgFit.getSizeAfterFit(&w, &h);
-    LCD_ShowPicture(0, 0, w-1, h-1);
-    sleep_ms(1000);
-    LCD_Clear(BLACK);
+    // Opening Logo
+    lcd.setLogoJpeg("logo.jpg");
 
     // UI initialize
     ui_init(FileViewMode, dir_stack, &lcd, fs.fs_type);

@@ -45,6 +45,8 @@ public:
     ~LcdCanvas();
 	void clear();
 	void bye();
+	void setLogoJpeg(const char *filename);
+	void setMsg(const char *str);
 	void setListItem(int column, const char *str, const uint8_t icon = ICON16x16_UNDEF, bool isFocused = false);
 	void setVolume(uint8_t value);
 	void setPlayTime(uint32_t posionSec, uint32_t lengthSec, bool blink = false);
@@ -57,9 +59,11 @@ public:
 	void addAlbumArtJpeg(uint16_t file_idx, uint64_t pos, size_t size, bool is_unsync = false);
 	void addAlbumArtPng(uint16_t file_idx, uint64_t pos, size_t size, bool is_unsync = false);
 	void deleteAlbumArt();
+	void switchToInitial();
 	void switchToListView();
 	void switchToPlay();
 	void switchToPowerOff(const char *msg_str = NULL);
+	void drawInitial();
 	void drawListView();
 	void drawPlay();
 	void drawPowerOff();
@@ -84,13 +88,14 @@ protected:
 	IconScrollTextBox album = IconScrollTextBox(16*0, 16*5, ICON16x16_ALBUM, LCD_W, FONT_HEIGHT, LCD_WHITE, LCD_BLACK);
 	TextBox track = TextBox(16*0, LCD_H-16, LcdElementBox::AlignLeft, LCD_GRAY);
 	TextBox msg = TextBox(LCD_W/2, LCD_H/2, LcdElementBox::AlignCenter);
-	//ImageBox albumArt = ImageBox(0, (LCD_H - LCD_W)/2, LCD_W, LCD_W);
+	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
+	LcdElementBox *groupInitial[2] = {&image, &msg};
 	LcdElementBox *groupListView[5] = {
 		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4]
 	};
 	LcdElementBox *groupPlay[3] = {/*&battery, */&volume, &playTime, &track}; // Common for Play mode 0 and 1
 	LcdElementBox *groupPlay0[3] = {&title, &artist, &album}; // Play mode 0 only
-	LcdElementBox *groupPlay1[1] = {/*&albumArt, */&msg}; // Play mode 1 only
+	LcdElementBox *groupPlay1[2] = {&image, &msg}; // Play mode 1 only
 	LcdElementBox *groupPowerOff[1] = {&msg};
 	#endif // USE_ST7735S_160x80
 };

@@ -1,7 +1,7 @@
 /*------------------------------------------------------/
 / UIMode
 /-------------------------------------------------------/
-/ Copyright (c) 2020, Elehobica
+/ Copyright (c) 2021, Elehobica
 / Released under the BSD-2-Clause
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
@@ -63,7 +63,7 @@ UIInitialMode::UIInitialMode(UIVars *vars) : UIMode("UIInitialMode", InitialMode
     file_menu_open_dir("/");
     if (file_menu_get_size() <= 1) {
         //power_off("Card Read Error!", 1);
-        printf("Card Read Error!\n");
+        lcd->setMsg("Card Read Error!");
     }
 }
 
@@ -77,19 +77,24 @@ UIMode* UIInitialMode::update()
             break;
         */
         default:
-            return getUIMode(FileViewMode);
+            if (idle_count++ > 100) {
+                return getUIMode(FileViewMode);
+            }
             break;
     }
+    idle_count++;
     return this;
 }
 
 void UIInitialMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+    lcd->switchToInitial();
 }
 
 void UIInitialMode::draw()
 {
+    lcd->drawInitial();
 }
 
 //=========================================

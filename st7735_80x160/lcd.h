@@ -91,7 +91,7 @@ void LCD_ShowString(u16 x,u16 y,const u8 *p,u16 color);
 u32 mypow(u8 m,u8 n);
 void LCD_ShowNum(u16 x,u16 y,u16 num,u8 len,u16 color);
 void LCD_ShowNum1(u16 x,u16 y,float num,u8 len,u16 color);
-void LCD_ShowPicture(u16 x1, u16 y1, u16 x2, u16 y2);
+void LCD_ShowPicture(u16 x1, u16 y1, u16 x2, u16 y2, u8* image);
 
 
 //画笔颜色
