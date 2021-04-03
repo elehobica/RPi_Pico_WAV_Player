@@ -1,7 +1,7 @@
 /*------------------------------------------------------/
 / UIMode
 /-------------------------------------------------------/
-/ Copyright (c) 2021, Elehobica
+/ Copyright (c) 2020-2021, Elehobica
 / Released under the BSD-2-Clause
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
@@ -11,6 +11,7 @@
 #include <cstring>
 #include "ui_control.h"
 #include "stack.h"
+#include "PlayAudio/audio_codec.h"
 
 const uint8_t *BLANK_LINE = ((uint8_t *) "                    ");
 
@@ -400,7 +401,12 @@ UIMode* UIFileViewMode::update()
                     chdir();
                     listIdxItems();
                 } else { // Target is File
+                    char str[256];
                     file_menu_full_sort();
+                    file_menu_get_fname(vars->idx_head+vars->idx_column, str, sizeof(str));
+                    printf("%s\n", str);
+                    PlayAudio *playAudio = getAudioCodec(AUDIO_CODEC_WAV);
+                    playAudio->play(str);
                     /*
                     if (isAudioFile()) {
                         return getUIPlayMode();

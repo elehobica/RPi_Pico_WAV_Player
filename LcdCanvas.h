@@ -1,7 +1,7 @@
 /*-----------------------------------------------------------/
 / LcdCanvas
 /------------------------------------------------------------/
-/ Copyright (c) 2020, Elehobica
+/ Copyright (c) 2020-2021, Elehobica
 / Released under the BSD-2-Clause
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/

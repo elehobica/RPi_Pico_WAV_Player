@@ -7,11 +7,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
+#include "hardware/pll.h"
+#include "hardware/clocks.h"
+#include "hardware/structs/clocks.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 #include "stack.h"
 #include "ui_control.h"
 #include "LcdCanvas.h"
+#include "PlayAudio/audio_codec.h"
 
 const int Version = 0*100*100 + 0*100 + 1;
 unsigned char image[160*80*2];
@@ -39,6 +43,31 @@ void power_off(const char *msg, int is_error)
     }
 }
 
+static void audio_clock_96MHz()
+{
+    // Set PLL_USB 96MHz
+    pll_init(pll_usb, 1, 1536 * MHZ, 4, 4);
+    clock_configure(clk_usb,
+        0,
+        CLOCKS_CLK_USB_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+        96 * MHZ,
+        48 * MHZ);
+    // Change clk_sys to be 96MHz.
+    clock_configure(clk_sys,
+        CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX,
+        CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+        96 * MHZ,
+        96 * MHZ);
+    // CLK peri is clocked from clk_sys so need to change clk_peri's freq
+    clock_configure(clk_peri,
+        0,
+        CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
+        96 * MHZ,
+        96 * MHZ);
+    // Reinit uart now that clk_peri has changed
+    stdio_init_all();
+}
+
 int main() {
     int count = 0;
     FATFS fs;
@@ -48,6 +77,7 @@ int main() {
     UINT bw;
 
     stdio_init_all();
+    audio_clock_96MHz();
 
     // Initialise UART 0
     uart_init(uart0, 115200);
@@ -97,6 +127,9 @@ int main() {
 
     // Opening Logo
     lcd.setLogoJpeg("logo.jpg");
+
+    // Audio Codec Initialize
+    audio_codec_init();
 
     // UI initialize
     ui_init(FileViewMode, dir_stack, &lcd, fs.fs_type);
