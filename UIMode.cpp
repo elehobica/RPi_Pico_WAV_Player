@@ -41,6 +41,16 @@ void UIMode::entry(UIMode *prevMode)
     ui_clear_btn_evt();
 }
 
+bool UIMode::isAudioFile(uint16_t idx)
+{
+    if (file_menu_match_ext(idx, "wav", 3) ||  file_menu_match_ext(idx, "WAV", 3)) {
+        set_audio_codec(PlayAudio::AUDIO_CODEC_WAV);
+        return true;
+    }
+    set_audio_codec(PlayAudio::AUDIO_CODEC_NONE);
+    return false;
+}
+
 const char *UIMode::getName()
 {
     return name;
@@ -121,16 +131,6 @@ void UIFileViewMode::listIdxItems()
         uint8_t icon = file_menu_is_dir(vars->idx_head+i) ? ICON16x16_FOLDER : ICON16x16_FILE;
         lcd->setListItem(i, str, icon, (i == vars->idx_column));
     }
-}
-
-bool UIFileViewMode::isAudioFile()
-{
-    uint16_t idx = vars->idx_head + vars->idx_column;
-    if (file_menu_match_ext(idx, "wav", 3) ||  file_menu_match_ext(idx, "WAV", 3)) {
-        set_audio_codec(PlayAudio::AUDIO_CODEC_WAV);
-        return true;
-    }
-    return false;
 }
 
 uint16_t UIFileViewMode::getNumAudioFiles()
@@ -366,6 +366,7 @@ UIMode *UIFileViewMode::getUIPlayMode()
     if (vars->idx_play == 0) {
         vars->idx_play = vars->idx_head + vars->idx_column;
     }
+    //file_menu_full_sort();
     vars->num_tracks = getNumAudioFiles();
     return getUIMode(PlayMode);
 }
@@ -390,7 +391,7 @@ UIMode* UIFileViewMode::update()
                     chdir();
                     listIdxItems();
                 } else { // Target is File
-                    if (isAudioFile()) {
+                    if (isAudioFile(vars->idx_head + vars->idx_column)) {
                         return getUIPlayMode();
                     }
                 }
@@ -516,32 +517,25 @@ UIMode* UIPlayMode::update()
         }
         idle_count = 0;
     }
-    #if 0
-    if (codec->isPaused() && idle_count > USERCFG_GEN_TM_PWROFF*OneSec) {
+    /*if (codec->isPaused() && idle_count > USERCFG_GEN_TM_PWROFF*OneSec) {
         return getUIMode(PowerOffMode);
-    } else if (!codec->isPlaying() || (codec->positionMillis() + 500 > codec->lengthMillis())) {
-        MutexFsBaseFile file;
-        vars->idx_play++;
+    } else */if (!codec->isPlaying()) {
         idle_count = 0;
-        audio_codec_enm_t next_audio_codec_enm = getAudioCodec(&file);
-        if (next_audio_codec_enm != CodecNone) {
-            readTag();
-            while (codec->isPlaying()) { /*delay(1);*/ } // minimize gap between tracks
-            audio_set_codec(next_audio_codec_enm);
-            audio_play(&file);
-            lcd->switchToPlay();
-        } else {
-            while (codec->isPlaying()) { delay(1); }
-            codec->stop();
-            vars->do_next_play = TimeoutPlay;
-            return getUIMode(FileViewMode);
+        while (++vars->idx_play < file_menu_get_num()) {
+            if (isAudioFile(vars->idx_play)) {
+                play();
+                return this;
+            }
         }
+        vars->do_next_play = TimeoutPlay;
+        return getUIMode(FileViewMode);
     }
+    /*
     lcd->setVolume(audio_get_volume());
     lcd->setBitRate(codec->bitRate());
     lcd->setPlayTime(codec->positionMillis()/1000, codec->lengthMillis()/1000, codec->isPaused());
     lcd->setBatteryVoltage(vars->bat_mv);
-    #endif
+    */
     idle_count++;
     return this;
 }
@@ -648,17 +642,21 @@ void UIPlayMode::readTag()
 }
 #endif
 
-void UIPlayMode::entry(UIMode *prevMode)
+void UIPlayMode::play()
 {
     char str[FF_MAX_LFN];
-    UIMode::entry(prevMode);
-    //if (prevMode->getUIModeEnm() != ConfigMode) {
-    file_menu_full_sort();
     file_menu_get_fname(vars->idx_play, str, sizeof(str));
     printf("%s\n", str);
     PlayAudio *playAudio = get_audio_codec();
     //readTag();
     playAudio->play(str);
+}
+
+void UIPlayMode::entry(UIMode *prevMode)
+{
+    UIMode::entry(prevMode);
+    //if (prevMode->getUIModeEnm() != ConfigMode) {
+    play();
     //}
     lcd->switchToPlay();
 }

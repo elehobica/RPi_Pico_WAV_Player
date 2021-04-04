@@ -90,6 +90,7 @@ protected:
     ui_mode_enm_t ui_mode_enm;
     UIVars *vars;
     uint16_t idle_count;
+    bool isAudioFile(uint16_t idx);
 };
 
 //===================================
@@ -118,7 +119,6 @@ protected:
     stack_t *dir_stack;
     uint16_t *sft_val;
     void listIdxItems();
-    bool isAudioFile();
     uint16_t getNumAudioFiles();
     void chdir();
     UIMode *nextPlay();
@@ -142,6 +142,7 @@ public:
     void entry(UIMode *prevMode);
     void draw();
 protected:
+    void play();
     //audio_codec_enm_t getAudioCodec(MutexFsBaseFile *f);
     //void readTag();
 };
