@@ -34,7 +34,7 @@ void PlayWav::play(const char *filename)
 
 void PlayWav::decode()
 {
-    if (!playing || pausing) {
+    if (!playing || paused) {
         PlayAudio::decode();
         return;
     }
@@ -55,8 +55,8 @@ void PlayWav::decode()
     fr = f_read(&fil, buf, buffer->max_sample_count*4, &br);
     buffer->sample_count = br/4;
     for (int i = 0; i < buffer->sample_count; i++) {
-        samples[i*2+0] = buf[i*2+0] * 8192 + DAC_ZERO;
-        samples[i*2+1] = buf[i*2+1] * 8192 + DAC_ZERO;
+        samples[i*2+0] = buf[i*2+0] * vol_table[volume] + DAC_ZERO;
+        samples[i*2+1] = buf[i*2+1] * vol_table[volume] + DAC_ZERO;
     }
     give_audio_buffer(ap, buffer);
     if (f_eof(&fil)) { stop(); }

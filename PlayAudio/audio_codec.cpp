@@ -12,22 +12,37 @@
 
 static PlayAudio *playAudio_ary[2] = {};
 static void (*decode_func_ary[2])() = {};
-static audio_codec_t cur_audio_codec = AUDIO_CODEC_NONE;
+static PlayAudio::audio_codec_t cur_audio_codec = PlayAudio::AUDIO_CODEC_NONE;
 
 void audio_codec_init()
 {
     PlayAudio::initialize();
-    playAudio_ary[AUDIO_CODEC_NONE] = (PlayAudio *) new PlayNone();
-    playAudio_ary[AUDIO_CODEC_WAV]  = (PlayAudio *) new PlayWav();
-    decode_func_ary[AUDIO_CODEC_NONE] = PlayNone::decode_func;
-    decode_func_ary[AUDIO_CODEC_WAV]  = PlayWav::decode_func;
-    cur_audio_codec = AUDIO_CODEC_NONE;
+    playAudio_ary[PlayAudio::AUDIO_CODEC_NONE] = (PlayAudio *) new PlayNone();
+    playAudio_ary[PlayAudio::AUDIO_CODEC_WAV]  = (PlayAudio *) new PlayWav();
+    decode_func_ary[PlayAudio::AUDIO_CODEC_NONE] = PlayNone::decode_func;
+    decode_func_ary[PlayAudio::AUDIO_CODEC_WAV]  = PlayWav::decode_func;
+    cur_audio_codec = PlayAudio::AUDIO_CODEC_NONE;
 }
 
-PlayAudio *getAudioCodec(audio_codec_t audio_codec)
+PlayAudio *get_audio_codec()
+{
+    return playAudio_ary[cur_audio_codec];
+}
+
+PlayAudio *set_audio_codec(PlayAudio::audio_codec_t audio_codec)
 {
     cur_audio_codec = audio_codec;
-    return playAudio_ary[cur_audio_codec];
+    return get_audio_codec();
+}
+
+void audio_volume_up()
+{
+    PlayAudio::volumeUp();
+}
+
+void audio_volume_down()
+{
+    PlayAudio::volumeDown();
 }
 
 // callback from:

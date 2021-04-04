@@ -10,13 +10,11 @@
 #include "pico/audio_i2s.h"
 #include "PlayAudio.h"
 
-typedef enum {
-    AUDIO_CODEC_NONE = 0,
-    AUDIO_CODEC_WAV
-} audio_codec_t;
-
 void audio_codec_init();
-PlayAudio *getAudioCodec(audio_codec_t audio_codec);
+PlayAudio *get_audio_codec();
+PlayAudio *set_audio_codec(PlayAudio::audio_codec_t audio_codec);
+void audio_volume_up();
+void audio_volume_down();
 extern "C" {
 void i2s_callback_func();
 }

@@ -19,7 +19,8 @@
 
 typedef enum _ui_mode_enm_t {
     InitialMode = 0,
-    FileViewMode
+    FileViewMode,
+    PlayMode,
 } ui_mode_enm_t;
 
 typedef enum _button_action_t {
@@ -130,7 +131,6 @@ protected:
     UIMode* getUIPlayMode();
 };
 
-#if 0
 //===============================
 // Interface of UIPlayMode class
 //===============================
@@ -142,10 +142,11 @@ public:
     void entry(UIMode *prevMode);
     void draw();
 protected:
-    audio_codec_enm_t getAudioCodec(MutexFsBaseFile *f);
-    void readTag();
+    //audio_codec_enm_t getAudioCodec(MutexFsBaseFile *f);
+    //void readTag();
 };
 
+#if 0
 //===================================
 // Interface of UIConfigMode class
 //===================================

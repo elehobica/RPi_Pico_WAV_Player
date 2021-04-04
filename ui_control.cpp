@@ -25,7 +25,7 @@ static repeating_timer_t timer;
 
 UIVars vars;
 UIMode *ui_mode = nullptr;
-UIMode *ui_mode_ary[2] = {};
+UIMode *ui_mode_ary[3] = {};
 
 static button_status_t adc0_get_hp_button(void)
 {
@@ -217,6 +217,7 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, LcdCanvas *lcd
 
     ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode(&vars);
     ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode(&vars, dir_stack);
+    ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode(&vars);
     ui_mode = getUIMode(InitialMode);
     ui_mode->entry(ui_mode);
 }
