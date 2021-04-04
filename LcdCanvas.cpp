@@ -48,11 +48,11 @@ void BatteryIconBox::setLevel(uint8_t value)
 //=================================
 LcdCanvas::LcdCanvas()
 {
-    #ifdef USE_ST7735S_160x80
+#if defined(USE_ST7735S_160x80)
     Lcd_Init();
     LCD_Clear(BLACK);
     BACK_COLOR=BLACK;
-    #endif
+#endif
 
     // ListView parts (nothing to set here)
 
@@ -128,10 +128,10 @@ void LcdCanvas::drawListView()
 
 void LcdCanvas::drawPlay()
 {
-    /*
     for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
         groupPlay[i]->draw();
     }
+    /*
     if (play_count % play_cycle < play_change || albumArt.getCount() == 0) { // Play mode 0 display
         for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
             groupPlay0[i]->draw(this);
@@ -225,7 +225,7 @@ void LcdCanvas::setListItem(int column, const char *str, uint8_t icon, bool isFo
 
 void LcdCanvas::setVolume(uint8_t value)
 {
-    volume.setInt((int) value);
+    volume.setFormatText("%3d", (int) value);
 }
 
 void LcdCanvas::setTrack(const char *str)

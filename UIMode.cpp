@@ -506,11 +506,11 @@ UIMode* UIPlayMode::update()
                 break;
             case ButtonPlusSingle:
             case ButtonPlusLong:
-                audio_volume_up();
+                PlayAudio::volumeUp();
                 break;
             case ButtonMinusSingle:
             case ButtonMinusLong:
-                audio_volume_down();
+                PlayAudio::volumeDown();
                 break;
             default:
                 break;
@@ -530,8 +530,8 @@ UIMode* UIPlayMode::update()
         vars->do_next_play = TimeoutPlay;
         return getUIMode(FileViewMode);
     }
+    lcd->setVolume(PlayAudio::getVolume());
     /*
-    lcd->setVolume(audio_get_volume());
     lcd->setBitRate(codec->bitRate());
     lcd->setPlayTime(codec->positionMillis()/1000, codec->lengthMillis()/1000, codec->isPaused());
     lcd->setBatteryVoltage(vars->bat_mv);

@@ -35,16 +35,6 @@ PlayAudio *set_audio_codec(PlayAudio::audio_codec_t audio_codec)
     return get_audio_codec();
 }
 
-void audio_volume_up()
-{
-    PlayAudio::volumeUp();
-}
-
-void audio_volume_down()
-{
-    PlayAudio::volumeDown();
-}
-
 // callback from:
 //   void __isr __time_critical_func(audio_i2s_dma_irq_handler)()
 //   defined at my_pico_audio_i2s/audio_i2s.c
