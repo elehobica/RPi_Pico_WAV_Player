@@ -527,6 +527,8 @@ UIMode* UIPlayMode::update()
                 return this;
             }
         }
+        vars->idx_play = 0;
+        codec->stop();
         vars->do_next_play = TimeoutPlay;
         return getUIMode(FileViewMode);
     }

@@ -180,6 +180,7 @@ void TextBox::draw()
     int16_t x_ofs;
     isUpdated = false;
     TextBox::clear(); // call clear() of this class
+    if (strlen(str) == 0) { return; } // not to calculate x0, y0, w0, h0 because illegal values cause clear() mulfunction
     w0 = strlen(str)*8;
     h0 = 16;
     x_ofs = (align == LcdElementBox::AlignRight) ? -w0 : (align == LcdElementBox::AlignCenter) ? -w0/2 : 0; // at this point, w0 could be not correct
