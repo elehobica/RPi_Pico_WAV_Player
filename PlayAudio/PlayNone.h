@@ -23,4 +23,3 @@ protected:
 };
 
 #endif // __PLAY_NONE_H_INCLUDED__
-

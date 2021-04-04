@@ -5,6 +5,7 @@
 /------------------------------------------------------*/
 
 #include <cstdio>
+#include <cstring>
 #include "pico/stdlib.h"
 #include "PlayWav.h"
 
@@ -27,11 +28,6 @@ PlayWav::~PlayWav()
 {
 }
 
-void PlayWav::play(const char *filename)
-{
-    PlayAudio::play(filename);
-}
-
 void PlayWav::decode()
 {
     if (!playing || paused) {
@@ -49,17 +45,20 @@ void PlayWav::decode()
     }
     #endif // DEBUG_PLAYWAV
 
-    FRESULT fr;
-    UINT br;
     int32_t *samples = (int32_t *) buffer->buffer->bytes;
-    fr = f_read(&fil, buf, buffer->max_sample_count*4, &br);
-    buffer->sample_count = br/4;
+    if (rdbuf->getLeft()/4 >= buffer->max_sample_count) {
+        buffer->sample_count = buffer->max_sample_count;
+    } else {
+        buffer->sample_count = rdbuf->getLeft()/4;
+    }
+    memcpy(buf_s16, rdbuf->buf(), buffer->sample_count*4);
     for (int i = 0; i < buffer->sample_count; i++) {
-        samples[i*2+0] = buf[i*2+0] * vol_table[volume] + DAC_ZERO;
-        samples[i*2+1] = buf[i*2+1] * vol_table[volume] + DAC_ZERO;
+        samples[i*2+0] = (int32_t) buf_s16[i*2+0] * vol_table[volume] + DAC_ZERO;
+        samples[i*2+1] = (int32_t) buf_s16[i*2+1] * vol_table[volume] + DAC_ZERO;
     }
     give_audio_buffer(ap, buffer);
-    if (f_eof(&fil)) { stop(); }
+    rdbuf->shift(buffer->sample_count*4);
+    if (rdbuf->getLeft() == 0) { stop(); }
 
     #ifdef DEBUG_PLAYWAV
     {

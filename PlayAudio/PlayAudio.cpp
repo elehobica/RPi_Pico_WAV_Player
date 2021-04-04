@@ -11,7 +11,8 @@
 //#define DEBUG_PLAYAUDIO
 
 audio_buffer_pool_t *PlayAudio::ap = nullptr;
-int16_t PlayAudio::buf[SAMPLES_PER_BUFFER*2];
+ReadBuffer *PlayAudio::rdbuf = nullptr;
+int16_t PlayAudio::buf_s16[SAMPLES_PER_BUFFER*2];
 uint8_t PlayAudio::volume = 65;
 const uint32_t PlayAudio::vol_table[101] = {
     0, 4, 8, 12, 16, 20, 24, 27, 29, 31,
@@ -30,6 +31,7 @@ const uint32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     ap = audio_init();
+    rdbuf = new ReadBuffer(RDBUF_SIZE, true); // autoFill = true
 }
 void PlayAudio::volumeUp()
 {
@@ -63,6 +65,7 @@ void PlayAudio::play(const char *filename)
 {
     FRESULT fr;
 	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
+    rdbuf->reCouple(&fil);
 
     playing = true;
     paused = false;
@@ -77,6 +80,7 @@ void PlayAudio::stop()
 {
     playing = false;
     paused = false;
+
     f_close(&fil);
 }
 

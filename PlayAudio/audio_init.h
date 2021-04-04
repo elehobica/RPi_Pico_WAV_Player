@@ -14,4 +14,3 @@
 audio_buffer_pool_t *audio_init();
 
 #endif // __AUDIO_INIT_H_INCLUDED__
-

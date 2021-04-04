@@ -18,11 +18,9 @@ public:
     static void decode_func();
     PlayWav();
     ~PlayWav();
-    void play(const char *filename);
 protected:
     static PlayWav *g_inst;
     void decode();
 };
 
 #endif // __PLAY_WAV_H_INCLUDED__
-

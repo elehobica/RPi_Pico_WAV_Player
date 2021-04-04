@@ -4,6 +4,7 @@ if (NOT TARGET PlayAudio)
     target_sources(PlayAudio INTERFACE
             ${CMAKE_CURRENT_LIST_DIR}/audio_init.cpp
             ${CMAKE_CURRENT_LIST_DIR}/audio_codec.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/ReadBuffer.cpp
             ${CMAKE_CURRENT_LIST_DIR}/PlayAudio.cpp
             ${CMAKE_CURRENT_LIST_DIR}/PlayNone.cpp
             ${CMAKE_CURRENT_LIST_DIR}/PlayWav.cpp
