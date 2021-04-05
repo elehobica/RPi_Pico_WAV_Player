@@ -58,7 +58,7 @@ void PlayWav::decode()
     }
     give_audio_buffer(ap, buffer);
     rdbuf->shift(buffer->sample_count*4);
-    if (rdbuf->getLeft() == 0) { stop(); }
+    if (rdbuf->getLeft()/4 == 0) { stop(); }
 
     #ifdef DEBUG_PLAYWAV
     {
