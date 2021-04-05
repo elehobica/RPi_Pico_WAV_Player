@@ -28,6 +28,30 @@ PlayWav::~PlayWav()
 {
 }
 
+void PlayWav::play(const char *filename)
+{
+    PlayAudio::play(filename);
+    skipToDataChunk();
+}
+
+void PlayWav::skipToDataChunk()
+{
+    const char *const buf = (const char *const) rdbuf->buf();
+	if (buf[ 0]=='R' && buf[ 1]=='I' && buf[ 2]=='F' && buf[ 3]=='F' &&
+	    buf[ 8]=='W' && buf[ 9]=='A' && buf[10]=='V' && buf[11]=='E')
+	{
+        size_t ofs = 12;
+		while (true) {
+			char *chunk_id = (char *) (buf + ofs);
+			uint32_t *size = (uint32_t *) (buf + ofs + 4);
+			if (memcmp(chunk_id, "data", 4) == 0) { break; }
+			ofs += 8 + *size;
+			if (ofs + 8 > rdbuf->getLeft()) { return; }
+		}
+        rdbuf->shift(ofs + 8);
+	}
+}
+
 void PlayWav::decode()
 {
     if (!playing || paused) {
