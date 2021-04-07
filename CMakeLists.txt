@@ -29,6 +29,8 @@ add_executable(${bin_name}
     ImageFitter.cpp
     LcdCanvas.cpp
     stack.c
+    TagRead.cpp
+    utf_conv.cpp
 )
 
 pico_enable_stdio_usb(${bin_name} 0)

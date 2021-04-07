@@ -13,6 +13,8 @@
 #include "stack.h"
 #include "PlayAudio/audio_codec.h"
 
+TagRead tag;
+
 const uint8_t *BLANK_LINE = ((uint8_t *) "                    ");
 
 // UIMode class instances
@@ -533,11 +535,9 @@ UIMode* UIPlayMode::update()
         return getUIMode(FileViewMode);
     }
     lcd->setVolume(PlayAudio::getVolume());
-    /*
-    lcd->setBitRate(codec->bitRate());
-    lcd->setPlayTime(codec->positionMillis()/1000, codec->lengthMillis()/1000, codec->isPaused());
-    lcd->setBatteryVoltage(vars->bat_mv);
-    */
+    //lcd->setBitRate(codec->bitRate());
+    lcd->setPlayTime(codec->elapsedMillis()/1000, codec->totalMillis()/1000, codec->isPaused());
+    //lcd->setBatteryVoltage(vars->bat_mv);
     idle_count++;
     return this;
 }
@@ -584,6 +584,7 @@ audio_codec_enm_t UIPlayMode::getAudioCodec(MutexFsBaseFile *f)
     }
     return audio_codec_enm;
 }
+#endif
 
 void UIPlayMode::readTag()
 {
@@ -596,53 +597,56 @@ void UIPlayMode::readTag()
     int img_cnt = 0;
     
     // Read TAG
-    tag.loadFile(vars->idx_play);
+    file_menu_get_fname(vars->idx_play, str, sizeof(str));
+    tag.loadFile(str);
 
     // copy TAG text
     if (tag.getUTF8Track(str, sizeof(str))) {
         uint16_t track = atoi(str);
-        sprintf(str, "%d / %d", track, vars->num_tracks);
+        sprintf(str, "%d/%d", track, vars->num_tracks);
     } else {
-        sprintf(str, "%d / %d", vars->idx_play, vars->num_tracks);
+        sprintf(str, "%d/%d", vars->idx_play, vars->num_tracks);
     }
     lcd->setTrack(str);
     if (tag.getUTF8Title(str, sizeof(str))) {
-        lcd->setTitle(str, utf8);
+        lcd->setTitle(str);
     } else { // display filename if no TAG
+        file_menu_get_fname(vars->idx_play, str, sizeof(str));
+        lcd->setTitle(str);
+        /*
         file_menu_get_fname_UTF16(vars->idx_play, (char16_t *) str, sizeof(str)/2);
         lcd->setTitle(utf16_to_utf8((const char16_t *) str).c_str(), utf8);
+        */
     }
-    if (tag.getUTF8Album(str, sizeof(str))) lcd->setAlbum(str, utf8); else lcd->setAlbum("");
-    if (tag.getUTF8Artist(str, sizeof(str))) lcd->setArtist(str, utf8); else lcd->setArtist("");
-    if (tag.getUTF8Year(str, sizeof(str))) lcd->setYear(str, utf8); else lcd->setYear("");
+    if (tag.getUTF8Album(str, sizeof(str))) lcd->setAlbum(str); else lcd->setAlbum("");
+    if (tag.getUTF8Artist(str, sizeof(str))) lcd->setArtist(str); else lcd->setArtist("");
+    //if (tag.getUTF8Year(str, sizeof(str))) lcd->setYear(str); else lcd->setYear("");
+    return;
 
     // copy TAG image
-    lcd->deleteAlbumArt();
+    //lcd->deleteAlbumArt();
     for (int i = 0; i < tag.getPictureCount(); i++) {
         if (tag.getPicturePos(i, &mime, &ptype, &img_pos, &size, &is_unsync)) {
-            if (mime == jpeg) { lcd->addAlbumArtJpeg(vars->idx_play, img_pos, size, is_unsync); img_cnt++; }
-            else if (mime == png) { lcd->addAlbumArtPng(vars->idx_play, img_pos, size, is_unsync); img_cnt++; }
+            if (mime == jpeg) { /*lcd->addAlbumArtJpeg(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
+            else if (mime == png) { /*lcd->addAlbumArtPng(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
         }
     }
     // if no AlbumArt in TAG, use JPEG or PNG in current folder
     if (img_cnt == 0) {
         uint16_t idx = 0;
         while (idx < file_menu_get_num()) {
-            MutexFsBaseFile f;
-            file_menu_get_obj(idx, &f);
             if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
                 file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
-                lcd->addAlbumArtJpeg(idx, 0, f.fileSize());
+                //lcd->addAlbumArtJpeg(idx, 0, f.fileSize());
                 img_cnt++;
             } else if (file_menu_match_ext(idx, "png", 3) || file_menu_match_ext(idx, "PNG", 3)) {
-                lcd->addAlbumArtPng(idx, 0, f.fileSize());
+                //ilcd->addAlbumArtPng(idx, 0, f.fileSize());
                 img_cnt++;
             }
             idx++;
         }
     }
 }
-#endif
 
 void UIPlayMode::play()
 {
@@ -650,7 +654,7 @@ void UIPlayMode::play()
     file_menu_get_fname(vars->idx_play, str, sizeof(str));
     printf("%s\n", str);
     PlayAudio *playAudio = get_audio_codec();
-    //readTag();
+    readTag();
     playAudio->play(str);
 }
 

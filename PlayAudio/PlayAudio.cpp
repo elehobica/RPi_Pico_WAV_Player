@@ -65,10 +65,11 @@ void PlayAudio::play(const char *filename)
 {
     FRESULT fr;
 	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
-    rdbuf->reCouple(&fil);
+    rdbuf->bind(&fil);
 
     playing = true;
     paused = false;
+    samplesPlayed = 0;
 }
 
 void PlayAudio::pause(bool flg)
@@ -94,6 +95,16 @@ bool PlayAudio::isPaused()
     return paused;
 }
 
+uint16_t PlayAudio::getU16LE(const char *ptr)
+{
+    return ((uint16_t) ptr[1] << 8) + ((uint16_t) ptr[0]);
+}
+
+uint32_t PlayAudio::getU32LE(const char *ptr)
+{
+    return ((uint32_t) ptr[3] << 24) + ((uint32_t) ptr[2] << 16) + ((uint32_t) ptr[1] << 8) + ((uint32_t) ptr[0]);
+}
+
 void PlayAudio::decode()
 {
     // Performs Audio Mute
@@ -114,6 +125,7 @@ void PlayAudio::decode()
         samples[i*2+0] = DAC_ZERO;
         samples[i*2+1] = DAC_ZERO;
     }
+    samplesPlayed += buffer->sample_count;
     give_audio_buffer(ap, buffer);
 
     #ifdef DEBUG_PLAYAUDIO
@@ -122,4 +134,9 @@ void PlayAudio::decode()
         printf("AUDIO::decode end   at %d ms\n", time);
     }
     #endif // DEBUG_PLAYAUDIO
+}
+
+uint32_t PlayAudio::elapsedMillis()
+{
+    return (uint32_t) ((uint64_t) samplesPlayed * 1000 / sampRateHz);
 }

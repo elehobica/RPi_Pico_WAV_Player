@@ -82,10 +82,10 @@ protected:
 	};
 	//BatteryIconBox battery = BatteryIconBox(LCD_W-16*0, LCD_H-16*0, LCD_GRAY);
 	IconTextBox volume = IconTextBox(LCD_W-16*4, LCD_H-16*1, ICON16x16_VOLUME, LCD_GRAY);
-	TextBox playTime = TextBox(LCD_W/2, LCD_H-16*1, LcdElementBox::AlignCenter, LCD_GRAY, LCD_BLACK);
-	IconScrollTextBox title = IconScrollTextBox(16*0, 16*0, ICON16x16_TITLE, LCD_W, FONT_HEIGHT, LCD_WHITE, LCD_BLACK);
-	IconScrollTextBox artist = IconScrollTextBox(16*0, 16*1, ICON16x16_ARTIST, LCD_W, FONT_HEIGHT, LCD_WHITE, LCD_BLACK);
-	IconScrollTextBox album = IconScrollTextBox(16*0, 16*2, ICON16x16_ALBUM, LCD_W, FONT_HEIGHT, LCD_WHITE, LCD_BLACK);
+	TextBox playTime = TextBox(LCD_W-16*4, LCD_H-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
+	IconScrollTextBox title = IconScrollTextBox(16*0, 16*0, ICON16x16_TITLE, LCD_W, FONT_HEIGHT, LCD_LIGHTBLUE, LCD_BLACK);
+	IconScrollTextBox artist = IconScrollTextBox(16*0, 16*1, ICON16x16_ARTIST, LCD_W, FONT_HEIGHT, LCD_LIGHTGREEN, LCD_BLACK);
+	IconScrollTextBox album = IconScrollTextBox(16*0, 16*2, ICON16x16_ALBUM, LCD_W, FONT_HEIGHT, LCD_GRAYBLUE, LCD_BLACK);
 	TextBox track = TextBox(16*0, LCD_H-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
 	TextBox msg = TextBox(LCD_W/2, LCD_H/2, LcdElementBox::AlignCenter);
 	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
@@ -93,8 +93,8 @@ protected:
 	LcdElementBox *groupListView[5] = {
 		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4]
 	};
-	LcdElementBox *groupPlay[3] = {/*&battery, */&volume, &playTime, &track}; // Common for Play mode 0 and 1
-	LcdElementBox *groupPlay0[3] = {&title, &artist, &album}; // Play mode 0 only
+	LcdElementBox *groupPlay[0] = {/*&battery, */}; // Common for Play mode 0 and 1
+	LcdElementBox *groupPlay0[6] = {&title, &artist, &album, &track, &playTime, &volume}; // Play mode 0 only
 	LcdElementBox *groupPlay1[2] = {&image, &msg}; // Play mode 1 only
 	LcdElementBox *groupPowerOff[1] = {&msg};
 #endif // USE_ST7735S_160x80

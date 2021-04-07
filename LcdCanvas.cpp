@@ -131,11 +131,11 @@ void LcdCanvas::drawPlay()
     for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
         groupPlay[i]->draw();
     }
-    /*
-    if (play_count % play_cycle < play_change || albumArt.getCount() == 0) { // Play mode 0 display
+    if (play_count % play_cycle < play_change/* || albumArt.getCount() == 0*/) { // Play mode 0 display
         for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
-            groupPlay0[i]->draw(this);
+            groupPlay0[i]->draw();
         }
+        /*
         if (albumArt.getCount() == 0) {
             msg.setText("No Image");
         } else if (play_count == 0 && albumArt.getCount() > 0) {
@@ -170,9 +170,10 @@ void LcdCanvas::drawPlay()
                 }
             }
         }
+        */
     } else { // Play mode 1 display
         for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
-            groupPlay1[i]->draw(this);
+            groupPlay1[i]->draw();
         }
         if (play_count % play_cycle == play_cycle-1) { // Play mode 1 -> 0
             for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
@@ -187,7 +188,6 @@ void LcdCanvas::drawPlay()
         }
     }
     play_count++;
-    */
 }
 
 void LcdCanvas::drawPowerOff()
@@ -231,7 +231,7 @@ void LcdCanvas::setVolume(uint8_t value)
 void LcdCanvas::setTrack(const char *str)
 {
     if (strlen(str)) {
-        track.setFormatText("[ %s ]", str);
+        track.setFormatText("[%s]", str);
     } else {
         track.setText("");
     }
@@ -239,7 +239,8 @@ void LcdCanvas::setTrack(const char *str)
 
 void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink)
 {
-    playTime.setFormatText("%lu:%02lu / %lu:%02lu", positionSec/60, positionSec%60, lengthSec/60, lengthSec%60);
+    //playTime.setFormatText("%lu:%02lu / %lu:%02lu", positionSec/60, positionSec%60, lengthSec/60, lengthSec%60);
+    playTime.setFormatText("%lu:%02lu", positionSec/60, positionSec%60);
     //playTime.setBlink(blink);
 }
 

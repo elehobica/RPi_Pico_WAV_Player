@@ -19,8 +19,10 @@ public:
     PlayWav();
     ~PlayWav();
     void play(const char *filename);
+    uint32_t totalMillis();
 protected:
     static PlayWav *g_inst;
+    uint32_t dataSize;
     void skipToDataChunk();
     void decode();
 };

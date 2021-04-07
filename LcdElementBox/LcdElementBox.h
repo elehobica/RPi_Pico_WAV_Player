@@ -22,6 +22,9 @@
 #define LCD_BROWN         0XBC40
 #define LCD_BRRED         0XFC07
 #define LCD_GRAY          0X8430
+#define LCD_LIGHTBLUE     0X7D7C
+#define LCD_LIGHTGREEN    0X841F
+#define LCD_GRAYBLUE      0X5458
 
 //=================================
 // Definition of LcdElementBox interface

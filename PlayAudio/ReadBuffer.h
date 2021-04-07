@@ -18,8 +18,8 @@ public:
     ReadBuffer(size_t size, bool autoFill = false);
     ReadBuffer(FIL *fp, size_t size, bool autoFill = false);
     ~ReadBuffer();
-    const uint8_t *const buf();
-    void reCouple(FIL *fp);
+    const uint8_t *buf();
+    void bind(FIL *fp);
     bool fill();
     bool shift(size_t bytes);
     bool shiftAndFill(size_t bytes);

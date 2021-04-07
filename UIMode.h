@@ -13,7 +13,7 @@
 #include "file_menu/file_menu_FatFs.h"
 #include "LcdCanvas.h"
 #include "stack.h"
-//#include "TagRead.h"
+#include "TagRead.h"
 //#include "audio_playback.h"
 //#include "UserConfig.h"
 
@@ -144,7 +144,7 @@ public:
 protected:
     void play();
     //audio_codec_enm_t getAudioCodec(MutexFsBaseFile *f);
-    //void readTag();
+    void readTag();
 };
 
 #if 0

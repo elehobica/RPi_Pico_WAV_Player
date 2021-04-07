@@ -18,6 +18,7 @@ ReadBuffer::ReadBuffer(FIL *fp, size_t size, bool autoFill) : fp(fp), size(size)
 {
     head = (uint8_t *) calloc(size, sizeof(uint8_t));
     ptr = head;
+    if (autoFill) { fill(); }
 }
 
 ReadBuffer::~ReadBuffer()
@@ -25,12 +26,12 @@ ReadBuffer::~ReadBuffer()
     free(head);
 }
 
-const uint8_t *const ReadBuffer::buf()
+const uint8_t *ReadBuffer::buf()
 {
-    return (const uint8_t *const) ptr;
+    return (const uint8_t *) ptr;
 }
 
-void ReadBuffer::reCouple(FIL *fp)
+void ReadBuffer::bind(FIL *fp)
 {
     this->fp = fp;
     ptr = head;

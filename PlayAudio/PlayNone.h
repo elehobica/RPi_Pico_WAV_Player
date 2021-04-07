@@ -18,6 +18,8 @@ public:
     static void decode_func();
     PlayNone();
     ~PlayNone();
+    uint32_t elapsedMillis() { return 0U; }
+    uint32_t totalMillis() { return 1U; }
 protected:
     static PlayNone *g_inst;
 };
