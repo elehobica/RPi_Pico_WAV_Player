@@ -621,6 +621,18 @@ void UIPlayMode::readTag()
     if (tag.getUTF8Album(str, sizeof(str))) lcd->setAlbum(str); else lcd->setAlbum("");
     if (tag.getUTF8Artist(str, sizeof(str))) lcd->setArtist(str); else lcd->setArtist("");
     //if (tag.getUTF8Year(str, sizeof(str))) lcd->setYear(str); else lcd->setYear("");
+
+    uint16_t idx = 0;
+    while (idx < file_menu_get_num()) {
+        if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
+            file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
+            file_menu_get_fname(idx, str, sizeof(str));
+            lcd->setImageJpeg(str);
+            break;
+        }
+        idx++;
+    }
+
     return;
 
     // copy TAG image
@@ -637,6 +649,10 @@ void UIPlayMode::readTag()
         while (idx < file_menu_get_num()) {
             if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
                 file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
+                file_menu_get_fname(idx, str, sizeof(str));
+                printf("JPEG %s\n", str);
+
+
                 //lcd->addAlbumArtJpeg(idx, 0, f.fileSize());
                 img_cnt++;
             } else if (file_menu_match_ext(idx, "png", 3) || file_menu_match_ext(idx, "PNG", 3)) {
@@ -661,10 +677,10 @@ void UIPlayMode::play()
 void UIPlayMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+    lcd->switchToPlay();
     //if (prevMode->getUIModeEnm() != ConfigMode) {
     play();
     //}
-    lcd->switchToPlay();
 }
 
 void UIPlayMode::draw()

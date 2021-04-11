@@ -126,7 +126,8 @@ int main() {
     printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
 
     // Opening Logo
-    lcd.setLogoJpeg("logo.jpg");
+    lcd.setImageJpeg("logo.jpg");
+    //lcd.setImageJpeg("4.jpg");
 
     // Audio Codec Initialize
     audio_codec_init();

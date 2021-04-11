@@ -151,7 +151,8 @@ void LcdCanvas::drawPlay()
                 msg.setText("Not Supported Image");
             }
             #endif // #ifdef USE_ALBUM_ART_SMALL
-        } else if (play_count % play_cycle == play_change-1 && albumArt.getCount() > 0) { // Play mode 0 -> 1
+        } else *///if (play_count % play_cycle == play_change-1 && albumArt.getCount() > 0) { // Play mode 0 -> 1
+        if (play_count % play_cycle == play_change-1) {
             for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
                 groupPlay[i]->update();
             }
@@ -161,6 +162,7 @@ void LcdCanvas::drawPlay()
             for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
                 groupPlay1[i]->update();
             }
+            /*
             if (albumArt.getCount() > 1) {
                 albumArt.clear();
                 if (albumArt.loadNext()) {
@@ -169,8 +171,8 @@ void LcdCanvas::drawPlay()
                     msg.setText("Not Supported Image");
                 }
             }
+            */
         }
-        */
     } else { // Play mode 1 display
         for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
             groupPlay1[i]->draw();
@@ -197,7 +199,7 @@ void LcdCanvas::drawPowerOff()
     }
 }
 
-void LcdCanvas::setLogoJpeg(const char *filename)
+void LcdCanvas::setImageJpeg(const char *filename)
 {
     uint16_t *img_ptr;
     uint16_t w, h;
@@ -230,11 +232,7 @@ void LcdCanvas::setVolume(uint8_t value)
 
 void LcdCanvas::setTrack(const char *str)
 {
-    if (strlen(str)) {
-        track.setFormatText("[%s]", str);
-    } else {
-        track.setText("");
-    }
+    track.setText(str);
 }
 
 void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink)

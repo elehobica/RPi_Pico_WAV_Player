@@ -40,8 +40,6 @@ Bodmer (24/1/17): Correct greyscale images, update examples
 #include "picojpeg.h"
 #include "JPEGDecoder.h"
 
-#define SWAP_BYTES
-
 JPEGDecoder JpegDec;
 
 JPEGDecoder::JPEGDecoder(){
@@ -142,7 +140,7 @@ int JPEGDecoder::read(void) {
 				for (by = 0; by < by_limit; by++) {
 
 					for (bx = 0; bx < bx_limit; bx++) {
-#ifdef SWAP_BYTES
+#ifdef IMAGE_DECODER_SWAP_BYTES
 						*pDst++ = (*pSrcR & 0xF8) | (*pSrcR & 0xE0) >> 5 | (*pSrcR & 0xF8) << 5 | (*pSrcR & 0x1C) << 11;
 #else
 						*pDst++ = (*pSrcR & 0xF8) << 8 | (*pSrcR & 0xFC) <<3 | *pSrcR >> 3;
@@ -167,7 +165,7 @@ int JPEGDecoder::read(void) {
 				for (by = 0; by < by_limit; by++) {
 
 					for (bx = 0; bx < bx_limit; bx++) {
-#ifdef SWAP_BYTES
+#ifdef IMAGE_DECODER_SWAP_BYTES
 						*pDst++ = (*pSrcR & 0xF8) | (*pSrcG & 0xE0) >> 5 | (*pSrcB & 0xF8) << 5 | (*pSrcG & 0x1C) << 11;
 #else
 						*pDst++ = (*pSrcR & 0xF8) << 8 | (*pSrcG & 0xFC) <<3 | *pSrcB >> 3;

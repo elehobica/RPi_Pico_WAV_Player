@@ -19,6 +19,7 @@ https://github.com/Bodmer/JPEGDecoder
 #include "picojpeg.h"
 
 //#define DEBUG
+//#define IMAGE_DECODER_SWAP_BYTES
 
 //------------------------------------------------------------------------------
 #ifndef jpg_min

@@ -45,7 +45,7 @@ public:
     ~LcdCanvas();
 	void clear();
 	void bye();
-	void setLogoJpeg(const char *filename);
+	void setImageJpeg(const char *filename);
 	void setMsg(const char *str);
 	void setListItem(int column, const char *str, const uint8_t icon = ICON16x16_UNDEF, bool isFocused = false);
 	void setVolume(uint8_t value);
@@ -82,7 +82,7 @@ protected:
 	};
 	//BatteryIconBox battery = BatteryIconBox(LCD_W-16*0, LCD_H-16*0, LCD_GRAY);
 	IconTextBox volume = IconTextBox(LCD_W-16*4, LCD_H-16*1, ICON16x16_VOLUME, LCD_GRAY);
-	TextBox playTime = TextBox(LCD_W-16*4, LCD_H-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
+	TextBox playTime = TextBox(LCD_W-16*4-8, LCD_H-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
 	IconScrollTextBox title = IconScrollTextBox(16*0, 16*0, ICON16x16_TITLE, LCD_W, FONT_HEIGHT, LCD_LIGHTBLUE, LCD_BLACK);
 	IconScrollTextBox artist = IconScrollTextBox(16*0, 16*1, ICON16x16_ARTIST, LCD_W, FONT_HEIGHT, LCD_LIGHTGREEN, LCD_BLACK);
 	IconScrollTextBox album = IconScrollTextBox(16*0, 16*2, ICON16x16_ALBUM, LCD_W, FONT_HEIGHT, LCD_GRAYBLUE, LCD_BLACK);

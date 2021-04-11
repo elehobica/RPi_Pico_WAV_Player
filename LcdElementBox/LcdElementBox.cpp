@@ -19,7 +19,7 @@ ImageBox::ImageBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), width(width), height(height), bgColor(bgColor),
         image(NULL), img_w(width), img_h(height), align(center)
 {
-    image = (uint16_t *) calloc(2, width * height);
+    image = (uint16_t *) calloc(width * height, sizeof(uint16_t));
 }
 
 void ImageBox::setBgColor(uint16_t bgColor)
@@ -183,7 +183,7 @@ void TextBox::draw()
     if (strlen(str) == 0) { return; } // not to calculate x0, y0, w0, h0 because illegal values cause clear() mulfunction
     w0 = strlen(str)*8;
     h0 = 16;
-    x_ofs = (align == LcdElementBox::AlignRight) ? -w0 : (align == LcdElementBox::AlignCenter) ? -w0/2 : 0; // at this point, w0 could be not correct
+    x_ofs = (align == LcdElementBox::AlignRight) ? -w0 : (align == LcdElementBox::AlignCenter) ? -w0/2 : 0;
     x0 = pos_x+x_ofs;
     y0 = pos_y;
     LCD_ShowStringLn(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
@@ -196,10 +196,7 @@ void TextBox::clear()
 
 void TextBox::setText(const char *str)
 {
-    w0 = 0;
-    h0 = 16;
     if (strncmp(this->str, str, charSize) == 0) { return; }
-    w0 = strlen(str)*8;
     memcpy(this->str, str, charSize);
     update();
 }

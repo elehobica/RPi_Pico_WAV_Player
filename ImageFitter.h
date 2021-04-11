@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <cstdlib>
 
+#define IMAGE_FITTER_SWAP_BYTES
+
 // reference to Singleton instance
 #define imgFit ImageFitter::instance()
 
