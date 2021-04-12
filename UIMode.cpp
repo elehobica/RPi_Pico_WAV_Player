@@ -18,17 +18,11 @@ TagRead tag;
 const uint8_t *BLANK_LINE = ((uint8_t *) "                    ");
 
 // UIMode class instances
-LcdCanvas *UIMode::lcd = nullptr;
 button_action_t UIMode::btn_act;
 
 //================================
 // Implementation of UIMode class
 //================================
-void UIMode::linkLcdCanvas(LcdCanvas *lcd_canvas)
-{
-    lcd = lcd_canvas;
-}
-
 UIMode::UIMode(const char *name, ui_mode_enm_t ui_mode_enm, UIVars *vars) : name(name), prevMode(NULL), ui_mode_enm(ui_mode_enm), vars(vars), idle_count(0)
 {
 }
@@ -76,7 +70,7 @@ UIInitialMode::UIInitialMode(UIVars *vars) : UIMode("UIInitialMode", InitialMode
     file_menu_open_dir("/");
     if (file_menu_get_num() <= 1) {
         //power_off("Card Read Error!", 1);
-        lcd->setMsg("Card Read Error!");
+        lcd.setMsg("Card Read Error!");
     }
 }
 
@@ -102,12 +96,12 @@ UIMode* UIInitialMode::update()
 void UIInitialMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    lcd->switchToInitial();
+    lcd.switchToInitial();
 }
 
 void UIInitialMode::draw()
 {
-    lcd->drawInitial();
+    lcd.drawInitial();
 }
 
 //=========================================
@@ -126,12 +120,12 @@ void UIFileViewMode::listIdxItems()
     char str[256];
     for (int i = 0; i < vars->num_list_lines; i++) {
         if (vars->idx_head+i >= file_menu_get_num()) {
-            lcd->setListItem(i, ""); // delete
+            lcd.setListItem(i, ""); // delete
             continue;
         }
         file_menu_get_fname(vars->idx_head+i, str, sizeof(str));
         uint8_t icon = file_menu_is_dir(vars->idx_head+i) ? ICON16x16_FOLDER : ICON16x16_FILE;
-        lcd->setListItem(i, str, icon, (i == vars->idx_column));
+        lcd.setListItem(i, str, icon, (i == vars->idx_column));
     }
 }
 
@@ -456,7 +450,7 @@ UIMode* UIFileViewMode::update()
     } else if (idle_count > 5*OneSec) {
         file_menu_idle(); // for background sort
     }
-    lcd->setBatteryVoltage(vars->bat_mv);
+    lcd.setBatteryVoltage(vars->bat_mv);
     */
     idle_count++;
     return this;
@@ -466,12 +460,12 @@ void UIFileViewMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
     listIdxItems();
-    lcd->switchToListView();
+    lcd.switchToListView();
 }
 
 void UIFileViewMode::draw()
 {
-    lcd->drawListView();
+    lcd.drawListView();
     ui_clear_btn_evt();
 }
 
@@ -534,10 +528,10 @@ UIMode* UIPlayMode::update()
         vars->do_next_play = TimeoutPlay;
         return getUIMode(FileViewMode);
     }
-    lcd->setVolume(PlayAudio::getVolume());
-    //lcd->setBitRate(codec->bitRate());
-    lcd->setPlayTime(codec->elapsedMillis()/1000, codec->totalMillis()/1000, codec->isPaused());
-    //lcd->setBatteryVoltage(vars->bat_mv);
+    lcd.setVolume(PlayAudio::getVolume());
+    //lcd.setBitRate(codec->bitRate());
+    lcd.setPlayTime(codec->elapsedMillis()/1000, codec->totalMillis()/1000, codec->isPaused());
+    //lcd.setBatteryVoltage(vars->bat_mv);
     idle_count++;
     return this;
 }
@@ -607,27 +601,27 @@ void UIPlayMode::readTag()
     } else {
         sprintf(str, "%d/%d", vars->idx_play, vars->num_tracks);
     }
-    lcd->setTrack(str);
+    lcd.setTrack(str);
     if (tag.getUTF8Title(str, sizeof(str))) {
-        lcd->setTitle(str);
+        lcd.setTitle(str);
     } else { // display filename if no TAG
         file_menu_get_fname(vars->idx_play, str, sizeof(str));
-        lcd->setTitle(str);
+        lcd.setTitle(str);
         /*
         file_menu_get_fname_UTF16(vars->idx_play, (char16_t *) str, sizeof(str)/2);
-        lcd->setTitle(utf16_to_utf8((const char16_t *) str).c_str(), utf8);
+        lcd.setTitle(utf16_to_utf8((const char16_t *) str).c_str(), utf8);
         */
     }
-    if (tag.getUTF8Album(str, sizeof(str))) lcd->setAlbum(str); else lcd->setAlbum("");
-    if (tag.getUTF8Artist(str, sizeof(str))) lcd->setArtist(str); else lcd->setArtist("");
-    //if (tag.getUTF8Year(str, sizeof(str))) lcd->setYear(str); else lcd->setYear("");
+    if (tag.getUTF8Album(str, sizeof(str))) lcd.setAlbum(str); else lcd.setAlbum("");
+    if (tag.getUTF8Artist(str, sizeof(str))) lcd.setArtist(str); else lcd.setArtist("");
+    //if (tag.getUTF8Year(str, sizeof(str))) lcd.setYear(str); else lcd.setYear("");
 
     uint16_t idx = 0;
     while (idx < file_menu_get_num()) {
         if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
             file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
             file_menu_get_fname(idx, str, sizeof(str));
-            lcd->setImageJpeg(str);
+            lcd.setImageJpeg(str);
             break;
         }
         idx++;
@@ -636,11 +630,11 @@ void UIPlayMode::readTag()
     return;
 
     // copy TAG image
-    //lcd->deleteAlbumArt();
+    //lcd.deleteAlbumArt();
     for (int i = 0; i < tag.getPictureCount(); i++) {
         if (tag.getPicturePos(i, &mime, &ptype, &img_pos, &size, &is_unsync)) {
-            if (mime == jpeg) { /*lcd->addAlbumArtJpeg(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
-            else if (mime == png) { /*lcd->addAlbumArtPng(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
+            if (mime == jpeg) { /*lcd.addAlbumArtJpeg(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
+            else if (mime == png) { /*lcd.addAlbumArtPng(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
         }
     }
     // if no AlbumArt in TAG, use JPEG or PNG in current folder
@@ -653,10 +647,10 @@ void UIPlayMode::readTag()
                 printf("JPEG %s\n", str);
 
 
-                //lcd->addAlbumArtJpeg(idx, 0, f.fileSize());
+                //lcd.addAlbumArtJpeg(idx, 0, f.fileSize());
                 img_cnt++;
             } else if (file_menu_match_ext(idx, "png", 3) || file_menu_match_ext(idx, "PNG", 3)) {
-                //ilcd->addAlbumArtPng(idx, 0, f.fileSize());
+                //ilcd.addAlbumArtPng(idx, 0, f.fileSize());
                 img_cnt++;
             }
             idx++;
@@ -677,15 +671,15 @@ void UIPlayMode::play()
 void UIPlayMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    lcd->switchToPlay();
     //if (prevMode->getUIModeEnm() != ConfigMode) {
     play();
     //}
+    lcd.switchToPlay();
 }
 
 void UIPlayMode::draw()
 {
-    lcd->drawPlay();
+    lcd.drawPlay();
     ui_clear_btn_evt();
 }
 
@@ -727,10 +721,10 @@ void UIConfigMode::listIdxItems()
 {
     for (int i = 0; i < vars->num_list_lines; i++) {
         if (idx_head+i >= getNum()) {
-            lcd->setListItem(i, ""); // delete
+            lcd.setListItem(i, ""); // delete
             continue;
         }
-        lcd->setListItem(i, getStr(idx_head+i), getIcon(idx_head+i), (i == idx_column));
+        lcd.setListItem(i, getStr(idx_head+i), getIcon(idx_head+i), (i == idx_column));
     }
 }
 
@@ -837,12 +831,12 @@ void UIConfigMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
     listIdxItems();
-    lcd->switchToListView();
+    lcd.switchToListView();
 }
 
 void UIConfigMode::draw()
 {
-    lcd->drawListView();
+    lcd.drawListView();
     ui_clear_btn_evt();
 }
 
@@ -861,8 +855,8 @@ UIMode* UIPowerOffMode::update()
 void UIPowerOffMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    lcd->switchToPowerOff(vars->power_off_msg);
-    lcd->drawPowerOff();
+    lcd.switchToPowerOff(vars->power_off_msg);
+    lcd.drawPowerOff();
     ui_terminate(vars->resume_ui_mode);
 }
 

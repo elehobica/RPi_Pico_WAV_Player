@@ -1,5 +1,6 @@
 #include "lcd.h"
 #include "oledfont.h"
+#include "lcd_background.h"
 
 u16 BACK_COLOR;   //背景色
 

@@ -32,9 +32,12 @@
 #define LCD_H 80
 #endif
 
-typedef unsigned char u8;
-typedef unsigned int u16;
-typedef unsigned long u32;    			
+typedef unsigned char  u8;
+typedef unsigned short u16;
+typedef unsigned long  u32;
+typedef char  i8;
+typedef short i16;
+typedef long  i32;
 
 #define FRAME_SIZE  25600
 

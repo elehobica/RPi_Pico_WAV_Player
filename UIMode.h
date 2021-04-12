@@ -79,12 +79,10 @@ public:
     const char *getName();
     ui_mode_enm_t getUIModeEnm();
     uint16_t getIdleCount();
-    static void linkLcdCanvas(LcdCanvas *lcd_canvas);
 protected:
     static const int OneSec = 1000 / UpdateCycleMs; // 1 Sec
     static const int OneMin = 60 * OneSec; // 1 Min
     static button_action_t btn_act;
-    static LcdCanvas *lcd;
     const char *name;
     UIMode *prevMode;
     ui_mode_enm_t ui_mode_enm;

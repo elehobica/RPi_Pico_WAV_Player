@@ -28,6 +28,7 @@ add_executable(${bin_name}
     UIMode.cpp
     ImageFitter.cpp
     LcdCanvas.cpp
+    lcd_background.cpp
     stack.c
     TagRead.cpp
     utf_conv.cpp

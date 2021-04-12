@@ -16,6 +16,7 @@
 #include "ui_control.h"
 #include "LcdCanvas.h"
 #include "PlayAudio/audio_codec.h"
+#include "lcd_background.h"
 
 const int Version = 0*100*100 + 0*100 + 1;
 unsigned char image[160*80*2];
@@ -100,9 +101,6 @@ int main() {
     // Square bl_val to make brightness appear more linear
     pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
 
-    // init LCD
-    LcdCanvas lcd = LcdCanvas();
-
     // Progress Bar display before stable power-on for 1 sec
     // to avoid unintended power-on when Headphone plug in
     for (int i = 0; i < 40; i++) {
@@ -133,7 +131,7 @@ int main() {
     audio_codec_init();
 
     // UI initialize
-    ui_init(FileViewMode, dir_stack, &lcd, fs.fs_type);
+    ui_init(FileViewMode, dir_stack, fs.fs_type);
 
     // UI Loop
     while (true) {

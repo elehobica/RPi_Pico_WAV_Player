@@ -2,9 +2,9 @@
 #define __OLEDFONT_H 	   
 
 //ASCII字符集
-typedef unsigned char u8;
-typedef unsigned int u16;
-typedef unsigned long u32;
+typedef unsigned char  u8;
+typedef unsigned short u16;
+typedef unsigned long  u32;
 
 /************************************6*8的点阵************************************/
 

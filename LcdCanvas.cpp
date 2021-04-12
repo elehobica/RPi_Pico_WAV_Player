@@ -10,6 +10,7 @@
 #include <cstring>
 #include "LcdCanvas.h"
 #include "ImageFitter.h"
+#include "st7735_80x160/my_lcd.h"
 //#include "fonts/iconfont.h"
 
 #if 0
@@ -46,6 +47,13 @@ void BatteryIconBox::setLevel(uint8_t value)
 //=================================
 // Implementation of LcdCanvas class
 //=================================
+LcdCanvas LcdCanvas::_instance; // Singleton
+
+LcdCanvas& LcdCanvas::instance()
+{
+    return _instance;
+}
+
 LcdCanvas::LcdCanvas()
 {
 #if defined(USE_ST7735S_160x80)
@@ -84,6 +92,7 @@ void LcdCanvas::switchToListView()
 void LcdCanvas::switchToPlay()
 {
     clear();
+    LCD_ShowBackground();
     msg.setText("");
     for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
         groupPlay[i]->update();
@@ -162,6 +171,7 @@ void LcdCanvas::drawPlay()
             for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
                 groupPlay1[i]->update();
             }
+            LCD_ShowBackground();
             /*
             if (albumArt.getCount() > 1) {
                 albumArt.clear();
@@ -187,6 +197,7 @@ void LcdCanvas::drawPlay()
             for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
                 groupPlay0[i]->update();
             }
+            LCD_ShowBackground();
         }
     }
     play_count++;
@@ -255,6 +266,11 @@ void LcdCanvas::setAlbum(const char *str)
 void LcdCanvas::setArtist(const char *str)
 {
     artist.setText(str);
+}
+
+uint16_t LcdCanvas::getBackground(uint16_t x, uint16_t y)
+{
+    return image.getPixel(x, y, true);
 }
 
 /*

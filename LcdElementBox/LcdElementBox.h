@@ -62,6 +62,7 @@ public:
 	void setImageSize(int16_t img_w, int16_t img_h);
 	void setPixel(int16_t x, int16_t y, uint16_t rgb565);
 	void clearBuf();
+	uint16_t getPixel(uint16_t x, uint16_t y, bool tiled = false);
 protected:
 	bool isUpdated;
 	int16_t pos_x, pos_y;

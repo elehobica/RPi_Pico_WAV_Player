@@ -201,7 +201,7 @@ UIMode *getUIMode(ui_mode_enm_t ui_mode_enm)
     return ui_mode_ary[ui_mode_enm];
 }
 
-void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, LcdCanvas *lcd, uint8_t fs_type)
+void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type)
 {
     vars.init_dest_ui_mode = init_dest_ui_mode;
     vars.fs_type = fs_type;
@@ -212,8 +212,6 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, LcdCanvas *lcd
 
     // button event queue
     queue_init(&btn_evt_queue, sizeof(element_t), QueueLength);
-
-    UIMode::linkLcdCanvas(lcd);
 
     ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode(&vars);
     ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode(&vars, dir_stack);

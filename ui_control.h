@@ -32,7 +32,7 @@ typedef struct element {
 } element_t;
 
 UIMode *getUIMode(ui_mode_enm_t ui_mode_enm);
-void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, LcdCanvas *lcd, uint8_t fs_type);
+void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type);
 void ui_update();
 void ui_force_update(ui_mode_enm_t ui_mode_enm);
 bool ui_get_btn_evt(button_action_t *btn_act);

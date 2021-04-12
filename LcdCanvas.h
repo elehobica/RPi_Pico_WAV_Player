@@ -38,11 +38,13 @@ protected:
 //=================================
 // Definition of LcdCanvas Class
 //=================================
+// reference to Singleton instance
+#define lcd LcdCanvas::instance()
+
 class LcdCanvas
 {
 public:
-	LcdCanvas();
-    ~LcdCanvas();
+    static LcdCanvas& instance(); // Singleton
 	void clear();
 	void bye();
 	void setImageJpeg(const char *filename);
@@ -67,8 +69,10 @@ public:
 	void drawListView();
 	void drawPlay();
 	void drawPowerOff();
+	uint16_t getBackground(uint16_t x, uint16_t y);
 
 protected:
+	static LcdCanvas _instance; // Singleton
 	int play_count;
 	const int play_cycle = 400;
 	const int play_change = 350;
@@ -80,6 +84,7 @@ protected:
 		IconScrollTextBox(16*0, 16*3, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK),
 		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK)
 	};
+	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
 	//BatteryIconBox battery = BatteryIconBox(LCD_W-16*0, LCD_H-16*0, LCD_GRAY);
 	IconTextBox volume = IconTextBox(LCD_W-16*4, LCD_H-16*1, ICON16x16_VOLUME, LCD_GRAY);
 	TextBox playTime = TextBox(LCD_W-16*4-8, LCD_H-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
@@ -88,7 +93,6 @@ protected:
 	IconScrollTextBox album = IconScrollTextBox(16*0, 16*2, ICON16x16_ALBUM, LCD_W, FONT_HEIGHT, LCD_GRAYBLUE, LCD_BLACK);
 	TextBox track = TextBox(16*0, LCD_H-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
 	TextBox msg = TextBox(LCD_W/2, LCD_H/2, LcdElementBox::AlignCenter);
-	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
 	LcdElementBox *groupInitial[2] = {&image, &msg};
 	LcdElementBox *groupListView[5] = {
 		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4]
@@ -97,6 +101,12 @@ protected:
 	LcdElementBox *groupPlay0[6] = {&title, &artist, &album, &track, &playTime, &volume}; // Play mode 0 only
 	LcdElementBox *groupPlay1[2] = {&image, &msg}; // Play mode 1 only
 	LcdElementBox *groupPowerOff[1] = {&msg};
+
+	// Singleton
+    LcdCanvas();
+    virtual ~LcdCanvas();
+    LcdCanvas(const LcdCanvas&) = delete;
+	LcdCanvas& operator=(const LcdCanvas&) = delete;
 #endif // USE_ST7735S_160x80
 };
 

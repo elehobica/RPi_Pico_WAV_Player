@@ -89,6 +89,17 @@ void ImageBox::clearBuf()
     }
 }
 
+uint16_t ImageBox::getPixel(uint16_t x, uint16_t y, bool tiled)
+{
+    uint16_t xx = (tiled) ? x % img_w : x;
+    uint16_t yy = (tiled) ? y % img_h : y;
+    if (xx < img_w && yy < img_h) {
+        return image[img_w*yy+xx];
+    } else {
+        return (uint16_t) 0x0000;
+    }
+}
+
 //=================================
 // Implementation of IconBox class
 //=================================
@@ -127,7 +138,7 @@ void IconBox::draw()
 
 void IconBox::clear()
 {
-    LCD_Fill(pos_x, pos_y, pos_x+iconWidth-1, pos_y+iconHeight-1, bgColor);
+    LCD_FillBackground(pos_x, pos_y, pos_x+iconWidth-1, pos_y+iconHeight-1);
 }
 
 void IconBox::setIcon(uint8_t icon)
@@ -186,12 +197,12 @@ void TextBox::draw()
     x_ofs = (align == LcdElementBox::AlignRight) ? -w0 : (align == LcdElementBox::AlignCenter) ? -w0/2 : 0;
     x0 = pos_x+x_ofs;
     y0 = pos_y;
-    LCD_ShowStringLn(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
+    LCD_ShowStringLnOL(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
 }
 
 void TextBox::clear()
 {
-    LCD_Fill(x0, y0, x0+w0-1, y0+h0-1, bgColor); // clear previous rectangle
+    LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1); // clear previous rectangle
 }
 
 void TextBox::setText(const char *str)
@@ -302,13 +313,13 @@ void ScrollTextBox::draw()
     if (!isUpdated && !scr_en) { return; }
     if (isUpdated) { ScrollTextBox::clear(); }// call clear() of this class
     isUpdated = false;
-    LCD_Scroll_ShowString(pos_x, pos_y, pos_x, pos_x+width-1, (u8 *) str, fgColor, &sft_val, count);
+    LCD_Scroll_ShowString(pos_x, pos_y, pos_x, pos_x+width-1, (u8 *) str, fgColor, (u16 *) &sft_val, count);
     count++;
 }
 
 void ScrollTextBox::clear()
 {
-    LCD_Fill(pos_x, pos_y, pos_x+width-1, pos_y+height-1, bgColor);
+    LCD_FillBackground(pos_x, pos_y, pos_x+width-1, pos_y+height-1);
 }
 
 void ScrollTextBox::setScroll(bool scr_en)
