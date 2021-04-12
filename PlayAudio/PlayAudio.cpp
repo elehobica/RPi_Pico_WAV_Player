@@ -125,7 +125,6 @@ void PlayAudio::decode()
         samples[i*2+0] = DAC_ZERO;
         samples[i*2+1] = DAC_ZERO;
     }
-    samplesPlayed += buffer->sample_count;
     give_audio_buffer(ap, buffer);
 
     #ifdef DEBUG_PLAYAUDIO
