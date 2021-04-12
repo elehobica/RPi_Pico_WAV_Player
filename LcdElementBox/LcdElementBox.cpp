@@ -190,13 +190,26 @@ void TextBox::draw()
     if (!isUpdated) { return; }
     int16_t x_ofs;
     isUpdated = false;
-    TextBox::clear(); // call clear() of this class
+    //TextBox::clear(); // call clear() of this class
     if (strlen(str) == 0) { return; } // not to calculate x0, y0, w0, h0 because illegal values cause clear() mulfunction
-    w0 = strlen(str)*8;
-    h0 = 16;
+    uint16_t w1, h1;
+    int16_t x1, y1;
+    w1 = strlen(str)*8;
+    h1 = 16;
     x_ofs = (align == LcdElementBox::AlignRight) ? -w0 : (align == LcdElementBox::AlignCenter) ? -w0/2 : 0;
-    x0 = pos_x+x_ofs;
-    y0 = pos_y;
+    x1 = pos_x+x_ofs;
+    y1 = pos_y;
+    // clear left & right wing
+    if (x0 < x1) {
+        LCD_FillBackground(x0, y1, x1-1, y1+h1-1); // left wing
+    }
+    if (x0+w0 > x1+w1) {
+        LCD_FillBackground(x1+w1, y1, x0+w0-1, y1+h1-1); // right wing
+    }
+    w0 = w1;
+    h0 = h1;
+    x0 = x1;
+    y0 = y1;
     LCD_ShowStringLnOL(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
 }
 
