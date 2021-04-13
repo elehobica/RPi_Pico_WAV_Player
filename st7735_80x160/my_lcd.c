@@ -17,37 +17,24 @@ void LCD_ShowIcon(u16 x,u16 y,u8 index,u8 mode,u16 color)
 	LCD_Address_Set(x,y,x+size-1,y+size-1); //设置一个汉字的区域
 	size1=size*size/8;//一个汉字所占的字节
 	temp+=index*size1;//写入的起始位置
-	if(!mode)
-	{
-		for(pos=0;pos<size1;pos++)
-		{
-			for(t=0;t<8;t++)
-			{
-				if((*temp&(1<<t))!=0)//从数据的低位开始读
-				{
+	if (!mode) {
+		for (pos=0;pos<size1;pos++) {
+			for (t=0;t<8;t++) {
+				if ((*temp&(1<<t))!=0) {//从数据的低位开始读
 					LCD_WR_DATA(color);//点亮
-				}
-				else
-				{
+				} else {
 					LCD_WR_DATA(BACK_COLOR);//不点亮
 				}
 			}
 			temp++;
 		}
-	}
-	else
-	{
-		for(pos=0;pos<size1;pos++)
-		{
-			for(t=0;t<8;t++)
-			{
-				if((*temp&(1<<t))!=0)//从数据的低位开始读
-				{
+	} else {
+		for (pos=0;pos<size1;pos++) {
+			for (t=0;t<8;t++) {
+				if((*temp&(1<<t))!=0) {//从数据的低位开始读
 					//LCD_DrawPoint(x+(pos%2)*8+t,y+pos/2,color);
 					LCD_WR_DATA(color);//点亮
-				}
-				else
-				{
+				} else {
 					LCD_WR_DATA(lcd_get_gackground(x+(pos%2)*8+t, y+pos/2));
 				}
 			}
@@ -65,25 +52,25 @@ void LCD_ShowPartialChar(i16 x,i16 y,u16 x_min,u16 x_max,u16 y_min,u16 y_max,u8 
     u8 temp;
     u8 pos,t;
 	i16 x0=x;
-	if(x<-8+1||y<-16+1)return;
-    if(x>LCD_W-1||y>LCD_H-1)return;
+	if (x<-8+1 || y<-16+1) { return; }
+    if (x>LCD_W-1 || y>LCD_H-1) { return; }
 	num=num-' ';
 	x_min = ((i32) x >= (i32) x_min) ? (u16) x : x_min;
 	y_min = ((i32) y >= (i32) y_min) ? (u16) y : y_min;
 	x_max = ((i32) x+8-1 <= (i32) x_max) ? (u16) (x+8-1) : x_max;
 	y_max = ((i32) y+16-1 <= (i32) y_max) ? (u16) (y+16-1) : y_max;
 	LCD_Address_Set(x_min,y_min,x_max,y_max);
-	if(!mode)
-	{
-		for(pos=0;pos<16;pos++)
-		{
+	if (!mode) {
+		for (pos=0;pos<16;pos++) {
 			temp=asc2_1608[(u16)num*16+pos];
-			for(t=0;t<8;t++)
-		    {
+			for (t=0;t<8;t++) {
 				if ((i32) x >= (i32) x_min && (i32) x <= (i32) x_max &&
 					(i32) y >= (i32) y_min && (i32) y <= (i32) y_max) {
-					if(temp&0x01)LCD_WR_DATA(color);
-					else LCD_WR_DATA(BACK_COLOR);
+					if (temp&0x01) {
+						LCD_WR_DATA(color);
+					} else {
+						LCD_WR_DATA(BACK_COLOR);
+					}
 				}
 				temp>>=1;
 				x++;
@@ -91,23 +78,25 @@ void LCD_ShowPartialChar(i16 x,i16 y,u16 x_min,u16 x_max,u16 y_min,u16 y_max,u8 
 			x=x0;
 			y++;
 		}
-	}else
-	{
-		for(pos=0;pos<16;pos++)
-		{
+	} else {
+		for (pos=0;pos<16;pos++) {
 		    temp=asc2_1608[(u16)num*16+pos];
-			for(t=0;t<8;t++)
-		    {
+			for (t=0;t<8;t++) {
 				if ((i32) x >= (i32) x_min && (i32) x <= (i32) x_max &&
-					(i32) y >= (i32) y_min && (i32) y <= (i32) y_max && (temp&0x01))
-			        //LCD_DrawPoint(x+t,y+pos,color);
-					LCD_WR_DATA(color);
-				else {
-					//LCD_Address_Set(x+t,y+pos,x+t,y+pos);//设置光标位置 
-					LCD_WR_DATA(lcd_get_gackground(x+t, y+pos));
+					(i32) y >= (i32) y_min && (i32) y <= (i32) y_max) {
+					if (temp&0x01) {
+						//LCD_DrawPoint(x+t,y+pos,color);
+						LCD_WR_DATA(color);
+					} else {
+						//LCD_Address_Set(x+t,y+pos,x+t,y+pos);//设置光标位置
+						LCD_WR_DATA(lcd_get_gackground(x+t, y+pos));
+					}
 				}
 		        temp>>=1;
+				x++;
 		    }
+			x=x0;
+			y++;
 		}
 	}
 }
@@ -117,10 +106,12 @@ void LCD_ShowPartialChar(i16 x,i16 y,u16 x_min,u16 x_max,u16 y_min,u16 y_max,u8 
 u16 LCD_ShowStringLn(i16 x,i16 y,u16 x_min,u16 x_max,const u8 *p,u16 color)
 {
 	u16 res = 0;
-    while(*p!='\0')
-    {
+    while (*p!='\0') {
         LCD_ShowPartialChar(x,y,x_min,x_max,0,LCD_H-1,*p,0,color);
-        if((i32) x > (i32) x_max-7){res=1;break;}
+        if ((i32) x > (i32) x_max-7) {
+			res=1;
+			break;
+		}
         x+=8;
         p++;
     }
@@ -132,10 +123,12 @@ u16 LCD_ShowStringLn(i16 x,i16 y,u16 x_min,u16 x_max,const u8 *p,u16 color)
 u16 LCD_ShowStringLnOL(i16 x,i16 y,u16 x_min,u16 x_max,const u8 *p,u16 color)
 {
 	u16 res = 0;
-    while(*p!='\0')
-    {
+    while (*p!='\0') {
         LCD_ShowPartialChar(x,y,x_min,x_max,0,LCD_H-1,*p,1,color);
-		if((i32) x >(i32) x_max-7){res=1;break;}
+		if ((i32) x >(i32) x_max-7) {
+			res=1;
+			break;
+		}
         x+=8;
         p++;
     }
@@ -238,8 +231,8 @@ void LCD_FillBackground(u16 xsta,u16 ysta,u16 xend,u16 yend)
 {
 	u16 x,y; 
 	LCD_Address_Set(xsta,ysta,xend,yend);      //设置光标位置 
-	for(y=ysta;y<=yend;y++) {
-		for(x=xsta;x<=xend;x++) {
+	for (y=ysta;y<=yend;y++) {
+		for (x=xsta;x<=xend;x++) {
 			LCD_WR_DATA(lcd_get_gackground(x, y));
 		}
 	}
