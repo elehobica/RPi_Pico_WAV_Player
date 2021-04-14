@@ -196,7 +196,7 @@ void TextBox::draw()
     int16_t x1, y1;
     w1 = strlen(str)*8;
     h1 = 16;
-    x_ofs = (align == LcdElementBox::AlignRight) ? -w0 : (align == LcdElementBox::AlignCenter) ? -w0/2 : 0;
+    x_ofs = (align == LcdElementBox::AlignRight) ? -w1 : (align == LcdElementBox::AlignCenter) ? -w1/2 : 0;
     x1 = pos_x+x_ofs;
     y1 = pos_y;
     // clear left & right wing
