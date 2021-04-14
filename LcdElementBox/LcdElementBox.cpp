@@ -153,15 +153,15 @@ void IconBox::setIcon(uint8_t icon)
 //=================================
 TextBox::TextBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      x0(pos_x), y0(pos_y), w0(0), h0(0), align(LcdElementBox::AlignLeft), str("") {}
+      x0(pos_x), y0(pos_y), w0(0), h0(0), align(LcdElementBox::AlignLeft), drawCount(0), blink(false), str("") {}
 
 TextBox::TextBox(int16_t pos_x, int16_t pos_y, align_enm align, uint16_t fgColor, uint16_t bgColor)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), str("") {}
+      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), drawCount(0), blink(false), str("") {}
 
 TextBox::TextBox(int16_t pos_x, int16_t pos_y, const char *str, align_enm align, uint16_t fgColor, uint16_t bgColor)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align)
+      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), drawCount(0), blink(false)
 {
     setText(str);
 }
@@ -187,7 +187,7 @@ void TextBox::update()
 
 void TextBox::draw()
 {
-    if (!isUpdated) { return; }
+    if (!isUpdated && !(blink && drawCount % (BlinkInterval/2) == 0)) { drawCount++; return; }
     int16_t x_ofs;
     isUpdated = false;
     //TextBox::clear(); // call clear() of this class
@@ -210,7 +210,12 @@ void TextBox::draw()
     h0 = h1;
     x0 = x1;
     y0 = y1;
-    LCD_ShowStringLnOL(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
+    if (blink && (drawCount % BlinkInterval >= (BlinkInterval/2))) { // Blink (Disappear) case
+        LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1);
+    } else {
+        LCD_ShowStringLnOL(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
+    }
+    drawCount++;
 }
 
 void TextBox::clear()
@@ -238,6 +243,13 @@ void TextBox::setFormatText(const char *fmt, ...)
 void TextBox::setInt(int value)
 {
     setFormatText("%d", value);
+}
+
+void TextBox::setBlink(bool blink)
+{
+    if (this->blink == blink) { return; }
+    this->blink = blink;
+    update();
 }
 
 //=================================

@@ -250,7 +250,7 @@ void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink
 {
     //playTime.setFormatText("%lu:%02lu / %lu:%02lu", positionSec/60, positionSec%60, lengthSec/60, lengthSec%60);
     playTime.setFormatText("%lu:%02lu", positionSec/60, positionSec%60);
-    //playTime.setBlink(blink);
+    playTime.setBlink(blink);
 }
 
 void LcdCanvas::setTitle(const char *str)

@@ -114,8 +114,10 @@ public:
 	virtual void setText(const char *str);
 	void setFormatText(const char *fmt, ...);
 	void setInt(int value);
+	void setBlink(bool blink);
 	static const int charSize = 256;
 protected:
+	static const int BlinkInterval = 20;
 	bool isUpdated;
 	int16_t pos_x, pos_y;
 	uint16_t fgColor;
@@ -123,6 +125,8 @@ protected:
 	int16_t x0, y0; // previous rectangle origin
 	uint16_t w0, h0; // previous rectangle size
 	align_enm align;
+	uint32_t drawCount;
+	bool blink;
 	char str[charSize];
 };
 
