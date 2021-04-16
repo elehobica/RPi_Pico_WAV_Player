@@ -14,17 +14,21 @@
 //#define DEBUG_LCD_ELEMENT_BOX
 
 // Colors for LCD
-#define LCD_WHITE         0XFFFF
-#define LCD_BLACK         0X0000
-#define LCD_BRED          0XF81F
-#define LCD_GRED          0XFFE0
-#define LCD_GBLUE         0X07FF
-#define LCD_BROWN         0XBC40
-#define LCD_BRRED         0XFC07
-#define LCD_GRAY          0X8430
-#define LCD_LIGHTBLUE     0X7D7C
-#define LCD_LIGHTGREEN    0X841F
-#define LCD_GRAYBLUE      0X5458
+#define LCD_WHITE         0xFFFF
+#define LCD_BLACK         0x0000
+#define LCD_RED           0xF800
+#define LCD_GREEN         0x07E0
+#define LCD_BLUE          0x001F
+#define LCD_BRED          0xF81F
+#define LCD_GRED          0xFFE0
+#define LCD_GBLUE         0x07FF
+#define LCD_BROWN         0xBC40
+#define LCD_BRRED         0xFC07
+#define LCD_GRAY          0x8430
+#define LCD_LIGHTBLUE     0x7D7C
+#define LCD_LIGHTGREEN    0x841F
+#define LCD_GRAYBLUE      0x5458
+#define LCD_DARKGRAY      0x4208
 
 //=================================
 // Definition of LcdElementBox interface
@@ -192,5 +196,31 @@ public:
 protected:
 	IconBox iconBox;
 };
+
+//=================================
+// Definition of HorizontalBarBox class < LcdElementBox
+//=================================
+class HorizontalBarBox : public LcdElementBox
+{
+public:
+	HorizontalBarBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = true);
+	void setfgColor(uint16_t fgColor);
+	void setBgColor(uint16_t bgColor);
+	void update();
+	void draw();
+	void clear();
+	void setLevel(float value);
+	float getLevel();
+protected:
+	bool isUpdated;
+	int16_t pos_x, pos_y;
+	uint16_t width, height;
+	uint16_t fgColor;
+	uint16_t bgColor;
+	uint16_t w0, h0; // previous bar size
+	bool bgOpaque;
+	float level;
+};
+
 
 #endif // __LCDELEMENTBOX_H_INCLUDED__

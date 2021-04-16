@@ -407,3 +407,76 @@ void IconScrollTextBox::setIcon(uint8_t icon)
 {
     iconBox.setIcon(icon);
 }
+
+//=================================
+// Implementation of HorizontalBarBox class
+//=================================
+HorizontalBarBox::HorizontalBarBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), width(width), height(height), fgColor(fgColor), bgColor(bgColor), w0(0), h0(0), bgOpaque(bgOpaque), level(0)
+{
+}
+
+void HorizontalBarBox::setfgColor(uint16_t fgColor)
+{
+    if (this->fgColor == fgColor) { return; }
+    this->fgColor = fgColor;
+    update();
+}
+
+void HorizontalBarBox::setBgColor(uint16_t bgColor)
+{
+    if (this->bgColor == bgColor) { return; }
+    this->bgColor = bgColor;
+    update();
+}
+
+void HorizontalBarBox::update()
+{
+    isUpdated = true;
+}
+
+void HorizontalBarBox::draw()
+{
+    if (!isUpdated) { return; }
+    isUpdated = false;
+    uint16_t w1 = (uint16_t) ((float) width * level);
+    uint16_t h1 = height;
+    if (w0 > w1) { // delete right wing
+        if (bgOpaque) {
+            LCD_Fill(pos_x+w1, pos_y, pos_x+w0-1, pos_y+h1-1, bgColor);
+        } else {
+            LCD_FillBackground(pos_x+w1, pos_y, pos_x+w0-1, pos_y+h1-1);
+        }
+    }
+    w0 = w1;
+    h0 = h1;
+    if (w0 > 0) {
+        LCD_Fill(pos_x, pos_y, pos_x+w0-1, pos_y+h0-1, fgColor);
+    }
+    if (w0 < width && bgOpaque) {
+        LCD_Fill(pos_x+w0, pos_y, pos_x+width-1, pos_y+h0-1, bgColor);
+    }
+}
+
+void HorizontalBarBox::clear()
+{
+    if (bgOpaque) {
+        LCD_Fill(pos_x, pos_y, pos_x+width-1, pos_y+height-1, bgColor);
+    } else {
+        LCD_FillBackground(pos_x, pos_y, pos_x+width-1, pos_y+height-1);
+    }
+}
+
+void HorizontalBarBox::setLevel(float value) // 0.0 ~ 1.0
+{
+    if (this->level == value) { return; }
+    if (value < 0.0) { value = 0.0; }
+    if (value > 1.0) { value = 1.0; }
+    this->level = value;
+    update();
+}
+
+float HorizontalBarBox::getLevel()
+{
+    return level;
+}
