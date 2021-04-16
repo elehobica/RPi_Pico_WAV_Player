@@ -531,6 +531,9 @@ UIMode* UIPlayMode::update()
     lcd.setVolume(PlayAudio::getVolume());
     //lcd.setBitRate(codec->bitRate());
     lcd.setPlayTime(codec->elapsedMillis()/1000, codec->totalMillis()/1000, codec->isPaused());
+    float levelL, levelR;
+    codec->getLevel(&levelL, &levelR);
+    lcd.setAudioLevel(levelL, levelR);
     //lcd.setBatteryVoltage(vars->bat_mv);
     idle_count++;
     return this;

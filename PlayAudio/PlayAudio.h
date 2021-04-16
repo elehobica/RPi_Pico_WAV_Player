@@ -36,6 +36,7 @@ public:
     bool isPaused();
     uint32_t elapsedMillis();
     virtual uint32_t totalMillis() = 0;
+    void getLevel(float *levelL, float *levelR);
 protected:
     static const int RDBUF_SIZE = 2048;
     static const int32_t DAC_ZERO = 1; // to avoid pop noise caused by auto-mute function of DAC
@@ -47,14 +48,19 @@ protected:
     FIL fil;
     bool playing;
     bool paused;
-    uint16_t channels = 2;
-    uint16_t sampRateHz = 44100;
-    uint16_t bitRateKbps = 44100 * 16 * 2 / 1000;
-    uint16_t bitsPerSample = 16;
-    uint32_t samplesPlayed = 0;
+    uint16_t channels;
+    uint16_t sampRateHz;
+    uint16_t bitRateKbps;
+    uint16_t bitsPerSample;
+    uint32_t samplesPlayed;
+    float levelL;
+    float levelR;
     uint16_t getU16LE(const char *ptr);
     uint32_t getU32LE(const char *ptr);
+    void setLevelInt(uint32_t levelIntL, uint32_t levelIntR);
     virtual void decode();
+private:
+    float convLevelCurve(uint32_t levelInt);
 };
 
 #endif // __PLAY_AUDIO_H_INCLUDED__

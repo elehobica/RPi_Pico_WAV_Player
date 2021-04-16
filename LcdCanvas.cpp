@@ -241,9 +241,10 @@ void LcdCanvas::setVolume(uint8_t value)
     volume.setFormatText("%3d", (int) value);
 }
 
-void LcdCanvas::setTrack(const char *str)
+void LcdCanvas::setAudioLevel(float levelL, float levelR)
 {
-    track.setText(str);
+    levelMeterL.setLevel(levelL);
+    levelMeterR.setLevel(levelR);
 }
 
 void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink)
@@ -252,6 +253,11 @@ void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink
     playTime.setFormatText("%lu:%02lu", positionSec/60, positionSec%60);
     playTime.setBlink(blink);
     timeProgress.setLevel((float) positionSec/lengthSec);
+}
+
+void LcdCanvas::setTrack(const char *str)
+{
+    track.setText(str);
 }
 
 void LcdCanvas::setTitle(const char *str)

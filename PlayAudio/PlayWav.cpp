@@ -85,12 +85,19 @@ void PlayWav::decode()
         buffer->sample_count = rdbuf->getLeft()/4;
     }
     memcpy(buf_s16, rdbuf->buf(), buffer->sample_count*4);
+    uint32_t accumL = 0;
+    uint32_t accumR = 0;
     for (int i = 0; i < buffer->sample_count; i++) {
         samples[i*2+0] = (int32_t) buf_s16[i*2+0] * vol_table[volume] + DAC_ZERO;
         samples[i*2+1] = (int32_t) buf_s16[i*2+1] * vol_table[volume] + DAC_ZERO;
+        accumL += ((int32_t) buf_s16[i*2+0] * buf_s16[i*2+0]) / 32768;
+        accumR += ((int32_t) buf_s16[i*2+1] * buf_s16[i*2+1]) / 32768;
     }
     samplesPlayed += buffer->sample_count;
     give_audio_buffer(ap, buffer);
+
+    setLevelInt(accumL / buffer->sample_count, accumR / buffer->sample_count);
+
     rdbuf->shift(buffer->sample_count*4);
     if (rdbuf->getLeft()/4 == 0) { stop(); }
 

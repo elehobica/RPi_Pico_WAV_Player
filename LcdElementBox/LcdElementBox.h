@@ -203,7 +203,7 @@ protected:
 class HorizontalBarBox : public LcdElementBox
 {
 public:
-	HorizontalBarBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = true);
+	HorizontalBarBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	void setfgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
 	void update();

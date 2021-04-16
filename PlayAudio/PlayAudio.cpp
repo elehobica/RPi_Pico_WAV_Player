@@ -53,7 +53,9 @@ uint8_t PlayAudio::getVolume()
     return volume;
 }
 
-PlayAudio::PlayAudio() : playing(false), paused(false)
+PlayAudio::PlayAudio() : playing(false), paused(false), 
+    channels(2), sampRateHz(44100), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
+    samplesPlayed(0), levelL(0.0), levelR(0.0)
 {
 }
 
@@ -105,6 +107,33 @@ uint32_t PlayAudio::getU32LE(const char *ptr)
     return ((uint32_t) ptr[3] << 24) + ((uint32_t) ptr[2] << 16) + ((uint32_t) ptr[1] << 8) + ((uint32_t) ptr[0]);
 }
 
+float PlayAudio::convLevelCurve(uint32_t levelInt) // assume 0 <= level <= 32768
+{
+    int i;
+    for (i = 0; i < 101; i++) {
+        if (levelInt*2 < vol_table[i]) break;
+    }
+    return (float) i / 100.0;
+}
+
+void PlayAudio::setLevelInt(uint32_t levelIntL, uint32_t levelIntR)
+{
+    // Level conversion with slow level down
+    const float MaxLevelDown = 0.02;
+    float levelL_nxt = convLevelCurve(levelIntL);
+    if (levelL - MaxLevelDown > levelL_nxt) {
+        levelL -= MaxLevelDown;
+    } else {
+        levelL = levelL_nxt;
+    }
+    float levelR_nxt = convLevelCurve(levelIntR);
+    if (levelR - MaxLevelDown > levelR_nxt) {
+        levelR -= MaxLevelDown;
+    } else {
+        levelR = levelR_nxt;
+    }
+}
+
 void PlayAudio::decode()
 {
     // Performs Audio Mute
@@ -126,6 +155,8 @@ void PlayAudio::decode()
         samples[i*2+1] = DAC_ZERO;
     }
     give_audio_buffer(ap, buffer);
+    levelL = 0.5;
+    levelR = 0.5;
 
     #ifdef DEBUG_PLAYAUDIO
     {
@@ -138,4 +169,10 @@ void PlayAudio::decode()
 uint32_t PlayAudio::elapsedMillis()
 {
     return (uint32_t) ((uint64_t) samplesPlayed * 1000 / sampRateHz);
+}
+
+void PlayAudio::getLevel(float *levelL, float *levelR)
+{
+    *levelL = this->levelL;
+    *levelR = this->levelR;
 }
