@@ -101,12 +101,14 @@ int main() {
     // Square bl_val to make brightness appear more linear
     pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
 
+    /*
     // Progress Bar display before stable power-on for 1 sec
     // to avoid unintended power-on when Headphone plug in
     for (int i = 0; i < 40; i++) {
         LCD_Fill(i*LCD_W/40, LCD_H-8, (i+1)*LCD_W/40-1, LCD_H-1, GRAY);
         sleep_ms(25);
     }
+    */
 
     dir_stack = stack_init();
     // Mount FAT
