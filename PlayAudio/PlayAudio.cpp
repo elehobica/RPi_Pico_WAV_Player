@@ -155,8 +155,8 @@ void PlayAudio::decode()
         samples[i*2+1] = DAC_ZERO;
     }
     give_audio_buffer(ap, buffer);
-    levelL = 0.5;
-    levelR = 0.5;
+    levelL = 0.0;
+    levelR = 0.0;
 
     #ifdef DEBUG_PLAYAUDIO
     {
