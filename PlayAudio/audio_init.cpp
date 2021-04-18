@@ -39,6 +39,16 @@ audio_buffer_pool_t *audio_init()
 
     ok = audio_i2s_connect(producer_pool);
     assert(ok);
+    { // initial buffer data
+        audio_buffer_t *buffer = take_audio_buffer(producer_pool, true);
+        int32_t *samples = (int32_t *) buffer->buffer->bytes;
+        for (uint i = 0; i < buffer->max_sample_count; i++) {
+            samples[i*2+0] = DAC_ZERO;
+            samples[i*2+1] = DAC_ZERO;
+        }
+        buffer->sample_count = buffer->max_sample_count;
+        give_audio_buffer(producer_pool, buffer);
+    }
     audio_i2s_set_enabled(true);
     return producer_pool;
 }
