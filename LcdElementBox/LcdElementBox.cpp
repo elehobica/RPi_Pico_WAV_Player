@@ -103,11 +103,11 @@ uint16_t ImageBox::getPixel(uint16_t x, uint16_t y, bool tiled)
 //=================================
 // Implementation of IconBox class
 //=================================
-IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor)
-    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor), icon(0) {}
+IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor), icon(0), bgOpaque(bgOpaque) {}
 
-IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor, uint16_t bgColor)
-    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor), icon(icon) {}
+IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor), icon(icon), bgOpaque(bgOpaque) {}
 
 void IconBox::setFgColor(uint16_t fgColor)
 {
@@ -133,12 +133,12 @@ void IconBox::draw()
     if (!isUpdated) { return; }
     isUpdated = false;
     clear();
-    LCD_ShowIcon(pos_x, pos_y, icon, 1, fgColor);
+    LCD_ShowIcon(pos_x, pos_y, icon, !bgOpaque, fgColor);
 }
 
 void IconBox::clear()
 {
-    LCD_FillBackground(pos_x, pos_y, pos_x+iconWidth-1, pos_y+iconHeight-1);
+    LCD_FillBackground(pos_x, pos_y, pos_x+iconWidth-1, pos_y+iconHeight-1, !bgOpaque, bgColor);
 }
 
 void IconBox::setIcon(uint8_t icon)
@@ -151,17 +151,17 @@ void IconBox::setIcon(uint8_t icon)
 //=================================
 // Implementation of TextBox class
 //=================================
-TextBox::TextBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor)
+TextBox::TextBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      x0(pos_x), y0(pos_y), w0(0), h0(0), align(LcdElementBox::AlignLeft), drawCount(0), blink(false), str("") {}
+      x0(pos_x), y0(pos_y), w0(0), h0(0), align(LcdElementBox::AlignLeft), bgOpaque(bgOpaque), drawCount(0), blink(false), str("") {}
 
-TextBox::TextBox(int16_t pos_x, int16_t pos_y, align_enm align, uint16_t fgColor, uint16_t bgColor)
+TextBox::TextBox(int16_t pos_x, int16_t pos_y, align_enm align, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), drawCount(0), blink(false), str("") {}
+      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), bgOpaque(bgOpaque), drawCount(0), blink(false), str("") {}
 
-TextBox::TextBox(int16_t pos_x, int16_t pos_y, const char *str, align_enm align, uint16_t fgColor, uint16_t bgColor)
+TextBox::TextBox(int16_t pos_x, int16_t pos_y, const char *str, align_enm align, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), drawCount(0), blink(false)
+      x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), bgOpaque(bgOpaque), drawCount(0), blink(false)
 {
     setText(str);
 }
@@ -200,27 +200,27 @@ void TextBox::draw()
     x1 = pos_x+x_ofs;
     y1 = pos_y;
     // clear left & right wing
-    if (x0 < x1) {
-        LCD_FillBackground(x0, y1, x1-1, y1+h1-1); // left wing
+    if (x0 < x1) { // left wing
+        LCD_FillBackground(x0, y1, x1-1, y1+h1-1, !bgOpaque, bgColor);
     }
-    if (x0+w0 > x1+w1) {
-        LCD_FillBackground(x1+w1, y1, x0+w0-1, y1+h1-1); // right wing
+    if (x0+w0 > x1+w1) { // right wing
+        LCD_FillBackground(x1+w1, y1, x0+w0-1, y1+h1-1, !bgOpaque, bgColor);
     }
     w0 = w1;
     h0 = h1;
     x0 = x1;
     y0 = y1;
     if (blink && (drawCount % BlinkInterval >= (BlinkInterval/2))) { // Blink (Disappear) case
-        LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1);
+        LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1, !bgOpaque, bgColor);
     } else {
-        LCD_ShowStringLnOL(x0, y0, x0, x0+w0-1, (u8 *) str, fgColor);
+        LCD_ShowStringLn(x0, y0, x0, x0+w0-1, (u8 *) str, !bgOpaque, fgColor);
     }
     drawCount++;
 }
 
 void TextBox::clear()
 {
-    LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1); // clear previous rectangle
+    LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1, !bgOpaque, bgColor); // clear previous rectangle
 }
 
 void TextBox::setText(const char *str)
@@ -255,8 +255,8 @@ void TextBox::setBlink(bool blink)
 //=================================
 // Implementation of IconTextBox class
 //=================================
-IconTextBox::IconTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor, uint16_t bgColor)
-    : TextBox(pos_x+16, pos_y, fgColor, bgColor), iconBox(pos_x, pos_y, icon, fgColor, bgColor) {}
+IconTextBox::IconTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+    : TextBox(pos_x+16, pos_y, fgColor, bgColor, bgOpaque), iconBox(pos_x, pos_y, icon, fgColor, bgColor, bgOpaque) {}
 
 void IconTextBox::setFgColor(uint16_t fgColor)
 {
@@ -302,9 +302,9 @@ void IconTextBox::setIcon(uint8_t icon)
 //=================================
 // Implementation of ScrollTextBox class < LcdElementBox
 //=================================
-ScrollTextBox::ScrollTextBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor)
+ScrollTextBox::ScrollTextBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
-      str(""), width(width), height(height), sft_val(0), count(0), scr_en(true)
+      str(""), width(width), height(height), bgOpaque(bgOpaque), sft_val(0), count(0), scr_en(true)
 {
 }
 
@@ -338,13 +338,13 @@ void ScrollTextBox::draw()
     if (!isUpdated && !scr_en) { return; }
     if (isUpdated) { ScrollTextBox::clear(); }// call clear() of this class
     isUpdated = false;
-    LCD_Scroll_ShowString(pos_x, pos_y, pos_x, pos_x+width-1, (u8 *) str, fgColor, (u16 *) &sft_val, count);
+    LCD_Scroll_ShowString(pos_x, pos_y, pos_x, pos_x+width-1, (u8 *) str, !bgOpaque, fgColor, (u16 *) &sft_val, count);
     count++;
 }
 
 void ScrollTextBox::clear()
 {
-    LCD_FillBackground(pos_x, pos_y, pos_x+width-1, pos_y+height-1);
+    LCD_FillBackground(pos_x, pos_y, pos_x+width-1, pos_y+height-1, !bgOpaque, bgColor);
 }
 
 void ScrollTextBox::setScroll(bool scr_en)
@@ -364,8 +364,8 @@ void ScrollTextBox::setText(const char *str)
 //=================================
 // Implementation of IconScrollTextBox class < ScrollTextBox
 //=================================
-IconScrollTextBox::IconScrollTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor)
-    : ScrollTextBox(pos_x+16, pos_y, width-16, height, fgColor, bgColor), iconBox(pos_x, pos_y, icon, fgColor, bgColor) {}
+IconScrollTextBox::IconScrollTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+    : ScrollTextBox(pos_x+16, pos_y, width-16, height, fgColor, bgColor, bgOpaque), iconBox(pos_x, pos_y, icon, fgColor, bgColor, bgOpaque) {}
 
 void IconScrollTextBox::setFgColor(uint16_t fgColor)
 {
@@ -412,7 +412,7 @@ void IconScrollTextBox::setIcon(uint8_t icon)
 // Implementation of HorizontalBarBox class
 //=================================
 HorizontalBarBox::HorizontalBarBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
-    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), width(width), height(height), fgColor(fgColor), bgColor(bgColor), w0(0), h0(0), bgOpaque(bgOpaque), level(0)
+    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), width(width), height(height), fgColor(fgColor), bgColor(bgColor), bgOpaque(bgOpaque), level(0)
 {
 }
 
@@ -439,32 +439,19 @@ void HorizontalBarBox::draw()
 {
     if (!isUpdated) { return; }
     isUpdated = false;
-    uint16_t w1 = (uint16_t) ((float) width * level);
-    uint16_t h1 = height;
-    if (w0 > w1) { // delete right wing
-        if (bgOpaque) {
-            LCD_Fill(pos_x+w1, pos_y, pos_x+w0-1, pos_y+h1-1, bgColor);
-        } else {
-            LCD_FillBackground(pos_x+w1, pos_y, pos_x+w0-1, pos_y+h1-1);
-        }
-    }
-    w0 = w1;
-    h0 = h1;
+    uint16_t w0 = (uint16_t) ((float) width * level);
+    uint16_t h0 = height;
     if (w0 > 0) {
         LCD_Fill(pos_x, pos_y, pos_x+w0-1, pos_y+h0-1, fgColor);
     }
-    if (w0 < width && bgOpaque) {
-        LCD_Fill(pos_x+w0, pos_y, pos_x+width-1, pos_y+h0-1, bgColor);
+    if (w0 < width) {
+        LCD_FillBackground(pos_x+w0, pos_y, pos_x+width-1, pos_y+h0-1, !bgOpaque, bgColor);
     }
 }
 
 void HorizontalBarBox::clear()
 {
-    if (bgOpaque) {
-        LCD_Fill(pos_x, pos_y, pos_x+width-1, pos_y+height-1, bgColor);
-    } else {
-        LCD_FillBackground(pos_x, pos_y, pos_x+width-1, pos_y+height-1);
-    }
+    LCD_FillBackground(pos_x, pos_y, pos_x+width-1, pos_y+height-1, !bgOpaque, bgColor);
 }
 
 void HorizontalBarBox::setLevel(float value) // 0.0 ~ 1.0

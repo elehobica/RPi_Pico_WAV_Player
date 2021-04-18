@@ -83,8 +83,8 @@ protected:
 class IconBox : public LcdElementBox
 {
 public:
-	IconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
-	IconBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
+	IconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
+	IconBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	void setFgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
 	void update();
@@ -99,6 +99,7 @@ protected:
 	uint16_t fgColor;
 	uint16_t bgColor;
 	uint8_t icon;
+	bool bgOpaque;
 };
 
 //=================================
@@ -107,9 +108,9 @@ protected:
 class TextBox : public LcdElementBox
 {
 public:
-	TextBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
-	TextBox(int16_t pos_x, int16_t pos_y, align_enm align, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
-	TextBox(int16_t pos_x, int16_t pos_y, const char *str, align_enm align, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
+	TextBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
+	TextBox(int16_t pos_x, int16_t pos_y, align_enm align, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
+	TextBox(int16_t pos_x, int16_t pos_y, const char *str, align_enm align, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	void setFgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
 	void update();
@@ -129,6 +130,7 @@ protected:
 	int16_t x0, y0; // previous rectangle origin
 	uint16_t w0, h0; // previous rectangle size
 	align_enm align;
+	bool bgOpaque;
 	uint32_t drawCount;
 	bool blink;
 	char str[charSize];
@@ -140,7 +142,7 @@ protected:
 class IconTextBox : public TextBox
 {
 public:
-	IconTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
+	IconTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	void setFgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
 	void update();
@@ -157,7 +159,7 @@ protected:
 class ScrollTextBox : public LcdElementBox
 {
 public:
-	ScrollTextBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
+	ScrollTextBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	virtual ~ScrollTextBox();
 	void setFgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
@@ -175,6 +177,7 @@ protected:
 	char str[charSize];
 	uint16_t width;
 	uint16_t height;
+	bool bgOpaque;
 	uint16_t sft_val;
 	uint32_t count;
 	bool scr_en;
@@ -186,7 +189,7 @@ protected:
 class IconScrollTextBox : public ScrollTextBox
 {
 public:
-	IconScrollTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
+	IconScrollTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t width, uint16_t height, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	void setFgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
 	void update();
@@ -217,7 +220,6 @@ protected:
 	uint16_t width, height;
 	uint16_t fgColor;
 	uint16_t bgColor;
-	uint16_t w0, h0; // previous bar size
 	bool bgOpaque;
 	float level;
 };

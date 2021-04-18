@@ -73,7 +73,7 @@ LcdCanvas::~LcdCanvas()
 
 void LcdCanvas::switchToInitial()
 {
-    clear();
+    clear(true);
     msg.setText("");
     for (int i = 0; i < (int) (sizeof(groupInitial)/sizeof(*groupInitial)); i++) {
         groupInitial[i]->update();
@@ -82,7 +82,7 @@ void LcdCanvas::switchToInitial()
 
 void LcdCanvas::switchToListView()
 {
-    clear();
+    clear(true);
     msg.setText("");
     for (int i = 0; i < (int) (sizeof(groupListView)/sizeof(*groupListView)); i++) {
         groupListView[i]->update();
@@ -91,8 +91,7 @@ void LcdCanvas::switchToListView()
 
 void LcdCanvas::switchToPlay()
 {
-    clear();
-    LCD_ShowBackground();
+    clear(false);
     msg.setText("");
     for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
         groupPlay[i]->update();
@@ -108,7 +107,7 @@ void LcdCanvas::switchToPlay()
 
 void LcdCanvas::switchToPowerOff(const char *msg_str)
 {
-    clear();
+    clear(true);
     msg.setText("");
     if (msg_str != NULL) { msg.setText(msg_str); }
     for (int i = 0; i < (int) (sizeof(groupPowerOff)/sizeof(*groupPowerOff)); i++) {
@@ -116,9 +115,9 @@ void LcdCanvas::switchToPowerOff(const char *msg_str)
     }
 }
 
-void LcdCanvas::clear()
+void LcdCanvas::clear(bool bgOpaque)
 {
-    LCD_Clear(BLACK);
+    LCD_FillBackground(0, 0, LCD_W-1, LCD_H-1, !bgOpaque, LCD_BLACK);
 }
 
 void LcdCanvas::drawInitial()
@@ -162,16 +161,18 @@ void LcdCanvas::drawPlay()
             #endif // #ifdef USE_ALBUM_ART_SMALL
         } else *///if (play_count % play_cycle == play_change-1 && albumArt.getCount() > 0) { // Play mode 0 -> 1
         if (play_count % play_cycle == play_change-1) {
+            clear(false);
             for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
                 groupPlay[i]->update();
             }
+            /*
             for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
                 groupPlay0[i]->clear();
             }
+            */
             for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
                 groupPlay1[i]->update();
             }
-            LCD_ShowBackground();
             /*
             if (albumArt.getCount() > 1) {
                 albumArt.clear();
@@ -188,16 +189,18 @@ void LcdCanvas::drawPlay()
             groupPlay1[i]->draw();
         }
         if (play_count % play_cycle == play_cycle-1) { // Play mode 1 -> 0
+            clear(false);
             for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
                 groupPlay[i]->update();
             }
+            /*
             for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
                 groupPlay1[i]->clear();
             }
+            */
             for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
                 groupPlay0[i]->update();
             }
-            LCD_ShowBackground();
         }
     }
     play_count++;

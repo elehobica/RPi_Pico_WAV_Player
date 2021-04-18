@@ -45,7 +45,7 @@ class LcdCanvas
 {
 public:
     static LcdCanvas& instance(); // Singleton
-	void clear();
+	void clear(bool bgOpaque = false);
 	void bye();
 	void setImageJpeg(const char *filename);
 	void setMsg(const char *str);
@@ -79,11 +79,11 @@ protected:
 	const int play_change = 350;
 #if defined(USE_ST7735S_160x80)
 	IconScrollTextBox listItem[5] = {
-		IconScrollTextBox(16*0, 16*0, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK),
-		IconScrollTextBox(16*0, 16*1, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK),
-		IconScrollTextBox(16*0, 16*2, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK),
-		IconScrollTextBox(16*0, 16*3, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK),
-		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK)
+		IconScrollTextBox(16*0, 16*0, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*1, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*2, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*3, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true)
 	};
 	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
 	//BatteryIconBox battery = BatteryIconBox(LCD_W-16*0, LCD_H-16*0, LCD_GRAY);
