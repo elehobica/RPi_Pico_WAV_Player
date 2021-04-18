@@ -160,7 +160,7 @@ static int adc_timer_init()
     // Select ADC input 0 (GPIO26)
     adc_select_input(0);
 
-    const int timer_hz = 10;
+    const int timer_hz = 20;
     // negative timeout means exact delay (rather than delay between callbacks)
     if (!add_repeating_timer_us(-1000000 / timer_hz, timer_callback_adc, nullptr, &timer)) {
         //printf("Failed to add timer\n");

@@ -127,7 +127,6 @@ int main() {
 
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");
-    //lcd.setImageJpeg("4.jpg");
 
     // Audio Codec Initialize
     audio_codec_init();
