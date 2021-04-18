@@ -278,7 +278,7 @@ void LcdCanvas::setArtist(const char *str)
     artist.setText(str);
 }
 
-uint16_t LcdCanvas::getBackground(uint16_t x, uint16_t y)
+uint16_t LcdCanvas::getTiledImage(uint16_t x, uint16_t y)
 {
     return image.getPixel(x, y, true);
 }

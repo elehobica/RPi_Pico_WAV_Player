@@ -70,7 +70,7 @@ public:
 	void drawListView();
 	void drawPlay();
 	void drawPowerOff();
-	uint16_t getBackground(uint16_t x, uint16_t y);
+	uint16_t getTiledImage(uint16_t x, uint16_t y);
 
 protected:
 	static LcdCanvas _instance; // Singleton

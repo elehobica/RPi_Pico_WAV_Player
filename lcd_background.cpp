@@ -11,7 +11,7 @@
 
 uint16_t lcd_get_gackground(uint16_t x, uint16_t y)
 {
-    uint16_t pix =  lcd.getBackground(x, y);
+    uint16_t pix =  lcd.getTiledImage(x, y);
     pix = ((pix & 0xff00) >> 8) | ((pix & 0x00ff) << 8);
     uint16_t r = ((pix & 0xf800) >> 2) & 0xf800;
     uint16_t g = ((pix & 0x07e0) >> 2) & 0x07e0;
