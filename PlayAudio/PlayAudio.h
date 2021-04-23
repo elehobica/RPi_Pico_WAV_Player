@@ -56,6 +56,7 @@ protected:
     float levelR;
     uint16_t getU16LE(const char *ptr);
     uint32_t getU32LE(const char *ptr);
+    uint32_t getU28BE(const char *ptr);
     void setLevelInt(uint32_t levelIntL, uint32_t levelIntR);
     virtual void decode();
 private:

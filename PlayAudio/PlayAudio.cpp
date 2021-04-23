@@ -107,6 +107,11 @@ uint32_t PlayAudio::getU32LE(const char *ptr)
     return ((uint32_t) ptr[3] << 24) + ((uint32_t) ptr[2] << 16) + ((uint32_t) ptr[1] << 8) + ((uint32_t) ptr[0]);
 }
 
+uint32_t PlayAudio::getU28BE(const char *ptr)
+{
+    return (((uint32_t) ptr[0] & 0x7f) << 21) + (((uint32_t) ptr[1] & 0x7f) << 14) + (((uint32_t) ptr[2] & 0x7f) << 7) + (((uint32_t) ptr[3] & 0x7f));
+}
+
 float PlayAudio::convLevelCurve(uint32_t levelInt) // assume 0 <= level <= 32768
 {
     int i;
