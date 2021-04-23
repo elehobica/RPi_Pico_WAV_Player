@@ -12,10 +12,21 @@ extern "C" {
 }
 #include "ui_control.h"
 
+// SW PIN setting
+static const uint32_t PIN_SW_PLUS = 22;
+static const uint32_t PIN_SW_CENTER = 21;
+static const uint32_t PIN_SW_MINUS = 20;
+
+// Android Remote Control Pin (GPIO26: ADC0)
+static const uint32_t PIN_HP_BUTTON = 26;
+static const uint32_t ADC_PIN_HP_BUTTON = 0;
+
+// Configuration for button recognition
 static const uint32_t RELEASE_IGNORE_COUNT = 8;
 static const uint32_t LONG_PUSH_COUNT = 10;
 static const uint32_t LONG_LONG_PUSH_COUNT = 30;
 
+static const uint32_t NUM_BTN_HISTORY = 30;
 static button_status_t button_prv[NUM_BTN_HISTORY] = {}; // initialized as HP_BUTTON_OPEN
 static uint32_t button_repeat_count = LONG_LONG_PUSH_COUNT; // to ignore first buttton press when power-on
 
@@ -27,7 +38,29 @@ UIVars vars;
 UIMode *ui_mode = nullptr;
 UIMode *ui_mode_ary[3] = {};
 
-static button_status_t adc0_get_hp_button(void)
+static void sw_gpio_init()
+{
+    gpio_set_dir(PIN_SW_PLUS, GPIO_IN);
+    gpio_set_dir(PIN_SW_CENTER, GPIO_IN);
+    gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
+}
+
+static button_status_t get_sw_status()
+{
+    button_status_t ret;
+    if (gpio_get(PIN_SW_CENTER) == 0) {
+        ret = ButtonCenter;
+    } else if (gpio_get(PIN_SW_PLUS) == 0) {
+        ret = ButtonPlus;
+    } else if (gpio_get(PIN_SW_MINUS) == 0) {
+        ret = ButtonMinus;
+    } else {
+        ret = ButtonOpen;
+    }
+    return ret;
+}
+
+static button_status_t adc0_get_hp_button()
 {
     // ADC Calibration Coefficients
     const int16_t coef_a = 3350;
@@ -51,7 +84,7 @@ static button_status_t adc0_get_hp_button(void)
     return ret;
 }
 
-static int count_center_clicks(void)
+static int count_center_clicks()
 {
     int i;
     int detected_fall = 0;
@@ -90,7 +123,20 @@ static void update_button_action()
 {
     int i;
     int center_clicks;
-    button_status_t button = adc0_get_hp_button();
+    button_status_t button;
+    button_status_t button_hp = adc0_get_hp_button();
+    button_status_t button_sw = get_sw_status();
+    if (button_hp == ButtonCenter || button_sw == ButtonCenter) {
+        button = ButtonCenter;
+    } else if (button_hp == ButtonD || button_sw == ButtonD) {
+        button = ButtonD;
+    } else if (button_hp == ButtonPlus || button_sw == ButtonPlus) {
+        button = ButtonPlus;
+    } else if (button_hp == ButtonMinus || button_sw == ButtonMinus) {
+        button = ButtonMinus;
+    } else {
+        button = ButtonOpen;
+    }
     if (button == ButtonOpen) {
         // Ignore button release after long push
         if (button_repeat_count > LONG_PUSH_COUNT) {
@@ -156,9 +202,9 @@ static int adc_timer_init()
     // ADC Initialize
     adc_init();
     // Make sure GPIO is high-impedance, no pullups etc
-    adc_gpio_init(26);
-    // Select ADC input 0 (GPIO26)
-    adc_select_input(0);
+    adc_gpio_init(PIN_HP_BUTTON);
+    // Select ADC input ADCx (must be matched with PIN_HP_BUTTON)
+    adc_select_input(ADC_PIN_HP_BUTTON);
 
     const int timer_hz = 20;
     // negative timeout means exact delay (rather than delay between callbacks)
@@ -209,6 +255,9 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_typ
 
     // ADC and Timer setting
     adc_timer_init();
+
+    // SW GPIO initialize
+    sw_gpio_init();
 
     // button event queue
     queue_init(&btn_evt_queue, sizeof(element_t), QueueLength);

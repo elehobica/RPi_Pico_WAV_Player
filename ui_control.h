@@ -16,8 +16,6 @@ extern "C" {
 #include "LcdCanvas.h"
 #include "UIMode.h"
 
-#define NUM_BTN_HISTORY 30
-
 typedef enum _button_status_t {
     ButtonOpen = 0,
     ButtonCenter,
