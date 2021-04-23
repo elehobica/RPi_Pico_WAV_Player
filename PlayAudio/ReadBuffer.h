@@ -22,7 +22,7 @@ public:
     void bind(FIL *fp);
     bool fill();
     bool shift(size_t bytes);
-    bool shiftAndFill(size_t bytes);
+    bool shiftAll();
     size_t getLeft();
 private:
     FIL *fp;

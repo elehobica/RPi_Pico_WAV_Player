@@ -65,6 +65,11 @@ bool ReadBuffer::shift(size_t bytes)
     return true;
 }
 
+bool ReadBuffer::shiftAll()
+{
+    return shift(left);
+}
+
 size_t ReadBuffer::getLeft()
 {
     return left;
