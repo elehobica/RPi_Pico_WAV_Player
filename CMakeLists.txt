@@ -4,7 +4,7 @@ set(PICO_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/../pico-sdk)
 include(pico_sdk_import.cmake)
 include(pico_extras_import.cmake)
 
-set(project_name "android_hp_button" C CXX)
+set(project_name "RPi_Pico_WAV_Player" C CXX)
 project(${project_name})
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -21,7 +21,7 @@ add_subdirectory(my_pico_audio)
 add_subdirectory(my_pico_audio_i2s)
 add_subdirectory(PlayAudio)
 
-set(bin_name "android_hp_button")
+set(bin_name "RPi_Pico_WAV_Player")
 add_executable(${bin_name}
     main.cpp
     ui_control.cpp
