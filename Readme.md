@@ -8,7 +8,7 @@ RPi_Pico_WAV_Player is WAV player for Raspberry Pi Pico.
 This project features:
 * Playback for 44.1KHz 16bit Stereo WAV format 
 * SD Card interface (exFAT supported)
-* 160x80 LCD interface
+* 160x80 LCD display
 * UI Control by 3 GPIO buttons or Headphone Remote Control Buttons
 * Display Tag information by LIST chunk in WAV File
 * Display Coverart image by JPEG file
@@ -114,19 +114,19 @@ For Headphone Remote Control, Connect MIC pin to GP26 of Raspberry Pi Pico.
 GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 
 ### FileView Mode
-* Up/Down button to go up/down for file selection
+* Plus/Minus button to go up/down for file selection
 * Center 1 click to get into the folder
 * Center 1 click to play WAV file (go to Play Mode)
 * Center 2 click to go parent folder
 
 ### Play Mode
-* Up/Down button for volume up/down
+* Plus/Minus button for volume up/down
 * Center 1 click to pause/play
 * Center 2 click to stop (go back to FileView Mode)
 
 ## Image File Format
 ### Opening Logo File
-* Put "logo.jpg" on root Folder
+* Put "logo.jpg" on root Folder of SD Card
 * File Format: JPEG format (Progressive JPEG not supported)
 * [logo.jpg example](resource/logo.jpg)
 

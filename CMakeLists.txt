@@ -11,27 +11,27 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-add_subdirectory(hardware_gpio_ex)
-add_subdirectory(st7735_80x160)
-add_subdirectory(fatfs)
-add_subdirectory(file_menu)
-add_subdirectory(picojpeg)
-add_subdirectory(LcdElementBox)
-add_subdirectory(my_pico_audio)
-add_subdirectory(my_pico_audio_i2s)
-add_subdirectory(PlayAudio)
+add_subdirectory(lib/hardware_gpio_ex)
+add_subdirectory(lib/st7735_80x160)
+add_subdirectory(lib/fatfs)
+add_subdirectory(lib/file_menu)
+add_subdirectory(lib/picojpeg)
+add_subdirectory(lib/LcdElementBox)
+add_subdirectory(lib/my_pico_audio)
+add_subdirectory(lib/my_pico_audio_i2s)
+add_subdirectory(lib/PlayAudio)
 
 set(bin_name "RPi_Pico_WAV_Player")
 add_executable(${bin_name}
-    main.cpp
-    ui_control.cpp
-    UIMode.cpp
-    ImageFitter.cpp
-    LcdCanvas.cpp
-    lcd_background.cpp
-    stack.c
-    TagRead.cpp
-    utf_conv.cpp
+    src/main.cpp
+    src/ui_control.cpp
+    src/UIMode.cpp
+    src/ImageFitter.cpp
+    src/LcdCanvas.cpp
+    src/lcd_background.cpp
+    src/stack.c
+    src/TagRead.cpp
+    src/utf_conv.cpp
 )
 
 pico_enable_stdio_usb(${bin_name} 0)
@@ -50,4 +50,7 @@ target_link_libraries(${bin_name}
         LcdElementBox
         PlayAudio
 )
+
+target_include_directories(${bin_name} INTERFACE src)
+
 pico_add_extra_outputs(${bin_name})
