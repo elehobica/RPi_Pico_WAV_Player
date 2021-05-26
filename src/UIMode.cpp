@@ -78,15 +78,16 @@ UIMode* UIInitialMode::update()
 {
     switch (vars->init_dest_ui_mode) {
         case FileViewMode:
+            if (idle_count++ > 100) {
+                return getUIMode(FileViewMode);
+            }
+            break;
         /*
         case PlayMode:
             return getUIMode(FileViewMode);
             break;
         */
         default:
-            if (idle_count++ > 100) {
-                return getUIMode(FileViewMode);
-            }
             break;
     }
     idle_count++;
