@@ -23,6 +23,11 @@ unsigned char image[160*80*2];
 stack_t *dir_stack;
 const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
 
+static const uint32_t PIN_LED = 25;
+static const uint32_t PIN_POWER_KEEP = 19;
+static const uint32_t PIN_DCDC_PSM_CTRL = 23;
+static const uint32_t PIN_AUDIO_MUTE_CTRL = 27;
+
 static inline uint32_t _millis(void)
 {
 	return to_ms_since_boot(get_absolute_time());
@@ -78,6 +83,24 @@ int main() {
     UINT bw;
 
     stdio_init_all();
+
+    // Power Keep Pin (Disable at initial)
+    gpio_init(PIN_POWER_KEEP);
+    gpio_set_dir(PIN_POWER_KEEP, GPIO_OUT);
+    gpio_put(PIN_POWER_KEEP, 0);
+
+    // DCDC PSM control
+    // 0: PFM mode (best efficiency)
+    // 1: PWM mode (improved ripple)
+    gpio_init(PIN_DCDC_PSM_CTRL);
+    gpio_set_dir(PIN_DCDC_PSM_CTRL, GPIO_OUT);
+    gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
+
+    // Audio Mute ON
+    gpio_init(PIN_AUDIO_MUTE_CTRL);
+    gpio_set_dir(PIN_AUDIO_MUTE_CTRL, GPIO_OUT);
+    gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
+
     audio_clock_96MHz();
 
     // Initialise UART 0
@@ -87,9 +110,8 @@ int main() {
     gpio_set_function(1, GPIO_FUNC_UART);
 
     // LED
-    const uint32_t LED_PIN = 25;
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
+    gpio_init(PIN_LED);
+    gpio_set_dir(PIN_LED, GPIO_OUT);
 
     // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
     gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
@@ -101,14 +123,15 @@ int main() {
     // Square bl_val to make brightness appear more linear
     pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
 
-    /*
     // Progress Bar display before stable power-on for 1 sec
     // to avoid unintended power-on when Headphone plug in
     for (int i = 0; i < 40; i++) {
-        LCD_Fill(i*LCD_W/40, LCD_H-8, (i+1)*LCD_W/40-1, LCD_H-1, GRAY);
+        //LCD_Fill(i*LCD_W/40, LCD_H-8, (i+1)*LCD_W/40-1, LCD_H-1, GRAY);
         sleep_ms(25);
     }
-    */
+
+    // Power Keep Enable
+    gpio_put(PIN_POWER_KEEP, 1);
 
     dir_stack = stack_init();
     // Mount FAT
@@ -128,6 +151,8 @@ int main() {
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");
 
+    // Audio Mute OFF
+    gpio_put(PIN_AUDIO_MUTE_CTRL, 0);
     // Audio Codec Initialize
     audio_codec_init();
 
