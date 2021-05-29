@@ -46,9 +46,8 @@ class LcdCanvas
 public:
     static LcdCanvas& instance(); // Singleton
 	void clear(bool bgOpaque = false);
-	void bye();
 	void setImageJpeg(const char *filename);
-	void setMsg(const char *str);
+	void setMsg(const char *str, bool blink = false);
 	void setListItem(int column, const char *str, const uint8_t icon = ICON16x16_UNDEF, bool isFocused = false);
 	void setVolume(uint8_t value);
 	void setAudioLevel(float levelL, float levelR);
@@ -96,7 +95,7 @@ protected:
 	HorizontalBarBox levelMeterR = HorizontalBarBox(16*0, 16*3+8, LCD_W, 4, LCD_DARKGRAY);
 	HorizontalBarBox timeProgress = HorizontalBarBox(16*0, 16*4-1, LCD_W, 1, LCD_BLUE, LCD_DARKGRAY, true);
 	TextBox track = TextBox(16*0, LCD_H-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
-	TextBox msg = TextBox(LCD_W/2, LCD_H/2, LcdElementBox::AlignCenter);
+	TextBox msg = TextBox(LCD_W/2, LCD_H/2-FONT_HEIGHT/2, LcdElementBox::AlignCenter, LCD_WHITE, LCD_BLACK, true);
 	LcdElementBox *groupInitial[2] = {&image, &msg};
 	LcdElementBox *groupListView[5] = {
 		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4]

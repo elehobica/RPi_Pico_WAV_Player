@@ -15,8 +15,6 @@
 
 TagRead tag;
 
-const uint8_t *BLANK_LINE = ((uint8_t *) "                    ");
-
 // UIMode class instances
 button_action_t UIMode::btn_act;
 
@@ -76,6 +74,7 @@ UIInitialMode::UIInitialMode(UIVars *vars) : UIMode("UIInitialMode", InitialMode
 
 UIMode* UIInitialMode::update()
 {
+    ui_get_btn_evt(&btn_act); // Ignore button event
     switch (vars->init_dest_ui_mode) {
         case FileViewMode:
             if (idle_count++ > 100) {
@@ -103,6 +102,7 @@ void UIInitialMode::entry(UIMode *prevMode)
 void UIInitialMode::draw()
 {
     lcd.drawInitial();
+    ui_clear_btn_evt();
 }
 
 //=========================================
@@ -407,6 +407,7 @@ UIMode* UIFileViewMode::update()
                 //return getUIMode(ConfigMode);
                 break;
             case ButtonCenterLongLong:
+                return getUIMode(PowerOffMode);
                 break;
             case ButtonPlusSingle:
                 idxDec();
@@ -500,6 +501,8 @@ UIMode* UIPlayMode::update()
                 //return getUIMode(ConfigMode);
                 break;
             case ButtonCenterLongLong:
+                codec->stop();
+                return getUIMode(PowerOffMode);
                 break;
             case ButtonPlusSingle:
             case ButtonPlusLong:
@@ -789,6 +792,7 @@ int UIConfigMode::select()
 
 UIMode* UIConfigMode::update()
 {
+    PlayAudio *codec = get_audio_codec();
     if (ui_get_btn_evt(&btn_act)) {
         vars->do_next_play = None;
         switch (btn_act) {
@@ -807,6 +811,7 @@ UIMode* UIConfigMode::update()
             case ButtonCenterLong:
                 break;
             case ButtonCenterLongLong:
+                codec->stop();
                 return getUIMode(PowerOffMode);
                 break;
             case ButtonPlusSingle:
@@ -843,6 +848,7 @@ void UIConfigMode::draw()
     lcd.drawListView();
     ui_clear_btn_evt();
 }
+#endif
 
 //=======================================
 // Implementation of UIPowerOffMode class
@@ -861,10 +867,8 @@ void UIPowerOffMode::entry(UIMode *prevMode)
     UIMode::entry(prevMode);
     lcd.switchToPowerOff(vars->power_off_msg);
     lcd.drawPowerOff();
-    ui_terminate(vars->resume_ui_mode);
 }
 
 void UIPowerOffMode::draw()
 {
 }
-#endif

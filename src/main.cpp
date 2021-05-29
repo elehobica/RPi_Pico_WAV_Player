@@ -33,20 +33,18 @@ static inline uint32_t _millis(void)
 	return to_ms_since_boot(get_absolute_time());
 }
 
-void power_off(const char *msg, int is_error)
+static void power_off(const char *msg, bool is_error = false)
 {
-    LCD_Clear(BLACK);
-    if (strlen(msg) > 0) {
-        LCD_ShowString(24,  0, (u8 *) msg, BLACK);
-        LCD_ShowString(24, 16, (u8 *) msg, BLUE);
-        LCD_ShowString(24, 32, (u8 *) msg, BRED);
-        LCD_ShowString(24, 48, (u8 *) msg, GBLUE);
-        LCD_ShowString(24, 64, (u8 *) msg, RED);
-        sleep_ms(1000);
+    if (msg != NULL) { lcd.setMsg(msg, is_error); }
+    uint32_t stay_time = (is_error) ? 4000 : 1000;
+    uint32_t time = _millis();
+    gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
+    while (_millis() - time < stay_time) {
+        sleep_ms(LoopCycleMs);
+        lcd.drawPowerOff();
     }
-    while (1) {
-        sleep_ms(10);
-    }
+    gpio_put(PIN_POWER_KEEP, 0);
+    while (true) {} // endless loop
 }
 
 static void audio_clock_96MHz()
@@ -123,10 +121,9 @@ int main() {
     // Square bl_val to make brightness appear more linear
     pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
 
-    // Progress Bar display before stable power-on for 1 sec
+    // Wait before stable power-on for 750ms
     // to avoid unintended power-on when Headphone plug in
-    for (int i = 0; i < 40; i++) {
-        //LCD_Fill(i*LCD_W/40, LCD_H-8, (i+1)*LCD_W/40-1, LCD_H-1, GRAY);
+    for (int i = 0; i < 30; i++) {
         sleep_ms(25);
     }
 
@@ -142,7 +139,7 @@ int main() {
     }
 
     if (fr != FR_OK) { // Mount Fail (Loop)
-        power_off("No Card Found!", 1);
+        power_off("No Card Found!", true);
     }
 
     printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
@@ -162,7 +159,7 @@ int main() {
     // UI Loop
     while (true) {
         uint32_t time = _millis();
-        ui_update();
+        if (ui_update() == PowerOffMode) { break; }
         time = _millis() - time;
         if (time < LoopCycleMs) {
             sleep_ms(LoopCycleMs - time);
@@ -170,6 +167,8 @@ int main() {
             sleep_ms(1);
         }
     }
+
+    power_off(NULL); // never return
 
     return 0;
 }

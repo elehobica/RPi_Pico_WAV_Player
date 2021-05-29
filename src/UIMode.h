@@ -21,6 +21,7 @@ typedef enum _ui_mode_enm_t {
     InitialMode = 0,
     FileViewMode,
     PlayMode,
+    PowerOffMode
 } ui_mode_enm_t;
 
 typedef enum _button_action_t {
@@ -168,6 +169,7 @@ protected:
     void idxDec();
     int select();
 };
+#endif
 
 //===================================
 // Interface of UIPowerOffMode class
@@ -181,6 +183,5 @@ public:
     void draw();
 protected:
 };
-#endif
 
 #endif //_UIMODE_H_

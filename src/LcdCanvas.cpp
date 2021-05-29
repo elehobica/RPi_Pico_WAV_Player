@@ -108,8 +108,11 @@ void LcdCanvas::switchToPlay()
 void LcdCanvas::switchToPowerOff(const char *msg_str)
 {
     clear(true);
-    msg.setText("");
-    if (msg_str != NULL) { msg.setText(msg_str); }
+    if (msg_str != NULL) {
+        msg.setText(msg_str);
+    } else {
+        msg.setText("");
+    }
     for (int i = 0; i < (int) (sizeof(groupPowerOff)/sizeof(*groupPowerOff)); i++) {
         groupPowerOff[i]->update();
     }
@@ -225,9 +228,10 @@ void LcdCanvas::setImageJpeg(const char *filename)
     image.update();
 }
 
-void LcdCanvas::setMsg(const char *str)
+void LcdCanvas::setMsg(const char *str, bool blink)
 {
     msg.setText(str);
+    msg.setBlink(blink);
 }
 
 void LcdCanvas::setListItem(int column, const char *str, uint8_t icon, bool isFocused)

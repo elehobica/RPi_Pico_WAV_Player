@@ -36,7 +36,7 @@ static repeating_timer_t timer;
 
 UIVars vars;
 UIMode *ui_mode = nullptr;
-UIMode *ui_mode_ary[3] = {};
+UIMode *ui_mode_ary[4] = {};
 
 static void sw_gpio_init()
 {
@@ -253,23 +253,24 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_typ
     vars.fs_type = fs_type;
     vars.num_list_lines = LCD_H/16;
 
+    // button event queue
+    queue_init(&btn_evt_queue, sizeof(element_t), QueueLength);
+
     // ADC and Timer setting
     adc_timer_init();
 
     // SW GPIO initialize
     sw_gpio_init();
 
-    // button event queue
-    queue_init(&btn_evt_queue, sizeof(element_t), QueueLength);
-
     ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode(&vars);
     ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode(&vars, dir_stack);
     ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode(&vars);
+    ui_mode_ary[PowerOffMode] = (UIMode *) new UIPowerOffMode(&vars);
     ui_mode = getUIMode(InitialMode);
     ui_mode->entry(ui_mode);
 }
 
-void ui_update()
+ui_mode_enm_t ui_update()
 {
     //printf("%s\n", ui_mode->getName());
     UIMode *ui_mode_next = ui_mode->update();
@@ -279,9 +280,10 @@ void ui_update()
     } else {
         ui_mode->draw();
     }
+    return ui_mode->getUIModeEnm();
 }
 
-void ui_force_update(ui_mode_enm_t ui_mode_enm)
+ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
 {
     //printf("%s\n", ui_mode->getName());
     ui_mode->update();
@@ -292,4 +294,5 @@ void ui_force_update(ui_mode_enm_t ui_mode_enm)
     } else {
         ui_mode->draw();
     }
+    return ui_mode->getUIModeEnm();
 }
