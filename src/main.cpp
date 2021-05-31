@@ -17,6 +17,7 @@
 #include "LcdCanvas.h"
 #include "PlayAudio/audio_codec.h"
 #include "lcd_background.h"
+#include "UserFlash.h"
 
 const int Version = 0*100*100 + 0*100 + 1;
 unsigned char image[160*80*2];
@@ -144,6 +145,12 @@ int main() {
 
     printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
     printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
+
+    // Flash access
+    userFlash.printInfo();
+    uint32_t val = userFlash.read32(0);
+    userFlash.write32Reserve(0, val + 1);
+    userFlash.program();
 
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");
