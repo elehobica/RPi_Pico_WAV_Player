@@ -12,6 +12,7 @@
 #include "ui_control.h"
 #include "stack.h"
 #include "PlayAudio/audio_codec.h"
+#include "ConfigMenu.h"
 
 TagRead tag;
 
@@ -189,20 +190,20 @@ void UIFileViewMode::chdir()
 UIMode *UIFileViewMode::nextPlay()
 {
     switch (USERCFG_PLAY_NEXT_ALBUM) {
-        case UserConfig::next_play_action_t::Sequential:
+        case ConfigMenu::next_play_action_t::Sequential:
             return sequentialSearch(false);
             break;
-        case UserConfig::next_play_action_t::SequentialRepeat:
+        case ConfigMenu::next_play_action_t::SequentialRepeat:
             return sequentialSearch(true);
             break;
-        case UserConfig::next_play_action_t::Repeat:
+        case ConfigMenu::next_play_action_t::Repeat:
             vars->idx_head = 0;
             vars->idx_column = 0;
             return getUIPlayMode();
-        case UserConfig::next_play_action_t::Random:
+        case ConfigMenu::next_play_action_t::Random:
             return randomSearch(USERCFG_PLAY_RAND_DEPTH);
             break;
-        case UserConfig::next_play_action_t::Stop:
+        case ConfigMenu::next_play_action_t::Stop:
         default:
             return this;
             break;
@@ -404,10 +405,9 @@ UIMode* UIFileViewMode::update()
                 //return randomSearch(USERCFG_PLAY_RAND_DEPTH);
                 break;
             case ButtonCenterLong:
-                //return getUIMode(ConfigMode);
+                return getUIMode(ConfigMode);
                 break;
             case ButtonCenterLongLong:
-                return getUIMode(PowerOffMode);
                 break;
             case ButtonPlusSingle:
                 idxDec();
@@ -498,11 +498,9 @@ UIMode* UIPlayMode::update()
                 return getUIMode(FileViewMode);
                 break;
             case ButtonCenterLong:
-                //return getUIMode(ConfigMode);
+                return getUIMode(ConfigMode);
                 break;
             case ButtonCenterLongLong:
-                codec->stop();
-                return getUIMode(PowerOffMode);
                 break;
             case ButtonPlusSingle:
             case ButtonPlusLong:
@@ -678,9 +676,9 @@ void UIPlayMode::play()
 void UIPlayMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    //if (prevMode->getUIModeEnm() != ConfigMode) {
-    play();
-    //}
+    if (prevMode->getUIModeEnm() != ConfigMode) {
+        play();
+    }
     lcd.switchToPlay();
 }
 
@@ -690,7 +688,6 @@ void UIPlayMode::draw()
     ui_clear_btn_evt();
 }
 
-#if 0
 //=======================================
 // Implementation of UIConfigMode class
 //=======================================
@@ -702,23 +699,23 @@ UIConfigMode::UIConfigMode(UIVars *vars) : UIMode("UIConfigMode", ConfigMode, va
 
 uint16_t UIConfigMode::getNum()
 {
-    return (uint16_t) userConfig.getNum() + 1;
+    return (uint16_t) configMenu.getNum() + 1;
 }
 
 const char *UIConfigMode::getStr(uint16_t idx)
 {
     if (idx == 0) { return "[Back]"; }
-    return userConfig.getStr((int) idx-1);
+    return configMenu.getStr((int) idx-1);
 }
 
-const uint8_t *UIConfigMode::getIcon(uint16_t idx)
+uint8_t UIConfigMode::getIcon(uint16_t idx)
 {
-    const uint8_t *icon = NULL;
+    uint8_t icon = ICON16x16_UNDEF;
     if (idx == 0) {
         icon = ICON16x16_LEFTARROW;
-    } else if (!userConfig.isSelection()) {
+    } else if (!configMenu.isSelection()) {
         icon = ICON16x16_GEAR;
-    } else if (userConfig.selIdxMatched(idx-1)) {
+    } else if (configMenu.selIdxMatched(idx-1)) {
         icon = ICON16x16_CHECKED;
     }
     return icon;
@@ -771,7 +768,7 @@ int UIConfigMode::select()
 {
     stack_data_t stack_data;
     if (idx_head + idx_column == 0) {
-        if (userConfig.leave()) {
+        if (configMenu.leave()) {
             stack_pop(path_stack, &stack_data);
             idx_head = stack_data.head;
             idx_column = stack_data.column;
@@ -779,7 +776,7 @@ int UIConfigMode::select()
             return 0; // exit from Config
         }
     } else {
-        if (userConfig.enter(idx_head + idx_column - 1)) {
+        if (configMenu.enter(idx_head + idx_column - 1)) {
             stack_data.head = idx_head;
             stack_data.column = idx_column;
             stack_push(path_stack, &stack_data);
@@ -848,7 +845,6 @@ void UIConfigMode::draw()
     lcd.drawListView();
     ui_clear_btn_evt();
 }
-#endif
 
 //=======================================
 // Implementation of UIPowerOffMode class

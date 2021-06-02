@@ -36,7 +36,7 @@ static repeating_timer_t timer;
 
 UIVars vars;
 UIMode *ui_mode = nullptr;
-UIMode *ui_mode_ary[4] = {};
+UIMode *ui_mode_ary[5] = {};
 
 static void sw_gpio_init()
 {
@@ -265,6 +265,7 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_typ
     ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode(&vars);
     ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode(&vars, dir_stack);
     ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode(&vars);
+    ui_mode_ary[ConfigMode]   = (UIMode *) new UIConfigMode(&vars);
     ui_mode_ary[PowerOffMode] = (UIMode *) new UIPowerOffMode(&vars);
     ui_mode = getUIMode(InitialMode);
     ui_mode->entry(ui_mode);

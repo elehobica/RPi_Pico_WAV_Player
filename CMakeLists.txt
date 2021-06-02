@@ -33,6 +33,7 @@ add_executable(${bin_name}
     src/TagRead.cpp
     src/utf_conv.cpp
     src/UserFlash.cpp
+    src/ConfigMenu.cpp
 )
 
 pico_enable_stdio_usb(${bin_name} 1)

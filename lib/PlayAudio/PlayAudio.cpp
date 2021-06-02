@@ -81,10 +81,10 @@ void PlayAudio::pause(bool flg)
 
 void PlayAudio::stop()
 {
+    if (playing) { f_close(&fil); }
+
     playing = false;
     paused = false;
-
-    f_close(&fil);
 }
 
 bool PlayAudio::isPlaying()
@@ -116,7 +116,7 @@ float PlayAudio::convLevelCurve(uint32_t levelInt) // assume 0 <= level <= 32768
 {
     int i;
     for (i = 0; i < 101; i++) {
-        if (levelInt*2 < vol_table[i]) break;
+        if (levelInt*2 < vol_table[i]) { break; }
     }
     return (float) i / 100.0;
 }

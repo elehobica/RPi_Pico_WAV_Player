@@ -21,6 +21,7 @@ typedef enum _ui_mode_enm_t {
     InitialMode = 0,
     FileViewMode,
     PlayMode,
+    ConfigMode,
     PowerOffMode
 } ui_mode_enm_t;
 
@@ -146,7 +147,6 @@ protected:
     void readTag();
 };
 
-#if 0
 //===================================
 // Interface of UIConfigMode class
 //===================================
@@ -163,13 +163,12 @@ protected:
     uint16_t idx_column;
     uint16_t getNum();
     const char *getStr(uint16_t idx);
-    const uint8_t *getIcon(uint16_t idx);
+    uint8_t getIcon(uint16_t idx);
     void listIdxItems();
     void idxInc();
     void idxDec();
     int select();
 };
-#endif
 
 //===================================
 // Interface of UIPowerOffMode class

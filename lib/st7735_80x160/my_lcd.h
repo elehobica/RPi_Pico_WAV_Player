@@ -27,13 +27,11 @@ void LCD_FillBackground(u16 xsta,u16 ysta,u16 xend,u16 yend,u8 mode,u16 color);
 #define ICON16x16_FILE      4
 #define ICON16x16_VOLUME    5
 #define ICON16x16_BATTERY   6
-/*
-#define ICON16x16_YEAR		7
-#define ICON16x16_GEAR		8
-#define ICON16x16_CHECKED	9
-#define ICON16x16_LEFTARROW	10
-*/
-#define ICON16x16_UNDEF   255
+#define ICON16x16_YEAR      7
+#define ICON16x16_GEAR      8
+#define ICON16x16_CHECKED   9
+#define ICON16x16_LEFTARROW 10
+#define ICON16x16_UNDEF     255
 
 #endif
 
