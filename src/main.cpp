@@ -18,6 +18,9 @@
 #include "PlayAudio/audio_codec.h"
 #include "lcd_background.h"
 #include "UserFlash.h"
+#include "ConfigParam.h"
+
+//#define INITIALIZE_CONFIG_PARAM
 
 const int Version = 0*100*100 + 0*100 + 1;
 unsigned char image[160*80*2];
@@ -36,6 +39,7 @@ static inline uint32_t _millis(void)
 
 static void power_off(const char *msg, bool is_error = false)
 {
+    configParam.finalize();
     if (msg != NULL) { lcd.setMsg(msg, is_error); }
     uint32_t stay_time = (is_error) ? 4000 : 1000;
     uint32_t time = _millis();
@@ -146,11 +150,15 @@ int main() {
     printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
     printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
 
-    // Flash access
+    // Load Configuration parameters from Flash
     userFlash.printInfo();
-    uint32_t val = userFlash.read32(0);
-    userFlash.write32Reserve(0, val + 1);
-    userFlash.program();
+    #ifdef INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
+    #else // INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
+    #endif // INITIALIZE_CONFIG_PARAM
+    configParam.printInfo();
+    configParam.incBootCount();
 
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");

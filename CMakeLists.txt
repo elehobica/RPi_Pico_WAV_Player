@@ -34,6 +34,7 @@ add_executable(${bin_name}
     src/utf_conv.cpp
     src/UserFlash.cpp
     src/ConfigMenu.cpp
+    src/ConfigParam.cpp
 )
 
 pico_enable_stdio_usb(${bin_name} 1)

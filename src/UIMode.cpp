@@ -189,7 +189,7 @@ void UIFileViewMode::chdir()
 #if 0
 UIMode *UIFileViewMode::nextPlay()
 {
-    switch (USERCFG_PLAY_NEXT_ALBUM) {
+    switch (GET_CFG_MENU_PLAY_NEXT_PLAY_ALBUM) {
         case ConfigMenu::next_play_action_t::Sequential:
             return sequentialSearch(false);
             break;
@@ -201,7 +201,7 @@ UIMode *UIFileViewMode::nextPlay()
             vars->idx_column = 0;
             return getUIPlayMode();
         case ConfigMenu::next_play_action_t::Random:
-            return randomSearch(USERCFG_PLAY_RAND_DEPTH);
+            return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
             break;
         case ConfigMenu::next_play_action_t::Stop:
         default:
@@ -402,7 +402,7 @@ UIMode* UIFileViewMode::update()
                 listIdxItems();
                 break;
             case ButtonCenterTriple:
-                //return randomSearch(USERCFG_PLAY_RAND_DEPTH);
+                //return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
                 break;
             case ButtonCenterLong:
                 return getUIMode(ConfigMode);
@@ -434,10 +434,10 @@ UIMode* UIFileViewMode::update()
     switch (vars->do_next_play) {
         case ImmediatePlay:
             vars->do_next_play = None;
-            return randomSearch(USERCFG_PLAY_RAND_DEPTH);
+            return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
             break;
         case TimeoutPlay:
-            if (idle_count > USERCFG_PLAY_TM_NXT_PLY*OneSec) {
+            if (idle_count > GET_CFG_MENU_PLAY_TIME_TO_NEXT_PLAY*OneSec) {
                 vars->do_next_play = None;
                 return nextPlay();
             }
@@ -447,7 +447,7 @@ UIMode* UIFileViewMode::update()
     }
     */
     /*
-    if (idle_count > USERCFG_GEN_TM_PWROFF*OneSec) {
+    if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
         return getUIMode(PowerOffMode);
     } else if (idle_count > 5*OneSec) {
         file_menu_idle(); // for background sort
@@ -515,7 +515,7 @@ UIMode* UIPlayMode::update()
         }
         idle_count = 0;
     }
-    /*if (codec->isPaused() && idle_count > USERCFG_GEN_TM_PWROFF*OneSec) {
+    /*if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
         return getUIMode(PowerOffMode);
     } else */if (!codec->isPlaying()) {
         idle_count = 0;
@@ -826,7 +826,7 @@ UIMode* UIConfigMode::update()
         }
         idle_count = 0;
     }
-    if (idle_count > USERCFG_GEN_TM_CONFIG*OneSec) {
+    if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_LEAVE_CONFIG*OneSec) {
         return prevMode;
     }
     idle_count++;

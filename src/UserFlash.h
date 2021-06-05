@@ -23,14 +23,8 @@ class UserFlash
 public:
     static UserFlash& instance(); // Singleton
     void printInfo();
-    uint64_t read64(uint32_t flash_ofs);
-    uint32_t read32(uint32_t flash_ofs);
-    uint16_t read16(uint32_t flash_ofs);
-    uint8_t read8(uint32_t flash_ofs);
-    void write64Reserve(uint32_t flash_ofs, uint64_t value);
-    void write32Reserve(uint32_t flash_ofs, uint32_t value);
-    void write16Reserve(uint32_t flash_ofs, uint16_t value);
-    void write8Reserve(uint32_t flash_ofs, uint8_t value);
+    void read(uint32_t flash_ofs, size_t size, void *buf);
+    void writeReserve(uint32_t flash_ofs, size_t size, const void *buf);
     void program();
 protected:
     static const size_t FlashSize = 0x200000; // 2MB
