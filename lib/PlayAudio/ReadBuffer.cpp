@@ -72,12 +72,9 @@ bool ReadBuffer::shiftAll()
 
 bool ReadBuffer::seek(size_t fpos)
 {
-    bool autoFillOrg = autoFill;
-    autoFill = false;
-    shiftAll();
+    ptr = head;
     f_lseek(fp, fpos);
-    if (autoFillOrg) { fill(); }
-    autoFill = autoFillOrg;
+    if (autoFill) { fill(); }
     return true;
 }
 

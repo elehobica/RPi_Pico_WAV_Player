@@ -55,9 +55,8 @@ void PlayWav::skipToDataChunk()
 	}
 }
 
-void PlayWav::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
+void PlayWav::setBufPos(size_t fpos)
 {
-    PlayAudio::play(filename, fpos, samplesPlayed);
     if (fpos == 0) {
         skipToDataChunk();
     } else {

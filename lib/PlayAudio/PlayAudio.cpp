@@ -64,15 +64,25 @@ PlayAudio::~PlayAudio()
 {
 }
 
+void PlayAudio::setBufPos(size_t fpos)
+{
+    if (fpos != 0) {
+        rdbuf->seek(fpos);
+    }
+}
+
 void PlayAudio::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
 	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
     rdbuf->bind(&fil);
 
+    setBufPos(fpos);
+
+    this->samplesPlayed = samplesPlayed;
+    // Don't manipulate rdbuf after playing = true because decode callback handles it
     playing = true;
     paused = false;
-    this->samplesPlayed = samplesPlayed;
 }
 
 void PlayAudio::pause(bool flg)

@@ -18,12 +18,12 @@ public:
     static void decode_func();
     PlayWav();
     ~PlayWav();
-    void play(const char *filename, size_t fpos = 0, uint32_t samplesPlayed = 0);
     uint32_t totalMillis();
 protected:
     static PlayWav *g_inst;
     uint32_t dataSize;
     void skipToDataChunk();
+    void setBufPos(size_t fpos);
     void decode();
 };
 

@@ -59,6 +59,7 @@ protected:
     uint32_t getU32LE(const char *ptr);
     uint32_t getU28BE(const char *ptr);
     void setLevelInt(uint32_t levelIntL, uint32_t levelIntR);
+    virtual void setBufPos(size_t fpos);
     virtual void decode();
 private:
     float convLevelCurve(uint32_t levelInt);
