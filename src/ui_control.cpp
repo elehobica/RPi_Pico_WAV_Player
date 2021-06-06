@@ -298,9 +298,8 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
     return ui_mode->getUIModeEnm();
 }
 
-void uiv_set_battery_voltage(uint16_t bat_mv, bool is_low)
+void uiv_set_battery_voltage(uint16_t bat_mv)
 {
-    if (is_low) { vars.power_off_msg = "Low Battery"; }
     vars.bat_mv = bat_mv;
 }
 
@@ -324,4 +323,21 @@ void uiv_set_play_idx(uint16_t idx_play)
 void uiv_get_play_idx(uint16_t *idx_play)
 {
     *idx_play = vars.idx_play;
+}
+
+void uiv_set_play_position(size_t fpos, uint32_t samples_played)
+{
+    vars.fpos = fpos;
+    vars.samples_played = samples_played;
+}
+
+void uiv_get_play_position(size_t *fpos, uint32_t *samples_played)
+{
+    *fpos = vars.fpos;
+    *samples_played = vars.samples_played;
+}
+
+void uiv_get_resume_ui_mode(ui_mode_enm_t *resume_ui_mode)
+{
+    *resume_ui_mode = vars.resume_ui_mode;
 }

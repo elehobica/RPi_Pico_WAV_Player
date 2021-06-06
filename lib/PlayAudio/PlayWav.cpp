@@ -55,10 +55,14 @@ void PlayWav::skipToDataChunk()
 	}
 }
 
-void PlayWav::play(const char *filename)
+void PlayWav::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
 {
-    PlayAudio::play(filename);
-    skipToDataChunk();
+    PlayAudio::play(filename, fpos, samplesPlayed);
+    if (fpos == 0) {
+        skipToDataChunk();
+    } else {
+        rdbuf->seek(fpos);
+    }
 }
 
 void PlayWav::decode()

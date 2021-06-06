@@ -56,7 +56,7 @@ uint8_t PlayAudio::getVolume()
 
 PlayAudio::PlayAudio() : playing(false), paused(false), 
     channels(2), sampRateHz(44100), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
-    fpos(0), samplesPlayed(0), levelL(0.0), levelR(0.0)
+    samplesPlayed(0), levelL(0.0), levelR(0.0)
 {
 }
 
@@ -64,7 +64,7 @@ PlayAudio::~PlayAudio()
 {
 }
 
-void PlayAudio::play(const char *filename)
+void PlayAudio::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
 	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
@@ -72,8 +72,7 @@ void PlayAudio::play(const char *filename)
 
     playing = true;
     paused = false;
-    fpos = 0;
-    samplesPlayed = 0;
+    this->samplesPlayed = samplesPlayed;
 }
 
 void PlayAudio::pause(bool flg)
@@ -176,6 +175,17 @@ void PlayAudio::decode()
 uint32_t PlayAudio::elapsedMillis()
 {
     return (uint32_t) ((uint64_t) samplesPlayed * 1000 / sampRateHz);
+}
+
+void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
+{
+    if (playing) {
+        *fpos = rdbuf->tell();
+        *samplesPlayed = this->samplesPlayed;
+    } else {
+        *fpos = 0;
+        *samplesPlayed = 0;
+    }
 }
 
 void PlayAudio::getLevel(float *levelL, float *levelR)

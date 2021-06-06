@@ -56,6 +56,7 @@ struct UIVars
     uint8_t fs_type = FS_FAT32;
     uint16_t num_list_lines = 1;
     ui_mode_enm_t init_dest_ui_mode = InitialMode;
+    ui_mode_enm_t resume_ui_mode = FileViewMode;
     uint16_t bat_mv = 4200;
     uint16_t idx_head = 0;
     uint16_t idx_column = 0;
@@ -63,8 +64,8 @@ struct UIVars
     uint16_t num_tracks = 0;
     do_next_play_t do_next_play = None;
     next_play_type_t next_play_type = RandomPlay;
-    ui_mode_enm_t resume_ui_mode = FileViewMode;
-    const char *power_off_msg = "Bye";
+    size_t fpos = 0;
+    uint32_t samples_played = 0;
 };
 
 //===========================

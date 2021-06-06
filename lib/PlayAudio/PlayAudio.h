@@ -29,13 +29,14 @@ public:
     static uint8_t getVolume();
     PlayAudio();
     virtual ~PlayAudio();
-    virtual void play(const char *filename);
+    virtual void play(const char *filename, size_t fpos = 0, uint32_t samplesPlayed = 0);
     void pause(bool flg = true);
     void stop();
     bool isPlaying();
     bool isPaused();
     uint32_t elapsedMillis();
     virtual uint32_t totalMillis() = 0;
+    virtual void getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed);
     void getLevel(float *levelL, float *levelR);
 protected:
     static const int RDBUF_SIZE = 2048;
@@ -51,7 +52,6 @@ protected:
     uint16_t sampRateHz;
     uint16_t bitRateKbps;
     uint16_t bitsPerSample;
-    size_t fpos;
     uint32_t samplesPlayed;
     float levelL;
     float levelR;

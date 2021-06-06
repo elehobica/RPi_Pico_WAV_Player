@@ -23,7 +23,9 @@ public:
     bool fill();
     bool shift(size_t bytes);
     bool shiftAll();
+    bool seek(size_t fpos);
     size_t getLeft();
+    size_t tell();
 private:
     FIL *fp;
     size_t size;

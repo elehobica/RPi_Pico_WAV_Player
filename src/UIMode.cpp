@@ -356,15 +356,15 @@ UIMode *UIFileViewMode::getUIPlayMode()
 UIMode* UIFileViewMode::update()
 {
     vars->resume_ui_mode = ui_mode_enm;
-    /*
     switch (vars->init_dest_ui_mode) {
         case PlayMode:
-            return getUIPlayMode();
+            if (isAudioFile(vars->idx_head + vars->idx_column)) {
+                return getUIPlayMode();
+            }
             break;
         default:
             break;
     }
-    */
     if (ui_get_btn_evt(&btn_act)) {
         vars->do_next_play = None;
         switch (btn_act) {
@@ -430,14 +430,12 @@ UIMode* UIFileViewMode::update()
             break;
     }
     */
-    /*
     if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
         return getUIMode(PowerOffMode);
     } else if (idle_count > 5*OneSec) {
         file_menu_idle(); // for background sort
     }
-    lcd.setBatteryVoltage(vars->bat_mv);
-    */
+    //lcd.setBatteryVoltage(vars->bat_mv);
     idle_count++;
     return this;
 }
@@ -499,9 +497,9 @@ UIMode* UIPlayMode::update()
         }
         idle_count = 0;
     }
-    /*if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+    if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
         return getUIMode(PowerOffMode);
-    } else */if (!codec->isPlaying()) {
+    } else if (!codec->isPlaying()) {
         idle_count = 0;
         while (++vars->idx_play < file_menu_get_num()) {
             if (isAudioFile(vars->idx_play)) {
@@ -654,7 +652,9 @@ void UIPlayMode::play()
     printf("%s\n", str);
     PlayAudio *playAudio = get_audio_codec();
     readTag();
-    playAudio->play(str);
+    playAudio->play(str, vars->fpos, vars->samples_played);
+    vars->fpos = 0;
+    vars->samples_played = 0;
 }
 
 void UIPlayMode::entry(UIMode *prevMode)
@@ -792,6 +792,7 @@ UIMode* UIConfigMode::update()
             case ButtonCenterLong:
                 break;
             case ButtonCenterLongLong:
+                codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
                 codec->stop();
                 return getUIMode(PowerOffMode);
                 break;
@@ -845,7 +846,7 @@ UIMode* UIPowerOffMode::update()
 void UIPowerOffMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    lcd.switchToPowerOff(vars->power_off_msg);
+    lcd.switchToPowerOff("Bye");
     lcd.drawPowerOff();
 }
 

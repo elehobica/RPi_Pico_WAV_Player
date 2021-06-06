@@ -24,10 +24,9 @@
 
 //#define INITIALIZE_CONFIG_PARAM
 
-const int Version = 0*100*100 + 0*100 + 1;
-unsigned char image[160*80*2];
-const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
+const char *VersionStr = "0.1.0";
 
+// PIN setting
 static const uint32_t PIN_LED = 25;
 static const uint32_t PIN_POWER_KEEP = 19;
 static const uint32_t PIN_DCDC_PSM_CTRL = 23;
@@ -89,7 +88,9 @@ static void loadFromFlash(stack_t *dir_stack, ui_mode_enm_t *init_dest_mode)
         stack_push(dir_stack, &item);
         file_menu_ch_dir(item.head+item.column);
     }
+
     *init_dest_mode = static_cast<ui_mode_enm_t>(GET_CFG_UIMODE);
+
     uint16_t idx_head = GET_CFG_IDX_HEAD;
     uint16_t idx_column = GET_CFG_IDX_COLUMN;
     if (idx_head+idx_column >= file_menu_get_num()) { err_flg = true; } // idx overflow
@@ -100,17 +101,19 @@ static void loadFromFlash(stack_t *dir_stack, ui_mode_enm_t *init_dest_mode)
         idx_head = idx_column = 0;
         *init_dest_mode = FileViewMode;
     }
-    uint16_t idx_play = GET_CFG_IDX_PLAY;
+    uiv_set_file_idx(idx_head, idx_column);
+
+    uint16_t idx_play = 0;
     size_t fpos = 0;
     uint32_t samples_played = 0;
     if (*init_dest_mode == PlayMode) {
+        idx_play = GET_CFG_IDX_PLAY;
         uint64_t play_pos = GET_CFG_PLAY_POS;
         fpos = (size_t) play_pos;
         samples_played = GET_CFG_SAMPLES_PLAYED;
     }
-
-    uiv_set_file_idx(idx_head, idx_column);
     uiv_set_play_idx(idx_play);
+    uiv_set_play_position(fpos, samples_played);
 }
 
 static void storeToFlash(stack_t *dir_stack)
@@ -126,6 +129,11 @@ static void storeToFlash(stack_t *dir_stack)
         configParam.setU16(CFG_STACK_HEAD(i), item.head);
         configParam.setU16(CFG_STACK_COLUMN(i), item.column);
     }
+
+    ui_mode_enm_t resume_ui_mode;
+    uiv_get_resume_ui_mode(&resume_ui_mode);
+    configParam.setU32(ConfigParam::CFG_UIMODE, resume_ui_mode);
+
     uint16_t idx_head, idx_column, idx_play;
     uiv_get_file_idx(&idx_head, &idx_column);
     uiv_get_play_idx(&idx_play);
@@ -133,12 +141,20 @@ static void storeToFlash(stack_t *dir_stack)
     configParam.setU16(ConfigParam::CFG_IDX_COLUMN, idx_column);
     configParam.setU16(ConfigParam::CFG_IDX_PLAY, idx_play);
 
+    size_t fpos;
+    uint32_t samples_played;
+    uiv_get_play_position(&fpos, &samples_played);
+    configParam.setU64(ConfigParam::CFG_PLAY_POS, (uint64_t) fpos);
+    configParam.setU32(ConfigParam::CFG_SAMPLES_PLAYED, samples_played);
+
+
     // Store Configuration parameters to Flash
     configParam.finalize();
 }
 
 static void power_off(const char *msg, bool is_error = false)
 {
+    const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
     if (msg != NULL) { lcd.setMsg(msg, is_error); }
     uint32_t stay_time = (is_error) ? 4000 : 1000;
     uint32_t time = _millis();
@@ -154,10 +170,7 @@ static void power_off(const char *msg, bool is_error = false)
 int main() {
     int count = 0;
     FATFS fs;
-    FIL fil;
-    FRESULT fr;     /* FatFs return code */
-    UINT br;
-    UINT bw;
+    FRESULT fr;
 
     stdio_init_all();
 
@@ -206,6 +219,8 @@ int main() {
         sleep_ms(25);
     }
 
+    printf("Raspberry Pi Pico Player ver. %s\n", VersionStr);
+
     // Power Keep Enable
     gpio_put(PIN_POWER_KEEP, 1);
 
@@ -226,8 +241,8 @@ int main() {
         power_off("Card Read Error!", true);
     }
 
-    printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
-    printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
+    const char *fs_type_str[5] = {"NOT_MOUNTED", "FAT12", "FAT16", "FAT32", "EXFAT"};
+    printf("SD Card File System = %s\n", fs_type_str[fs.fs_type]);
 
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");
@@ -245,6 +260,7 @@ int main() {
     ui_init(init_dest_mode, dir_stack, fs.fs_type);
 
     // UI Loop
+    const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
     while (true) {
         uint32_t time = _millis();
         if (ui_update() == PowerOffMode) { break; }

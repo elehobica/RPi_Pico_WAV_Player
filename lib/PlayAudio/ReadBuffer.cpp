@@ -70,7 +70,23 @@ bool ReadBuffer::shiftAll()
     return shift(left);
 }
 
+bool ReadBuffer::seek(size_t fpos)
+{
+    bool autoFillOrg = autoFill;
+    autoFill = false;
+    shiftAll();
+    f_lseek(fp, fpos);
+    if (autoFillOrg) { fill(); }
+    autoFill = autoFillOrg;
+    return true;
+}
+
 size_t ReadBuffer::getLeft()
 {
     return left;
+}
+
+size_t ReadBuffer::tell()
+{
+    return (size_t) f_tell(fp) - left;
 }
