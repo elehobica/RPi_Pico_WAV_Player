@@ -12,7 +12,34 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define configParam				ConfigParam::ConfigParamClass::instance()
+#define configParam				(ConfigParam::ConfigParamClass::instance())
+
+#define	CFG_STACK_HEAD(x)		((x == 4) ? ConfigParam::CFG_STACK_HEAD4 : (x == 3) ? ConfigParam::CFG_STACK_HEAD3 : (x == 2) ? ConfigParam::CFG_STACK_HEAD2 : (x == 1) ? ConfigParam::CFG_STACK_HEAD1 : ConfigParam::CFG_STACK_HEAD0)
+#define	CFG_STACK_COLUMN(x)		((x == 4) ? ConfigParam::CFG_STACK_COLUMN4 : (x == 3) ? ConfigParam::CFG_STACK_COLUMN3 : (x == 2) ? ConfigParam::CFG_STACK_COLUMN2 : (x == 1) ? ConfigParam::CFG_STACK_COLUMN1 : ConfigParam::CFG_STACK_COLUMN0)
+
+#define GETBOOL(identifier)		(configParam.getBool(identifier))
+#define GETU8(identifier)		(configParam.getU8(identifier))
+#define GETU16(identifier)		(configParam.getU16(identifier))
+#define GETU32(identifier)		(configParam.getU32(identifier))
+#define GETU64(identifier)		(configParam.getU64(identifier))
+#define GETI8(identifier)		(configParam.getI8(identifier))
+#define GETI16(identifier)		(configParam.getI16(identifier))
+#define GETI32(identifier)		(configParam.getI32(identifier))
+#define GETI64(identifier)		(configParam.getI64(identifier))
+#define GETSTR(identifier)		(configParam.getStr(identifier))
+
+#define GET_CFG_BOOT_COUNT		GETU32(ConfigParam::CFG_BOOT_COUNT)
+#define GET_CFG_SEED			GETU32(ConfigParam::CFG_BOOT_COUNT)
+#define GET_CFG_VOLUME			GETU8(ConfigParam::CFG_VOLUME)
+#define GET_CFG_STACK_COUNT		GETU8(ConfigParam::CFG_STACK_COUNT)
+#define GET_CFG_STACK_HEAD(x)	GETU16(CFG_STACK_HEAD(x))
+#define GET_CFG_STACK_COLUMN(x) GETU16(CFG_STACK_COLUMN(x))
+#define GET_CFG_UIMODE			GETU32(ConfigParam::CFG_UIMODE)
+#define GET_CFG_IDX_HEAD		GETU16(ConfigParam::CFG_IDX_HEAD)
+#define GET_CFG_IDX_COLUMN		GETU16(ConfigParam::CFG_IDX_COLUMN)
+#define GET_CFG_IDX_PLAY		GETU16(ConfigParam::CFG_IDX_PLAY)
+#define GET_CFG_PLAY_POS		GETU64(ConfigParam::CFG_PLAY_POS)
+#define GET_CFG_SAMPLES_PLAYED	GETU32(ConfigParam::CFG_SAMPLES_PLAYED)
 
 //=================================
 // Interface of ConfigMenu class
@@ -102,6 +129,15 @@ namespace ConfigParam
 		int32_t getI32(ParamID_t id);
 		int64_t getI64(ParamID_t id);
 		char *getStr(ParamID_t id);
+		void setU8(ParamID_t id, uint8_t val);
+		void setU16(ParamID_t id, uint16_t val);
+		void setU32(ParamID_t id, uint32_t val);
+		void setU64(ParamID_t id, uint64_t val);
+		void setI8(ParamID_t id, int8_t val);
+		void setI16(ParamID_t id, int16_t val);
+		void setI32(ParamID_t id, int32_t val);
+		void setI64(ParamID_t id, int64_t val);
+		void setStr(ParamID_t id, char *str);
 	private:
 		ParamItem_t configParamItems[NUM_CFG_PARAMS] = {
 		//	id						name					type			size	default		ofs		ptr

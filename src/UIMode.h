@@ -17,7 +17,7 @@
 //#include "audio_playback.h"
 //#include "UserConfig.h"
 
-typedef enum _ui_mode_enm_t {
+typedef enum {
     InitialMode = 0,
     FileViewMode,
     PlayMode,
@@ -25,7 +25,7 @@ typedef enum _ui_mode_enm_t {
     PowerOffMode
 } ui_mode_enm_t;
 
-typedef enum _button_action_t {
+typedef enum {
     ButtonCenterSingle = 0,
     ButtonCenterDouble,
     ButtonCenterTriple,
@@ -40,13 +40,13 @@ typedef enum _button_action_t {
     ButtonOthers
 } button_action_t;
 
-typedef enum _next_play_action_t {
+typedef enum {
     None = 0,
     ImmediatePlay,
     TimeoutPlay
 } do_next_play_t;
 
-typedef enum _next_play_type_t {
+typedef enum {
     SequentialPlay = 0,
     RandomPlay,
 } next_play_type_t;

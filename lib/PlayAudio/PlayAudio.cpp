@@ -14,6 +14,7 @@ audio_buffer_pool_t *PlayAudio::ap = nullptr;
 ReadBuffer *PlayAudio::rdbuf = nullptr;
 int16_t PlayAudio::buf_s16[SAMPLES_PER_BUFFER*2];
 uint8_t PlayAudio::volume = 65;
+
 const uint32_t PlayAudio::vol_table[101] = {
     0, 4, 8, 12, 16, 20, 24, 27, 29, 31,
     34, 37, 40, 44, 48, 52, 57, 61, 67, 73,
@@ -55,7 +56,7 @@ uint8_t PlayAudio::getVolume()
 
 PlayAudio::PlayAudio() : playing(false), paused(false), 
     channels(2), sampRateHz(44100), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
-    samplesPlayed(0), levelL(0.0), levelR(0.0)
+    fpos(0), samplesPlayed(0), levelL(0.0), levelR(0.0)
 {
 }
 
@@ -71,6 +72,7 @@ void PlayAudio::play(const char *filename)
 
     playing = true;
     paused = false;
+    fpos = 0;
     samplesPlayed = 0;
 }
 

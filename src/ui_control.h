@@ -36,6 +36,12 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm);
 bool ui_get_btn_evt(button_action_t *btn_act);
 void ui_clear_btn_evt();
 
+void uiv_set_battery_voltage(uint16_t bat_mv, bool is_low);
+void uiv_set_file_idx(uint16_t idx_head, uint16_t idx_column);
+void uiv_get_file_idx(uint16_t *idx_head, uint16_t *idx_column);
+void uiv_set_play_idx(uint16_t idx_play);
+void uiv_get_play_idx(uint16_t *idx_play);
+
 #ifdef __cplusplus
 }
 #endif

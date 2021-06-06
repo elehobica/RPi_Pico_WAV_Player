@@ -66,31 +66,15 @@ uint16_t UIMode::getIdleCount()
 //=======================================
 UIInitialMode::UIInitialMode(UIVars *vars) : UIMode("UIInitialMode", InitialMode, vars)
 {
-    file_menu_open_dir("/");
-    if (file_menu_get_num() <= 1) {
-        //power_off("Card Read Error!", 1);
-        lcd.setMsg("Card Read Error!");
-    }
 }
 
 UIMode* UIInitialMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
-    switch (vars->init_dest_ui_mode) {
-        case FileViewMode:
-            if (idle_count++ > 100) {
-                return getUIMode(FileViewMode);
-            }
-            break;
-        /*
-        case PlayMode:
-            return getUIMode(FileViewMode);
-            break;
-        */
-        default:
-            break;
+    // Always transfer to FileViewMode after pre-defined period
+    if (idle_count++ > 1*OneSec) {
+        return getUIMode(FileViewMode);
     }
-    idle_count++;
     return this;
 }
 

@@ -291,3 +291,59 @@ char *ConfigParamClass::getStr(ParamID_t id)
 	assert(configParamItems[id].paramType == CFG_STRING_T);
 	return reinterpret_cast<char *>(configParamItems[id].ptr);
 }
+
+void ConfigParamClass::setU8(ParamID_t id, uint8_t val)
+{
+	assert(configParamItems[id].paramType == CFG_UINT8_T);
+	*(reinterpret_cast<uint8_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setU16(ParamID_t id, uint16_t val)
+{
+	assert(configParamItems[id].paramType == CFG_UINT16_T);
+	*(reinterpret_cast<uint16_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setU32(ParamID_t id, uint32_t val)
+{
+	assert(configParamItems[id].paramType == CFG_UINT32_T);
+	*(reinterpret_cast<uint32_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setU64(ParamID_t id, uint64_t val)
+{
+	assert(configParamItems[id].paramType == CFG_UINT64_T);
+	*(reinterpret_cast<uint64_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setI8(ParamID_t id, int8_t val)
+{
+	assert(configParamItems[id].paramType == CFG_INT8_T);
+	*(reinterpret_cast<int8_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setI16(ParamID_t id, int16_t val)
+{
+	assert(configParamItems[id].paramType == CFG_INT16_T);
+	*(reinterpret_cast<int16_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setI32(ParamID_t id, int32_t val)
+{
+	assert(configParamItems[id].paramType == CFG_INT32_T);
+	*(reinterpret_cast<int32_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setI64(ParamID_t id, int64_t val)
+{
+	assert(configParamItems[id].paramType == CFG_INT64_T);
+	*(reinterpret_cast<int64_t *>(configParamItems[id].ptr)) = val;
+}
+
+void ConfigParamClass::setStr(ParamID_t id, char *str)
+{
+	assert(configParamItems[id].paramType == CFG_STRING_T);
+	char *ptr = reinterpret_cast<char *>(configParamItems[id].ptr);
+	memset(ptr, 0, configParamItems[id].size);
+	strncpy(ptr, str, configParamItems[id].size-1);
+}

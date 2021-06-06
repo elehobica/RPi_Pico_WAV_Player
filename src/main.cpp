@@ -16,7 +16,9 @@
 #include "ui_control.h"
 #include "LcdCanvas.h"
 #include "PlayAudio/audio_codec.h"
+#include "PlayAudio/PlayAudio.h"
 #include "lcd_background.h"
+#include "file_menu/file_menu_FatFs.h"
 #include "UserFlash.h"
 #include "ConfigParam.h"
 
@@ -24,7 +26,6 @@
 
 const int Version = 0*100*100 + 0*100 + 1;
 unsigned char image[160*80*2];
-stack_t *dir_stack;
 const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
 
 static const uint32_t PIN_LED = 25;
@@ -35,21 +36,6 @@ static const uint32_t PIN_AUDIO_MUTE_CTRL = 27;
 static inline uint32_t _millis(void)
 {
 	return to_ms_since_boot(get_absolute_time());
-}
-
-static void power_off(const char *msg, bool is_error = false)
-{
-    configParam.finalize();
-    if (msg != NULL) { lcd.setMsg(msg, is_error); }
-    uint32_t stay_time = (is_error) ? 4000 : 1000;
-    uint32_t time = _millis();
-    gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
-    while (_millis() - time < stay_time) {
-        sleep_ms(LoopCycleMs);
-        lcd.drawPowerOff();
-    }
-    gpio_put(PIN_POWER_KEEP, 0);
-    while (true) {} // endless loop
 }
 
 static void audio_clock_96MHz()
@@ -75,6 +61,94 @@ static void audio_clock_96MHz()
         96 * MHZ);
     // Reinit uart now that clk_peri has changed
     stdio_init_all();
+}
+
+static void loadFromFlash(stack_t *dir_stack, ui_mode_enm_t *init_dest_mode)
+{
+    // Load Configuration parameters from Flash
+    userFlash.printInfo();
+    #ifdef INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
+    #else // INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
+    #endif // INITIALIZE_CONFIG_PARAM
+    configParam.printInfo();
+    configParam.incBootCount();
+
+    // Restore from configParam to user parameters
+    srand(GET_CFG_SEED);
+    PlayAudio::setVolume(GET_CFG_VOLUME);
+    bool err_flg = false;
+    for (int i = GET_CFG_STACK_COUNT - 1; i >= 0; i--) {
+        stack_data_t item;
+        item.head = GET_CFG_STACK_HEAD(i);
+        item.column = GET_CFG_STACK_COLUMN(i);
+        if (item.head+item.column >= file_menu_get_num()) { err_flg = true; break; } // idx overflow
+        file_menu_sort_entry(item.head+item.column, item.head+item.column + 1);
+        if (file_menu_is_dir(item.head+item.column) <= 0 || item.head+item.column == 0) { err_flg = true; break; } // Not Directory or Parent Directory
+        stack_push(dir_stack, &item);
+        file_menu_ch_dir(item.head+item.column);
+    }
+    *init_dest_mode = static_cast<ui_mode_enm_t>(GET_CFG_UIMODE);
+    uint16_t idx_head = GET_CFG_IDX_HEAD;
+    uint16_t idx_column = GET_CFG_IDX_COLUMN;
+    if (idx_head+idx_column >= file_menu_get_num()) { err_flg = true; } // idx overflow
+    if (err_flg) { // Load Error
+        stack_delete(dir_stack);
+        dir_stack = stack_init();
+        file_menu_open_dir("/");
+        idx_head = idx_column = 0;
+        *init_dest_mode = FileViewMode;
+    }
+    uint16_t idx_play = GET_CFG_IDX_PLAY;
+    size_t fpos = 0;
+    uint32_t samples_played = 0;
+    if (*init_dest_mode == PlayMode) {
+        uint64_t play_pos = GET_CFG_PLAY_POS;
+        fpos = (size_t) play_pos;
+        samples_played = GET_CFG_SAMPLES_PLAYED;
+    }
+
+    uiv_set_file_idx(idx_head, idx_column);
+    uiv_set_play_idx(idx_play);
+}
+
+static void storeToFlash(stack_t *dir_stack)
+{
+    // Save user parameters to configParam
+    uint8_t volume = PlayAudio::getVolume();
+    configParam.setU8(ConfigParam::CFG_VOLUME, volume);
+    uint8_t stack_count = stack_get_count(dir_stack);
+    configParam.setU8(ConfigParam::CFG_STACK_COUNT, stack_count);
+    for (int i = 0; i < stack_count; i++) {
+        stack_data_t item;
+        stack_pop(dir_stack, &item);
+        configParam.setU16(CFG_STACK_HEAD(i), item.head);
+        configParam.setU16(CFG_STACK_COLUMN(i), item.column);
+    }
+    uint16_t idx_head, idx_column, idx_play;
+    uiv_get_file_idx(&idx_head, &idx_column);
+    uiv_get_play_idx(&idx_play);
+    configParam.setU16(ConfigParam::CFG_IDX_HEAD, idx_head);
+    configParam.setU16(ConfigParam::CFG_IDX_COLUMN, idx_column);
+    configParam.setU16(ConfigParam::CFG_IDX_PLAY, idx_play);
+
+    // Store Configuration parameters to Flash
+    configParam.finalize();
+}
+
+static void power_off(const char *msg, bool is_error = false)
+{
+    if (msg != NULL) { lcd.setMsg(msg, is_error); }
+    uint32_t stay_time = (is_error) ? 4000 : 1000;
+    uint32_t time = _millis();
+    gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
+    while (_millis() - time < stay_time) {
+        sleep_ms(LoopCycleMs);
+        lcd.drawPowerOff();
+    }
+    gpio_put(PIN_POWER_KEEP, 0);
+    while (true) {} // endless loop
 }
 
 int main() {
@@ -135,33 +209,32 @@ int main() {
     // Power Keep Enable
     gpio_put(PIN_POWER_KEEP, 1);
 
-    dir_stack = stack_init();
     // Mount FAT
     while (true) {
         fr = f_mount(&fs, "", 1); // 0: mount successful ; 1: mount failed
         if (fr == FR_OK || count++ > 10) break;
         sleep_ms(10);
     }
-
-    if (fr != FR_OK) { // Mount Fail (Loop)
+    if (fr != FR_OK) { // Mount Fail
         power_off("No Card Found!", true);
+    }
+
+    // Open root directory
+    stack_t *dir_stack = stack_init();
+    file_menu_open_dir("/");
+    if (file_menu_get_num() <= 1) { // Directory read Fail
+        power_off("Card Read Error!", true);
     }
 
     printf("Raspberry Pi Pico Player ver %d.%d.%d\n\r", (Version/10000)%100, (Version/100)%100, (Version/1)%100);
     printf("SD Card File System = %d\n\r", fs.fs_type); // FS_EXFAT = 4
 
-    // Load Configuration parameters from Flash
-    userFlash.printInfo();
-    #ifdef INITIALIZE_CONFIG_PARAM
-    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
-    #else // INITIALIZE_CONFIG_PARAM
-    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
-    #endif // INITIALIZE_CONFIG_PARAM
-    configParam.printInfo();
-    configParam.incBootCount();
-
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");
+
+    // Load from Flash
+    ui_mode_enm_t init_dest_mode;
+    loadFromFlash(dir_stack, &init_dest_mode);
 
     // Audio Mute OFF
     gpio_put(PIN_AUDIO_MUTE_CTRL, 0);
@@ -169,7 +242,7 @@ int main() {
     audio_codec_init();
 
     // UI initialize
-    ui_init(FileViewMode, dir_stack, fs.fs_type);
+    ui_init(init_dest_mode, dir_stack, fs.fs_type);
 
     // UI Loop
     while (true) {
@@ -183,6 +256,7 @@ int main() {
         }
     }
 
+    storeToFlash(dir_stack);
     power_off(NULL); // never return
 
     return 0;

@@ -51,6 +51,7 @@ protected:
     uint16_t sampRateHz;
     uint16_t bitRateKbps;
     uint16_t bitsPerSample;
+    size_t fpos;
     uint32_t samplesPlayed;
     float levelL;
     float levelR;

@@ -297,3 +297,31 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
     }
     return ui_mode->getUIModeEnm();
 }
+
+void uiv_set_battery_voltage(uint16_t bat_mv, bool is_low)
+{
+    if (is_low) { vars.power_off_msg = "Low Battery"; }
+    vars.bat_mv = bat_mv;
+}
+
+void uiv_set_file_idx(uint16_t idx_head, uint16_t idx_column)
+{
+    vars.idx_head = idx_head;
+    vars.idx_column = idx_column;
+}
+
+void uiv_get_file_idx(uint16_t *idx_head, uint16_t *idx_column)
+{
+    *idx_head = vars.idx_head;
+    *idx_column = vars.idx_column;
+}
+
+void uiv_set_play_idx(uint16_t idx_play)
+{
+    vars.idx_play = idx_play;
+}
+
+void uiv_get_play_idx(uint16_t *idx_play)
+{
+    *idx_play = vars.idx_play;
+}
