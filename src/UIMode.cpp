@@ -498,6 +498,8 @@ UIMode* UIPlayMode::update()
         idle_count = 0;
     }
     if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+        codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
+        codec->stop();
         return getUIMode(PowerOffMode);
     } else if (!codec->isPlaying()) {
         idle_count = 0;
