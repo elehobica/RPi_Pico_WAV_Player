@@ -8,17 +8,20 @@
 #include <cstring>
 #include "ReadBuffer.h"
 
-ReadBuffer::ReadBuffer(size_t size, bool autoFill) : size(size), left(0), autoFill(autoFill)
+// fillThreshold: auto fill if left is lower than fillThreshold
+//                set fillThreshold = 0 if using manual fill instead of auto fill
+//                set fillThreshold = size if auto fill everytime when shift (not recommended due to too many memmove)
+ReadBuffer::ReadBuffer(size_t size, size_t fillThreshold) : size(size), left(0), fillThreshold(fillThreshold)
 {
     head = (uint8_t *) calloc(size, sizeof(uint8_t));
     ptr = head;
 }
 
-ReadBuffer::ReadBuffer(FIL *fp, size_t size, bool autoFill) : fp(fp), size(size), left(0), autoFill(autoFill)
+ReadBuffer::ReadBuffer(FIL *fp, size_t size, size_t fillThreshold) : fp(fp), size(size), left(0), fillThreshold(fillThreshold)
 {
     head = (uint8_t *) calloc(size, sizeof(uint8_t));
     ptr = head;
-    if (autoFill) { fill(); }
+    if (left < fillThreshold) { fill(); }
 }
 
 ReadBuffer::~ReadBuffer()
@@ -36,7 +39,7 @@ void ReadBuffer::bind(FIL *fp)
     this->fp = fp;
     ptr = head;
     left = 0;
-    if (autoFill) { fill(); }
+    if (left < fillThreshold) { fill(); }
 }
 
 bool ReadBuffer::fill()
@@ -61,7 +64,7 @@ bool ReadBuffer::shift(size_t bytes)
     if (left < bytes) { return false; }
     ptr += bytes;
     left -= bytes;
-    if (autoFill) { fill(); }
+    if (left < fillThreshold) { fill(); }
     return true;
 }
 
@@ -74,7 +77,7 @@ bool ReadBuffer::seek(size_t fpos)
 {
     ptr = head;
     f_lseek(fp, fpos);
-    if (autoFill) { fill(); }
+    if (left < fillThreshold) { fill(); }
     return true;
 }
 

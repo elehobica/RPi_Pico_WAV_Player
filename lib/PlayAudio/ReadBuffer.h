@@ -15,8 +15,8 @@
 class ReadBuffer
 {
 public:
-    ReadBuffer(size_t size, bool autoFill = false);
-    ReadBuffer(FIL *fp, size_t size, bool autoFill = false);
+    ReadBuffer(size_t size, size_t fillThreshold);
+    ReadBuffer(FIL *fp, size_t size, size_t fillThreshold);
     ~ReadBuffer();
     const uint8_t *buf();
     void bind(FIL *fp);
@@ -32,7 +32,7 @@ private:
     size_t left;
     uint8_t *head;
     uint8_t *ptr;
-    bool autoFill;
+    size_t fillThreshold;
 };
 
 #endif // __READ_BUFFER_H_INCLUDED__

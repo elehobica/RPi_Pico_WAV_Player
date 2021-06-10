@@ -32,7 +32,7 @@ const uint32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     ap = audio_init();
-    rdbuf = new ReadBuffer(RDBUF_SIZE, true); // autoFill = true
+    rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE/4); // auto fill if left is lower than RDBUF_SIZE/4
 }
 void PlayAudio::volumeUp()
 {
