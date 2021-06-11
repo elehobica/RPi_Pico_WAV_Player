@@ -273,7 +273,7 @@ int main() {
     }
 
     storeToFlash(dir_stack);
-    power_off(NULL); // never return
+    power_off(NULL, uiv_get_low_battery()); // never return
 
     return 0;
 }

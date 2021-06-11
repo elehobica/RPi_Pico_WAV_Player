@@ -20,7 +20,6 @@
 
 #define FONT_HEIGHT		16
 
-#if 0
 //=================================
 // Definition of BatteryIconBox class < IconBox
 //=================================
@@ -33,7 +32,6 @@ public:
 protected:
 	uint8_t level;
 };
-#endif
 
 //=================================
 // Definition of LcdCanvas Class
@@ -56,15 +54,12 @@ public:
 	void setTitle(const char *str);
 	void setAlbum(const char *str);
 	void setArtist(const char *str);
-	void setYear(const char *str);
+	//void setYear(const char *str);
 	void setBatteryVoltage(uint16_t voltage_x1000);
-	void addAlbumArtJpeg(uint16_t file_idx, uint64_t pos, size_t size, bool is_unsync = false);
-	void addAlbumArtPng(uint16_t file_idx, uint64_t pos, size_t size, bool is_unsync = false);
-	void deleteAlbumArt();
 	void switchToInitial();
 	void switchToListView();
 	void switchToPlay();
-	void switchToPowerOff(const char *msg_str = NULL);
+	void switchToPowerOff();
 	void drawInitial();
 	void drawListView();
 	void drawPlay();
@@ -82,10 +77,10 @@ protected:
 		IconScrollTextBox(16*0, 16*1, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
 		IconScrollTextBox(16*0, 16*2, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
 		IconScrollTextBox(16*0, 16*3, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
-		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true)
+		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W-16*1, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true) // Battery Icon at Right-Bottom
 	};
 	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
-	//BatteryIconBox battery = BatteryIconBox(LCD_W-16*0, LCD_H-16*0, LCD_GRAY);
+	BatteryIconBox battery = BatteryIconBox(LCD_W-16*1, LCD_H-16*1, LCD_GRAY);
 	IconTextBox volume = IconTextBox(LCD_W-16*4, LCD_H-16*1, ICON16x16_VOLUME, LCD_GRAY);
 	TextBox playTime = TextBox(LCD_W-16*4-8, LCD_H-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
 	IconScrollTextBox title = IconScrollTextBox(16*0, 16*0, ICON16x16_TITLE, LCD_W, FONT_HEIGHT, LCD_LIGHTBLUE, LCD_BLACK);
@@ -97,10 +92,10 @@ protected:
 	TextBox track = TextBox(16*0, LCD_H-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
 	TextBox msg = TextBox(LCD_W/2, LCD_H/2-FONT_HEIGHT/2, LcdElementBox::AlignCenter, LCD_WHITE, LCD_BLACK, true);
 	LcdElementBox *groupInitial[2] = {&image, &msg};
-	LcdElementBox *groupListView[5] = {
-		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4]
+	LcdElementBox *groupListView[6] = {
+		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4], &battery
 	};
-	LcdElementBox *groupPlay[0] = {/*&battery, */}; // Common for Play mode 0 and 1
+	LcdElementBox *groupPlay[1] = {&battery}; // Common for Play mode 0 and 1
 	LcdElementBox *groupPlay0[9] = {&title, &artist, &album, &levelMeterL, &levelMeterR, &timeProgress, &track, &playTime, &volume}; // Play mode 0 only
 	LcdElementBox *groupPlay1[2] = {&image, &msg}; // Play mode 1 only
 	LcdElementBox *groupPowerOff[1] = {&msg};

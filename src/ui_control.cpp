@@ -17,9 +17,22 @@ static const uint32_t PIN_SW_PLUS = 22;
 static const uint32_t PIN_SW_CENTER = 21;
 static const uint32_t PIN_SW_MINUS = 20;
 
-// Android Remote Control Pin (GPIO26: ADC0)
+// ADC Timer frequency
+const int ADC_TIMER_HZ = 20;
+
+// Battery monitor interval
+const int BATT_CHECK_INTERVAL_SEC = 5;
+
+// Android Headphone Remote Control Pin (GPIO26: ADC0)
 static const uint32_t PIN_HP_BUTTON = 26;
 static const uint32_t ADC_PIN_HP_BUTTON = 0;
+
+// Battery Voltage Pin (GPIO28: ADC2)
+static const uint32_t PIN_BATT_LVL = 28;
+static const uint32_t ADC_PIN_BATT_LVL = 2;
+
+// Battery Check Pin
+static const uint32_t PIN_BATT_CHECK = 8;
 
 // Configuration for button recognition
 static const uint32_t RELEASE_IGNORE_COUNT = 8;
@@ -65,6 +78,7 @@ static button_status_t adc0_get_hp_button()
     // ADC Calibration Coefficients
     const int16_t coef_a = 3350;
     const int16_t coef_b = -50;
+    adc_select_input(ADC_PIN_HP_BUTTON);
     uint16_t result = adc_read();
     int16_t voltage = result * coef_a / (1<<12) + coef_b;
     //if (voltage < 1000) { printf("adc0 = %d mv\n", voltage); }
@@ -192,8 +206,30 @@ static void update_button_action()
     button_prv[0] = button;
 }
 
+static void monitor_battery_voltage()
+{
+    static int count = 0;
+    if (count % (ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC) == ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC-2) {
+        // Prepare to check battery voltage
+        gpio_put(PIN_BATT_CHECK, 1);
+    } else if (count % (ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC) == ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC-1) {
+        // ADC Calibration Coefficients
+        // ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm
+        const int16_t coef_a = 4280;
+        const int16_t coef_b = -20;
+        adc_select_input(ADC_PIN_BATT_LVL);
+        uint16_t result = adc_read();
+        gpio_put(PIN_BATT_CHECK, 0);
+        int16_t voltage = result * coef_a / (1<<12) + coef_b;
+        //printf("Battery Voltage = %d (mV)\n", voltage);
+        vars.bat_mv = voltage;
+    }
+    count++;
+}
+
 bool timer_callback_adc(repeating_timer_t *rt) {
     update_button_action();
+    monitor_battery_voltage();
     return true; // keep repeating
 }
 
@@ -201,14 +237,18 @@ static int adc_timer_init()
 {
     // ADC Initialize
     adc_init();
-    // Make sure GPIO is high-impedance, no pullups etc
-    adc_gpio_init(PIN_HP_BUTTON);
-    // Select ADC input ADCx (must be matched with PIN_HP_BUTTON)
-    adc_select_input(ADC_PIN_HP_BUTTON);
 
-    const int timer_hz = 20;
+    // ADC Pin initialize
+    adc_gpio_init(PIN_HP_BUTTON);
+    adc_gpio_init(PIN_BATT_LVL);
+
+    // Battery Check Pin
+    gpio_init(PIN_BATT_CHECK);
+    gpio_set_dir(PIN_BATT_CHECK, GPIO_OUT);
+    gpio_put(PIN_BATT_CHECK, 0);
+
     // negative timeout means exact delay (rather than delay between callbacks)
-    if (!add_repeating_timer_us(-1000000 / timer_hz, timer_callback_adc, nullptr, &timer)) {
+    if (!add_repeating_timer_us(-1000000 / ADC_TIMER_HZ, timer_callback_adc, nullptr, &timer)) {
         //printf("Failed to add timer\n");
         return 0;
     }
@@ -298,9 +338,9 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
     return ui_mode->getUIModeEnm();
 }
 
-void uiv_set_battery_voltage(uint16_t bat_mv)
+bool uiv_get_low_battery()
 {
-    vars.bat_mv = bat_mv;
+    return (vars.bat_mv < 2900);
 }
 
 void uiv_set_file_idx(uint16_t idx_head, uint16_t idx_column)

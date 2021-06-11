@@ -87,6 +87,7 @@ public:
 	IconBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK, bool bgOpaque = false);
 	void setFgColor(uint16_t fgColor);
 	void setBgColor(uint16_t bgColor);
+	void setBgOpaque(bool bgOpaque);
 	void update();
 	void draw();
 	void clear();

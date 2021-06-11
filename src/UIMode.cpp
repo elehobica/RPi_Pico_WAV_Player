@@ -430,12 +430,16 @@ UIMode* UIFileViewMode::update()
             break;
     }
     */
-    if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+    if (uiv_get_low_battery()) {
+        lcd.setMsg("Low Battery!", true);
+        return getUIMode(PowerOffMode);
+    } else if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+        lcd.setMsg("Bye");
         return getUIMode(PowerOffMode);
     } else if (idle_count > 5*OneSec) {
         file_menu_idle(); // for background sort
     }
-    //lcd.setBatteryVoltage(vars->bat_mv);
+    lcd.setBatteryVoltage(vars->bat_mv);
     idle_count++;
     return this;
 }
@@ -497,9 +501,15 @@ UIMode* UIPlayMode::update()
         }
         idle_count = 0;
     }
-    if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+    if (uiv_get_low_battery()) {
         codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
         codec->stop();
+        lcd.setMsg("Low Battery!", true);
+        return getUIMode(PowerOffMode);
+    } else if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+        codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
+        codec->stop();
+        lcd.setMsg("Bye");
         return getUIMode(PowerOffMode);
     } else if (!codec->isPlaying()) {
         idle_count = 0;
@@ -520,7 +530,7 @@ UIMode* UIPlayMode::update()
     float levelL, levelR;
     codec->getLevel(&levelL, &levelR);
     lcd.setAudioLevel(levelL, levelR);
-    //lcd.setBatteryVoltage(vars->bat_mv);
+    lcd.setBatteryVoltage(vars->bat_mv);
     idle_count++;
     return this;
 }
@@ -796,6 +806,7 @@ UIMode* UIConfigMode::update()
             case ButtonCenterLongLong:
                 codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
                 codec->stop();
+                lcd.setMsg("Bye");
                 return getUIMode(PowerOffMode);
                 break;
             case ButtonPlusSingle:
@@ -848,7 +859,7 @@ UIMode* UIPowerOffMode::update()
 void UIPowerOffMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    lcd.switchToPowerOff("Bye");
+    lcd.switchToPowerOff();
     lcd.drawPowerOff();
 }
 

@@ -13,7 +13,6 @@
 #include "st7735_80x160/my_lcd.h"
 //#include "fonts/iconfont.h"
 
-#if 0
 //=================================
 // Implementation of BatteryIconBox class
 //=================================
@@ -25,14 +24,12 @@ void BatteryIconBox::draw()
     if (!isUpdated) { return; }
     isUpdated = false;
     clear();
-    if (icon != NULL) {
-        tft->drawBitmap(pos_x, pos_y, icon, iconWidth, iconHeight, fgColor);
-        uint16_t color = (level >= 50) ? 0x0600 : (level >= 20) ? 0xc600 : 0xc000;
-        if (level/10 < 9) {
-            tft->fillRect(pos_x+4, pos_y+4, 8, 10-level/10-1, bgColor);
-        }
-        tft->fillRect(pos_x+4, pos_y+13-level/10, 8, level/10+1, color);
+    LCD_ShowIcon(pos_x, pos_y, icon, !bgOpaque, fgColor);
+    uint16_t color = (level >= 50) ? 0x0600 : (level >= 20) ? 0xc600 : 0xc000;
+    if (level/10 < 9) {
+        LCD_Fill(pos_x+4, pos_y+4, pos_x+4+8-1, pos_y+4+10-level/10-1-1, bgColor);
     }
+    LCD_Fill(pos_x+4, pos_y+13-level/10, pos_x+4+8-1, pos_y+13-level/10+level/10+1-1, color);
 }
 
 void BatteryIconBox::setLevel(uint8_t value)
@@ -42,7 +39,6 @@ void BatteryIconBox::setLevel(uint8_t value)
     this->level = value;
     update();
 }
-#endif
 
 //=================================
 // Implementation of LcdCanvas class
@@ -84,6 +80,7 @@ void LcdCanvas::switchToListView()
 {
     clear(true);
     msg.setText("");
+    battery.setBgOpaque(true);
     for (int i = 0; i < (int) (sizeof(groupListView)/sizeof(*groupListView)); i++) {
         groupListView[i]->update();
     }
@@ -93,6 +90,7 @@ void LcdCanvas::switchToPlay()
 {
     clear(false);
     msg.setText("");
+    battery.setBgOpaque(false);
     for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
         groupPlay[i]->update();
     }
@@ -105,14 +103,9 @@ void LcdCanvas::switchToPlay()
     play_count = 0;
 }
 
-void LcdCanvas::switchToPowerOff(const char *msg_str)
+void LcdCanvas::switchToPowerOff()
 {
     clear(true);
-    if (msg_str != NULL) {
-        msg.setText(msg_str);
-    } else {
-        msg.setText("");
-    }
     for (int i = 0; i < (int) (sizeof(groupPowerOff)/sizeof(*groupPowerOff)); i++) {
         groupPowerOff[i]->update();
     }
@@ -292,6 +285,7 @@ void LcdCanvas::setYear(const char *str)
 {
     year.setText(str);
 }
+*/
 
 void LcdCanvas::setBatteryVoltage(uint16_t voltage_x1000)
 {
@@ -299,28 +293,3 @@ void LcdCanvas::setBatteryVoltage(uint16_t voltage_x1000)
     const uint16_t lvl0 = 2900;
     battery.setLevel(((voltage_x1000 - lvl0) * 100) / (lvl100 - lvl0));
 }
-
-void LcdCanvas::addAlbumArtJpeg(uint16_t file_idx, uint64_t pos, size_t size, bool is_unsync)
-{
-    albumArt.addJpegFile(file_idx, pos, size, is_unsync);
-    #ifdef USE_ALBUM_ART_SMALL
-    albumArtSmall.addJpegFile(file_idx, pos, size, is_unsync);
-    #endif // #ifdef USE_ALBUM_ART_SMALL
-}
-
-void LcdCanvas::addAlbumArtPng(uint16_t file_idx, uint64_t pos, size_t size, bool is_unsync)
-{
-    albumArt.addPngFile(file_idx, pos, size, is_unsync);
-    #ifdef USE_ALBUM_ART_SMALL
-    albumArtSmall.addPngFile(file_idx, pos, size, is_unsync);
-    #endif // #ifdef USE_ALBUM_ART_SMALL
-}
-
-void LcdCanvas::deleteAlbumArt()
-{
-    albumArt.deleteAll();
-    #ifdef USE_ALBUM_ART_SMALL
-    albumArtSmall.deleteAll();
-    #endif // #ifdef USE_ALBUM_ART_SMALL
-}
-*/

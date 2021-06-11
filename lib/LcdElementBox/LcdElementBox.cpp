@@ -123,6 +123,13 @@ void IconBox::setBgColor(uint16_t bgColor)
     update();
 }
 
+void IconBox::setBgOpaque(bool bgOpaque)
+{
+    if (this->bgOpaque == bgOpaque) { return; }
+    this->bgOpaque = bgOpaque;
+    update();
+}
+
 void IconBox::update()
 {
     isUpdated = true;
