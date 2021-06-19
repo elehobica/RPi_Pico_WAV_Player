@@ -58,4 +58,8 @@ target_link_libraries(${bin_name}
 
 target_include_directories(${bin_name} INTERFACE src)
 
+target_compile_definitions(${bin_name} PRIVATE
+#    NO_BATTERY_VOLTAGE_CHECK
+)
+
 pico_add_extra_outputs(${bin_name})

@@ -12,6 +12,8 @@ extern "C" {
 }
 #include "ui_control.h"
 
+//#define NO_BATTERY_VOLTAGE_CHECK
+
 // SW PIN setting
 static const uint32_t PIN_SW_PLUS = 22;
 static const uint32_t PIN_SW_CENTER = 21;
@@ -340,7 +342,11 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
 
 bool uiv_get_low_battery()
 {
+#ifdef NO_BATTERY_VOLTAGE_CHECK
+    return false;
+#else
     return (vars.bat_mv < 2900);
+#endif
 }
 
 void uiv_set_file_idx(uint16_t idx_head, uint16_t idx_column)
