@@ -9,7 +9,7 @@
 
 #include "pico/audio_i2s.h"
 
-static const int SAMPLES_PER_BUFFER = 1152; // Samples / channel
+static const int SAMPLES_PER_BUFFER = PICO_AUDIO_I2S_BUFFER_SAMPLE_LENGTH; // Samples / channel
 static const int32_t DAC_ZERO = 1; // to avoid pop noise caused by auto-mute function of DAC
 
 audio_buffer_pool_t *audio_init();

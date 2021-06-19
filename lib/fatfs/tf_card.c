@@ -57,7 +57,7 @@ BYTE CardType;			/* Card type flags */
 
 static inline uint32_t _millis(void)
 {
-	return to_ms_since_boot(get_absolute_time());
+    return to_ms_since_boot(get_absolute_time());
 }
 
 /*-----------------------------------------------------------------------*/

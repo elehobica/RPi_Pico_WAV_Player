@@ -102,8 +102,8 @@ void LCD_Scroll_ShowString(u16 x, u16 y, u16 x_min, u16 x_max, u8 *p, u8 mode, u
             //LCD_ShowString(x, y, (u8 *) " ", color);
             //LCD_ShowString(LCD_W-8, y, (u8 *) " ", color);
         }
-		//if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], color)) {
-		if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], mode, color)) {
+        //if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], color)) {
+        if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], mode, color)) {
             (*sft_val)++;
         } else if (tick % 32 == 23) { // Tail display returns back to Head display
             //LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);

@@ -9,14 +9,18 @@
 #include <stdio.h>
 
 #include "pico/stdlib.h"
-#include "pico/audio_i2s.h"
-#include "audio_i2s.pio.h"
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
 #include "hardware/dma.h"
 #include "hardware/irq.h"
 #include "hardware/clocks.h"
+#include "hardware/structs/dma.h"
+#include "hardware/regs/dreq.h"
 
+#include "audio_i2s.pio.h"
+#include "pico/audio_i2s.h"
+
+//#define PROFILE_DMA_TRANSFER
 
 CU_REGISTER_DEBUG_PINS(audio_timing)
 
@@ -49,6 +53,18 @@ audio_buffer_format_t pio_i2s_consumer_buffer_format = {
 static audio_buffer_t silence_buffer;
 
 static void __isr __time_critical_func(audio_i2s_dma_irq_handler)();
+
+#ifdef PROFILE_DMA_TRANSFER
+static inline uint32_t _millis(void)
+{
+	return to_ms_since_boot(get_absolute_time());
+}
+
+static inline uint32_t _micros(void)
+{
+	return to_us_since_boot(get_absolute_time());
+}
+#endif // PROFILE_DMA_TRANSFER
 
 const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_format, const audio_format_t *i2s_output_audio_format,
                                                const audio_i2s_config_t *config) {
@@ -428,6 +444,18 @@ bool audio_i2s_connect_s8(audio_buffer_pool_t *producer) {
 }
 
 static inline void audio_start_dma_transfer() {
+    #ifdef PROFILE_DMA_TRANSFER
+    static uint32_t latest = 0;
+    static uint32_t max_interval = 0;
+    uint32_t now = _micros();
+    uint32_t interval = now - latest;
+    if (latest != 0 && max_interval < interval) {
+        printf("dma_transfer interval %d\n", interval);
+        max_interval = interval;
+    }
+    latest = now;
+    #endif // PROFILE_DMA_TRANSFER
+
     assert(!shared_state.playing_buffer);
     audio_buffer_t *ab = take_audio_buffer(audio_i2s_consumer, false);
 

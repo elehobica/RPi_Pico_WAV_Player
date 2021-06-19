@@ -87,7 +87,7 @@ void PlayWav::decode()
     } else {
         buffer->sample_count = rdbuf->getLeft()/4;
     }
-    memcpy(buf_s16, rdbuf->buf(), buffer->sample_count*4);
+    memcpy(buf_s16, rdbuf->buf(), buffer->sample_count*4); // This is 'decode' of WAV
     uint32_t accumL = 0;
     uint32_t accumR = 0;
     for (int i = 0; i < buffer->sample_count; i++) {
