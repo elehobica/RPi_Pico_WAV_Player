@@ -42,12 +42,10 @@ pico_enable_stdio_uart(${bin_name} 0)
 
 target_link_libraries(${bin_name} 
         pico_stdlib
-        pico_multicore
         hardware_uart
         hardware_pwm
-        hardware_adc
         hardware_flash
-        hardware_sync
+        hardware_adc
         hardware_gpio_ex
         st7735_80x160
         fatfs
