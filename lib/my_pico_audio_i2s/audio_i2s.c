@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
 #include "hardware/dma.h"
@@ -21,6 +22,7 @@
 #include "pico/audio_i2s.h"
 
 //#define PROFILE_DMA_TRANSFER
+//#define CORE1_PROCESS_I2S_CALLBACK // Multi-Core Processing Mode
 
 CU_REGISTER_DEBUG_PINS(audio_timing)
 
@@ -50,6 +52,7 @@ audio_buffer_format_t pio_i2s_consumer_buffer_format = {
         .format = &pio_i2s_consumer_format,
 };
 
+static audio_buffer_pool_t *audio_i2s_consumer;
 static audio_buffer_t silence_buffer;
 
 static void __isr __time_critical_func(audio_i2s_dma_irq_handler)();
@@ -65,6 +68,68 @@ static inline uint32_t _micros(void)
 	return to_us_since_boot(get_absolute_time());
 }
 #endif // PROFILE_DMA_TRANSFER
+
+// i2s callback function to be defined at external
+__attribute__((weak))
+void i2s_callback_func()
+{
+    /*
+	uint32_t time = to_ms_since_boot(get_absolute_time());
+    printf("i2s_callback_func %d\n", time);
+    */
+    return;
+}
+
+#ifdef CORE1_PROCESS_I2S_CALLBACK
+
+enum FifoMessage {
+    RESPONSE_CORE1_THREAD_STARTED = 0,
+    RESPONSE_CORE1_THREAD_TERMINATED = 0,
+    EVENT_I2S_DMA_TRANSFER_STARTED,
+    NOTIFY_I2S_DISABLED
+};
+
+static const uint64_t FIFO_TIMEOUT = 10 * 1000; // us
+
+void i2s_callback_loop()
+{
+    multicore_fifo_push_blocking(RESPONSE_CORE1_THREAD_STARTED);
+#ifndef NDEBUG
+    printf("i2s_callback_loop started (on core %d)\n", get_core_num());
+#endif // NDEBUG
+    while (true) {
+        uint32_t msg = multicore_fifo_pop_blocking();
+        if (msg == EVENT_I2S_DMA_TRANSFER_STARTED) {
+            i2s_callback_func();
+        } else if (msg == NOTIFY_I2S_DISABLED) {
+            break;
+        } else {
+            panic("Unexpected message from Core 0\n");
+        }
+        tight_loop_contents();
+    }
+    multicore_fifo_push_blocking(RESPONSE_CORE1_THREAD_TERMINATED);
+#ifndef NDEBUG
+    printf("i2s_callback_loop terminated (on core %d)\n", get_core_num());
+#endif // NDEBUG
+
+    while (true) { tight_loop_contents(); } // infinite loop
+    return;
+}
+#endif // CORE1_PROCESS_I2S_CALLBACK
+
+//void audio_i2s_end(const audio_i2s_config_t *config) {
+void audio_i2s_end() {
+    audio_buffer_t *ab = shared_state.playing_buffer;
+    queue_free_audio_buffer(audio_i2s_consumer, ab);
+    shared_state.playing_buffer = NULL;
+    uint8_t sm = shared_state.pio_sm;
+    pio_sm_unclaim(audio_pio, sm);
+    pio_clear_instruction_memory(audio_pio);
+    uint8_t dma_channel = shared_state.dma_channel;
+    dma_channel_unclaim(dma_channel);
+    irq_remove_handler(DMA_IRQ_x, audio_i2s_dma_irq_handler);
+}
 
 const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_format, const audio_format_t *i2s_output_audio_format,
                                                const audio_i2s_config_t *config) {
@@ -155,8 +220,6 @@ const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_form
     dma_channel_set_irqx_enabled(dma_channel, 1);
     return _i2s_output_audio_format;
 }
-
-static audio_buffer_pool_t *audio_i2s_consumer;
 
 static void update_pio_frequency(uint32_t sample_freq, audio_pcm_format_t pcm_format, audio_channel_t channel_count) {
     printf("setting pio freq %d\n", (int) sample_freq);
@@ -485,17 +548,6 @@ static inline void audio_start_dma_transfer() {
     }
 }
 
-// i2s callback function to be defined at external
-__attribute__((weak))
-void i2s_callback_func()
-{
-    /*
-	uint32_t time = to_ms_since_boot(get_absolute_time());
-    printf("i2s_callback_func %d\n", time);
-    */
-    return;
-}
-
 // irq handler for DMA
 void __isr __time_critical_func(audio_i2s_dma_irq_handler)() {
 #if PICO_AUDIO_I2S_NOOP
@@ -514,7 +566,12 @@ void __isr __time_critical_func(audio_i2s_dma_irq_handler)() {
         }
         audio_start_dma_transfer();
         DEBUG_PINS_CLR(audio_timing, 4);
+#ifdef CORE1_PROCESS_I2S_CALLBACK
+        bool flg = multicore_fifo_push_timeout_us(EVENT_I2S_DMA_TRANSFER_STARTED, FIFO_TIMEOUT);
+        if (!flg) { printf("Core0 -> Core1 FIFO Full\n"); }
+        #else
         i2s_callback_func();
+#endif // CORE1_PROCESS_I2S_CALLBACK
     }
 #endif
 }
@@ -524,17 +581,39 @@ static bool audio_enabled;
 void audio_i2s_set_enabled(bool enabled) {
     if (enabled != audio_enabled) {
 #ifndef NDEBUG
-        if (enabled)
-        {
-            puts("Enabling PIO I2S audio\n");
-            printf("(on core %d\n", get_core_num());
+        if (enabled) {
+            printf("Enabling PIO I2S audio (on core %d)\n", get_core_num());
+        } else {
+            printf("Disabling PIO I2S audio (on core %d)\n", get_core_num());
         }
 #endif
+        if (enabled) { // Clear pending before enabled
+            uint dma_channel = shared_state.dma_channel;
+            dma_intsx = 1u << dma_channel;
+        }
         irq_set_enabled(DMA_IRQ_x, enabled);
-
         if (enabled) {
             audio_start_dma_transfer();
         }
+#ifdef CORE1_PROCESS_I2S_CALLBACK
+        bool flg;
+        uint32_t msg;
+        if (enabled) {
+            multicore_reset_core1();
+            multicore_launch_core1(i2s_callback_loop);
+            flg = multicore_fifo_pop_timeout_us(FIFO_TIMEOUT, &msg);
+            if (!flg || msg != RESPONSE_CORE1_THREAD_STARTED) {
+                panic("Core1 is not respond\n");
+            }
+        } else {
+            flg = multicore_fifo_push_timeout_us(NOTIFY_I2S_DISABLED, FIFO_TIMEOUT);
+            if (!flg) { printf("Core0 -> Core1 FIFO Full\n"); }
+            flg = multicore_fifo_pop_timeout_us(FIFO_TIMEOUT, &msg);
+            if (!flg || msg != RESPONSE_CORE1_THREAD_TERMINATED) {
+                panic("Core1 is not respond\n");
+            }
+        }
+#endif // CORE1_PROCESS_I2S_CALLBACK
 
         pio_sm_set_enabled(audio_pio, shared_state.pio_sm, enabled);
 

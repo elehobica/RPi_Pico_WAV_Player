@@ -24,7 +24,7 @@
 
 //#define INITIALIZE_CONFIG_PARAM
 
-const char *VersionStr = "0.1.0";
+const char *VersionStr = "0.2.0";
 
 // PIN setting
 static const uint32_t PIN_LED = 25;
@@ -159,6 +159,7 @@ static void power_off(const char *msg, bool is_error = false)
     uint32_t stay_time = (is_error) ? 4000 : 1000;
     uint32_t time = _millis();
     gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
+    audio_codec_deinit();
     while (_millis() - time < stay_time) {
         sleep_ms(LoopCycleMs);
         lcd.drawPowerOff();

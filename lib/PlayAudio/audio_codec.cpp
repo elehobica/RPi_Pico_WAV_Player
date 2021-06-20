@@ -24,6 +24,13 @@ void audio_codec_init()
     cur_audio_codec = PlayAudio::AUDIO_CODEC_NONE;
 }
 
+void audio_codec_deinit()
+{
+    PlayAudio::finalize();
+    delete playAudio_ary[PlayAudio::AUDIO_CODEC_NONE];
+    delete playAudio_ary[PlayAudio::AUDIO_CODEC_WAV];
+}
+
 PlayAudio *get_audio_codec()
 {
     return playAudio_ary[cur_audio_codec];

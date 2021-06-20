@@ -13,6 +13,7 @@
 void audio_codec_init();
 PlayAudio *get_audio_codec();
 PlayAudio *set_audio_codec(PlayAudio::audio_codec_t audio_codec);
+void audio_codec_deinit();
 extern "C" {
 void i2s_callback_func();
 }

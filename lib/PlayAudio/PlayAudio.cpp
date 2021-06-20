@@ -34,6 +34,13 @@ void PlayAudio::initialize()
     ap = audio_init();
     rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE/4); // auto fill if left is lower than RDBUF_SIZE/4
 }
+
+void PlayAudio::finalize()
+{
+    audio_deinit();
+    delete rdbuf;
+}
+
 void PlayAudio::volumeUp()
 {
     if (volume < 100) { volume++; }

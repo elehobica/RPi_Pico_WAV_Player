@@ -23,6 +23,7 @@ public:
         AUDIO_CODEC_WAV
     } audio_codec_t;
     static void initialize();
+    static void finalize();
     static void volumeUp();
     static void volumeDown();
     static void setVolume(uint8_t value);

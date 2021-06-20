@@ -122,6 +122,17 @@ const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_form
                                                const audio_i2s_config_t *config);
 
 
+/** \brief End up system to output I2S audio
+ * \ingroup pico_audio_i2s
+ *
+ */
+void audio_i2s_end();
+/*
+ * \param config The configuration to apply.
+void audio_i2s_end(const audio_i2s_config_t *config);
+*/
+
+
 /** \brief \todo
  * \ingroup pico_audio_i2s
  *

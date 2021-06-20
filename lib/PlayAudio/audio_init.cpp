@@ -52,3 +52,9 @@ audio_buffer_pool_t *audio_init()
     audio_i2s_set_enabled(true);
     return producer_pool;
 }
+
+void audio_deinit()
+{
+    audio_i2s_set_enabled(false);
+    audio_i2s_end();
+}
