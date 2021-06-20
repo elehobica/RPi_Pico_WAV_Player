@@ -21,8 +21,9 @@
 #include "audio_i2s.pio.h"
 #include "pico/audio_i2s.h"
 
-//#define PROFILE_DMA_TRANSFER
-//#define CORE1_PROCESS_I2S_CALLBACK // Multi-Core Processing Mode
+//#define CORE1_PROCESS_I2S_CALLBACK  // Multi-Core Processing Mode (Experimentally Single-Core seems better)
+//#define WATCH_DMA_TRANSFER_INTERVAL // Activate only for analysis because of watch overhead
+//#define WATCH_PIO_SM_TX_FIFO_LEVEL  // Activate only for analysis because of watch overhead
 
 CU_REGISTER_DEBUG_PINS(audio_timing)
 
@@ -57,17 +58,19 @@ static audio_buffer_t silence_buffer;
 
 static void __isr __time_critical_func(audio_i2s_dma_irq_handler)();
 
-#ifdef PROFILE_DMA_TRANSFER
+#ifdef WATCH_PIO_SM_TX_FIFO_LEVEL
 static inline uint32_t _millis(void)
 {
 	return to_ms_since_boot(get_absolute_time());
 }
+#endif // WATCH_PIO_SM_TX_FIFO_LEVEL
 
+#ifdef WATCH_DMA_TRANSFER_INTERVAL
 static inline uint32_t _micros(void)
 {
 	return to_us_since_boot(get_absolute_time());
 }
-#endif // PROFILE_DMA_TRANSFER
+#endif // WATCH_DMA_TRANSFER_INTERVAL
 
 // i2s callback function to be defined at external
 __attribute__((weak))
@@ -507,7 +510,9 @@ bool audio_i2s_connect_s8(audio_buffer_pool_t *producer) {
 }
 
 static inline void audio_start_dma_transfer() {
-    #ifdef PROFILE_DMA_TRANSFER
+    assert(!shared_state.playing_buffer);
+
+    #ifdef WATCH_DMA_TRANSFER_INTERVAL
     static uint32_t latest = 0;
     static uint32_t max_interval = 0;
     uint32_t now = _micros();
@@ -517,9 +522,14 @@ static inline void audio_start_dma_transfer() {
         max_interval = interval;
     }
     latest = now;
-    #endif // PROFILE_DMA_TRANSFER
+    #endif // WATCH_DMA_TRANSFER_INTERVAL
+    #ifdef WATCH_PIO_SM_TX_FIFO_LEVEL
+    uint tx_fifo_level = pio_sm_get_tx_fifo_level(audio_pio, shared_state.pio_sm);
+    if (tx_fifo_level < 4) {
+        printf("PIO TX FIFO too low: %d at %d ms\n", (int) tx_fifo_level, (int) _millis());
+    }
+    #endif // WATCH_PIO_SM_TX_FIFO_LEVEL
 
-    assert(!shared_state.playing_buffer);
     audio_buffer_t *ab = take_audio_buffer(audio_i2s_consumer, false);
 
     shared_state.playing_buffer = ab;
