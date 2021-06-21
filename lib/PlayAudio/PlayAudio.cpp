@@ -10,6 +10,7 @@
 
 //#define DEBUG_PLAYAUDIO
 
+spin_lock_t *PlayAudio::spin_lock = nullptr;
 audio_buffer_pool_t *PlayAudio::ap = nullptr;
 ReadBuffer *PlayAudio::rdbuf = nullptr;
 int16_t PlayAudio::buf_s16[SAMPLES_PER_BUFFER*2];
@@ -31,12 +32,14 @@ const uint32_t PlayAudio::vol_table[101] = {
 
 void PlayAudio::initialize()
 {
+    spin_lock = spin_lock_init(spin_lock_claim_unused(true));
     ap = audio_init();
     rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE/4); // auto fill if left is lower than RDBUF_SIZE/4
 }
 
 void PlayAudio::finalize()
 {
+    spin_lock_unclaim(spin_lock_get_num(spin_lock));
     audio_deinit();
     delete rdbuf;
 }
@@ -86,7 +89,7 @@ void PlayAudio::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
 
     setBufPos(fpos);
 
-    this->samplesPlayed = samplesPlayed;
+    setSamplesPlayed(samplesPlayed);
     // Don't manipulate rdbuf after playing = true because decode callback handles it
     playing = true;
     paused = false;
@@ -139,22 +142,51 @@ float PlayAudio::convLevelCurve(uint32_t levelInt) // assume 0 <= level <= 32768
     return (float) i / 100.0;
 }
 
+void PlayAudio::setSamplesPlayed(uint32_t value)
+{
+    uint32_t save = spin_lock_blocking(spin_lock);
+    samplesPlayed = value;
+    spin_unlock(spin_lock, save);
+}
+
+void PlayAudio::incSamplesPlayed(uint32_t inc)
+{
+    uint32_t save = spin_lock_blocking(spin_lock);
+    samplesPlayed += inc;
+    spin_unlock(spin_lock, save);
+}
+
+uint32_t PlayAudio::getSamplesPlayed()
+{
+    uint32_t save = spin_lock_blocking(spin_lock);
+    uint32_t value = samplesPlayed;
+    spin_unlock(spin_lock, save);
+    return value;
+}
+
 void PlayAudio::setLevelInt(uint32_t levelIntL, uint32_t levelIntR)
 {
+    uint32_t save;
     // Level conversion with slow level down
     const float MaxLevelDown = 0.02;
+
     float levelL_nxt = convLevelCurve(levelIntL);
+    save = spin_lock_blocking(spin_lock);
     if (levelL - MaxLevelDown > levelL_nxt) {
         levelL -= MaxLevelDown;
     } else {
         levelL = levelL_nxt;
     }
+    spin_unlock(spin_lock, save);
+
     float levelR_nxt = convLevelCurve(levelIntR);
+    save = spin_lock_blocking(spin_lock);
     if (levelR - MaxLevelDown > levelR_nxt) {
         levelR -= MaxLevelDown;
     } else {
         levelR = levelR_nxt;
     }
+    spin_unlock(spin_lock, save);
 }
 
 void PlayAudio::decode()
@@ -191,14 +223,14 @@ void PlayAudio::decode()
 
 uint32_t PlayAudio::elapsedMillis()
 {
-    return (uint32_t) ((uint64_t) samplesPlayed * 1000 / sampRateHz);
+    return (uint32_t) ((uint64_t) getSamplesPlayed() * 1000 / sampRateHz);
 }
 
 void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
 {
     if (playing) {
         *fpos = rdbuf->tell();
-        *samplesPlayed = this->samplesPlayed;
+        *samplesPlayed = getSamplesPlayed();
     } else {
         *fpos = 0;
         *samplesPlayed = 0;
@@ -207,6 +239,8 @@ void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
 
 void PlayAudio::getLevel(float *levelL, float *levelR)
 {
+    uint32_t save = spin_lock_blocking(spin_lock);
     *levelL = this->levelL;
     *levelR = this->levelR;
+    spin_unlock(spin_lock, save);
 }

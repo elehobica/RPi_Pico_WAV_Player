@@ -96,7 +96,7 @@ void PlayWav::decode()
         accumL += ((int32_t) buf_s16[i*2+0] * buf_s16[i*2+0]) / 32768;
         accumR += ((int32_t) buf_s16[i*2+1] * buf_s16[i*2+1]) / 32768;
     }
-    samplesPlayed += buffer->sample_count;
+    incSamplesPlayed(buffer->sample_count);
     give_audio_buffer(ap, buffer);
 
     setLevelInt(accumL / buffer->sample_count, accumR / buffer->sample_count);
