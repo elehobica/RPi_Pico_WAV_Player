@@ -223,8 +223,7 @@ void PlayAudio::decode()
 
 uint32_t PlayAudio::elapsedMillis()
 {
-    //return (uint32_t) ((uint64_t) getSamplesPlayed() * 1000 / sampRateHz); // sometimes illegal result due to 64bit calculation
-    return (uint32_t) ((float) getSamplesPlayed() * 1000.0F / (float) sampRateHz);
+    return (uint32_t) ((uint64_t) getSamplesPlayed() * 1000 / sampRateHz);
 }
 
 void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)

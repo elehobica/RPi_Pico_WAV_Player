@@ -10,7 +10,8 @@ if (NOT TARGET PlayAudio)
             ${CMAKE_CURRENT_LIST_DIR}/PlayWav.cpp
     )
 
-    target_link_libraries(PlayAudio INTERFACE pico_stdlib
+    target_link_libraries(PlayAudio INTERFACE
+        pico_stdlib
         fatfs
         my_pico_audio
         my_pico_audio_i2s
