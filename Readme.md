@@ -118,11 +118,22 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * Center 1 click to get into the folder
 * Center 1 click to play WAV file (go to Play Mode)
 * Center 2 click to go parent folder
+* Center 3 clicks to Random album play (go to Play Mode)
+* Long push Center button to go to Config Mode
+* 1 min passed without any button: Sequential/SequentialRepeat/Repeat/Random album play (go to Play Mode)
 
 ### Play Mode
 * Plus/Minus button for volume up/down
 * Center 1 click to pause/play
 * Center 2 click to stop (go back to FileView Mode)
+* Center 3 clicks to Random album play
+* Long push Center button to go to Config Mode
+
+### Config Mode
+* Up/Down button to go up/down to select config items
+* Center 1 click to determine config values
+* Center 2 clicks to go back to previous Mode (FileView or Play)
+* Long push to Power Off (Optional: external circuit needed)
 
 ## Image File Format
 ### Opening Logo File

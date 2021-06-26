@@ -125,6 +125,7 @@ protected:
     UIMode *nextPlay();
     UIMode *sequentialSearch(bool repeatFlg);
     UIMode *randomSearch(uint16_t depth);
+    void findFirstAudioTrack();
     void idxInc();
     void idxDec();
     void idxFastInc();

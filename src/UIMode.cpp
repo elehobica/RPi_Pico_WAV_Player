@@ -170,7 +170,6 @@ void UIFileViewMode::chdir()
     }
 }
 
-#if 0
 UIMode *UIFileViewMode::nextPlay()
 {
     switch (GET_CFG_MENU_PLAY_NEXT_PLAY_ALBUM) {
@@ -183,6 +182,7 @@ UIMode *UIFileViewMode::nextPlay()
         case ConfigMenu::next_play_action_t::Repeat:
             vars->idx_head = 0;
             vars->idx_column = 0;
+            findFirstAudioTrack();
             return getUIPlayMode();
         case ConfigMenu::next_play_action_t::Random:
             return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
@@ -201,7 +201,6 @@ UIMode *UIFileViewMode::sequentialSearch(bool repeatFlg)
     uint16_t last_dir_idx;
 
     printf("Sequential Search\n");
-    vars->idx_play = 0;
     stack_count = stack_get_count(dir_stack);
     if (stack_count < 1) { return this; }
     {
@@ -235,7 +234,10 @@ UIMode *UIFileViewMode::sequentialSearch(bool repeatFlg)
             chdir();
         }
         // Check if Next Target Dir has Audio track files
-        if (stack_count == stack_get_count(dir_stack) && getNumAudioFiles() > 0) { break; }
+        if (stack_count == stack_get_count(dir_stack) && getNumAudioFiles() > 0) {
+            findFirstAudioTrack();
+            break;
+        }
         // Otherwise, chdir to stack_count-depth and retry again
         printf("Retry Sequential Search\n");
         while (stack_count - 1 != stack_get_count(dir_stack)) {
@@ -253,7 +255,6 @@ UIMode *UIFileViewMode::randomSearch(uint16_t depth)
     int stack_count;
 
     printf("Random Search\n");
-    vars->idx_play = 0;
     stack_count = stack_get_count(dir_stack);
     if (stack_count < depth) { return this; }
     for (i = 0; i < depth; i++) {
@@ -265,7 +266,7 @@ UIMode *UIFileViewMode::randomSearch(uint16_t depth)
         for (i = 0; i < depth; i++) {
             if (file_menu_get_dir_num() == 0) { break; }
             while (1) {
-                vars->idx_head = random(1, file_menu_get_num());
+                vars->idx_head = rand() % file_menu_get_num();
                 file_menu_sort_entry(vars->idx_head, vars->idx_head+1);
                 if (file_menu_is_dir(vars->idx_head) > 0) { break; }
             }
@@ -273,7 +274,10 @@ UIMode *UIFileViewMode::randomSearch(uint16_t depth)
             chdir();
         }
         // Check if Next Target Dir has Audio track files
-        if (stack_count == stack_get_count(dir_stack) && getNumAudioFiles() > 0) { break; }
+        if (stack_count == stack_get_count(dir_stack) && getNumAudioFiles() > 0) {
+            findFirstAudioTrack();
+            break;
+        }
         // Otherwise, chdir to stack_count-depth and retry again
         printf("Retry Random Search\n");
         while (stack_count - depth != stack_get_count(dir_stack)) {
@@ -284,7 +288,15 @@ UIMode *UIFileViewMode::randomSearch(uint16_t depth)
     }
     return getUIPlayMode();
 }
-#endif
+
+void UIFileViewMode::findFirstAudioTrack()
+{
+    vars->idx_play = 0;
+    while (vars->idx_play < file_menu_get_num()) {
+        if (isAudioFile(vars->idx_play)) { break; }
+        vars->idx_play++;
+    }
+}
 
 void UIFileViewMode::idxInc(void)
 {
@@ -386,7 +398,7 @@ UIMode* UIFileViewMode::update()
                 listIdxItems();
                 break;
             case ButtonCenterTriple:
-                //return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
+                return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
                 break;
             case ButtonCenterLong:
                 return getUIMode(ConfigMode);
@@ -414,7 +426,6 @@ UIMode* UIFileViewMode::update()
         }
         idle_count = 0;
     }
-    /*
     switch (vars->do_next_play) {
         case ImmediatePlay:
             vars->do_next_play = None;
@@ -429,7 +440,6 @@ UIMode* UIFileViewMode::update()
         default:
             break;
     }
-    */
     if (uiv_get_low_battery()) {
         lcd.setMsg("Low Battery!", true);
         return getUIMode(PowerOffMode);
@@ -480,6 +490,8 @@ UIMode* UIPlayMode::update()
                 return getUIMode(FileViewMode);
                 break;
             case ButtonCenterTriple:
+                vars->idx_play = 0;
+                codec->stop();
                 vars->do_next_play = ImmediatePlay;
                 return getUIMode(FileViewMode);
                 break;

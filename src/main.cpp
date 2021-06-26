@@ -119,6 +119,7 @@ static void loadFromFlash(stack_t *dir_stack, ui_mode_enm_t *init_dest_mode)
 static void storeToFlash(stack_t *dir_stack)
 {
     // Save user parameters to configParam
+    configParam.setU32(ConfigParam::CFG_SEED, _millis());
     uint8_t volume = PlayAudio::getVolume();
     configParam.setU8(ConfigParam::CFG_VOLUME, volume);
     uint8_t stack_count = stack_get_count(dir_stack);
