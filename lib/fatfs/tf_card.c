@@ -5,7 +5,6 @@
 #include "hardware/clocks.h"
 #include "hardware/spi.h"
 #include "hardware/gpio.h"
-#include "hardware/gpio_ex.h"
 
 #include "ff.h"
 #include "diskio.h"
