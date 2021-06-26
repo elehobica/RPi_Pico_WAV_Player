@@ -57,11 +57,8 @@ void PlayWav::skipToDataChunk()
 
 void PlayWav::setBufPos(size_t fpos)
 {
-    if (fpos == 0) {
-        skipToDataChunk();
-    } else {
-        rdbuf->seek(fpos);
-    }
+    skipToDataChunk();
+    PlayAudio::setBufPos(fpos);
 }
 
 void PlayWav::decode()
