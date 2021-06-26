@@ -501,7 +501,7 @@ int TagRead::getUTF8Title(char* str, size_t size)
     if (GetID32UTF8("TT2", "TIT2", str, size)) { return 1; }
     if (strlen(id3v1->title)) {
         memset(str, 0, size);
-        strncpy(str, id3v1->title, (strlen(id3v1->title) < size - 1) ? strlen(id3v1->title) : size - 1);
+        strncpy(str, id3v1->title, size - 1);
         return 1;
     }
     return 0;
@@ -513,7 +513,7 @@ int TagRead::getUTF8Album(char* str, size_t size)
     if (GetID32UTF8("TAL", "TALB", str, size)) { return 1; }
     if (strlen(id3v1->album)) {
         memset(str, 0, size);
-        strncpy(str, id3v1->album, (strlen(id3v1->album) < size - 1) ? strlen(id3v1->album) : size - 1);
+        strncpy(str, id3v1->album, size - 1);
         return 1;
     }
     return 0;
@@ -525,7 +525,7 @@ int TagRead::getUTF8Artist(char* str, size_t size)
     if (GetID32UTF8("TP1", "TPE1", str, size)) { return 1; }
     if (strlen(id3v1->artist)) {
         memset(str, 0, size);
-        strncpy(str, id3v1->artist, (strlen(id3v1->artist) < size - 1) ? strlen(id3v1->artist) : size - 1);
+        strncpy(str, id3v1->artist, size - 1);
         return 1;
     }
     return 0;
@@ -537,7 +537,7 @@ int TagRead::getUTF8Year(char* str, size_t size)
     if (GetID32UTF8("TYE", "TYER", str, size)) { return 1; }
     if (strlen(id3v1->year)) {
         memset(str, 0, size);
-        strncpy(str, id3v1->year, (strlen(id3v1->year) < size - 1) ? strlen(id3v1->year) : size - 1);
+        strncpy(str, id3v1->year, size - 1);
         return 1;
     }
     return 0;
