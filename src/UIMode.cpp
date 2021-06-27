@@ -370,7 +370,7 @@ UIMode* UIFileViewMode::update()
     vars->resume_ui_mode = ui_mode_enm;
     switch (vars->init_dest_ui_mode) {
         case PlayMode:
-            if (isAudioFile(vars->idx_head + vars->idx_column)) {
+            if (isAudioFile(vars->idx_play)) {
                 return getUIPlayMode();
             }
             break;
