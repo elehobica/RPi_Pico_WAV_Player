@@ -27,8 +27,9 @@ This project features:
 | 22 | GP17 | LRCK | to PCM5102 LRCK (15) |
 | 23 | GND | GND | GND |
 | 24 | GP18 | SDO | to PCM5102 DIN (14) |
+| 32 | GP27 | AUDIO_MUTE_CTRL | to PCM5102 XSMT (17) |
 
-It is recommended that the power of PCM5102 is dedicatedly generated from 5V, not in common using 36 pin 3V3(OUT) of Raspberry Pi Pico.
+It is recommended that the power of PCM5102 is dedicatedly generated from 5V. But it's ok to use 36 pin 3V3(OUT) of Raspberry Pi Pico.
 
 ![PCM5102_schematic](doc/RPi_Pico_WAV_Player_PCM5102_Schematic.png)
 
@@ -36,7 +37,7 @@ It is recommended that the power of PCM5102 is dedicatedly generated from 5V, no
 * tie PCM5102 SCK (12) to low (bridge short land)
 * H1L (FLT) = L
 * H2L (DEMP) = L
-* H3L (XSMT) = H
+* H3L (XSMT): See above
 * H4L (FMT) = L
 
 ### ST7735S LCD driver
@@ -78,6 +79,9 @@ It is recommended that the power of PCM5102 is dedicatedly generated from 5V, no
 | 31 | GP26 | ADC0 | Headphone Remote Control (MIC pin) |
 
 ![buttons_schematic](doc/RPi_Pico_WAV_Player_buttons_Schematic.png)
+
+## Schematic
+[RPi_Pico_WAV_Player_schematic.pdf](doc/RPi_Pico_WAV_Player_schematic.pdf)
 
 ## How to build
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
