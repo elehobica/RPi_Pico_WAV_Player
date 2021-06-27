@@ -29,12 +29,13 @@ typedef struct element {
     button_action_t button_action;
 } element_t;
 
+bool ui_get_btn_evt(button_action_t *btn_act);
+void ui_clear_btn_evt();
 UIMode *getUIMode(ui_mode_enm_t ui_mode_enm);
 void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type);
 ui_mode_enm_t ui_update();
 ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm);
-bool ui_get_btn_evt(button_action_t *btn_act);
-void ui_clear_btn_evt();
+uint16_t ui_get_idle_count();
 
 bool uiv_get_low_battery();
 void uiv_set_file_idx(uint16_t idx_head, uint16_t idx_column);

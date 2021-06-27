@@ -21,6 +21,7 @@
 #include "file_menu/file_menu_FatFs.h"
 #include "UserFlash.h"
 #include "ConfigParam.h"
+#include "ConfigMenu.h"
 
 //#define INITIALIZE_CONFIG_PARAM
 
@@ -153,6 +154,31 @@ static void storeToFlash(stack_t *dir_stack)
     configParam.finalize();
 }
 
+static void backlight_init(uint32_t bl_val)
+{
+    // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
+    gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(PICO_DEFAULT_LED_PIN);
+    pwm_config config = pwm_get_default_config();
+    pwm_config_set_clkdiv(&config, 4.f);
+    pwm_init(slice_num, &config, true);
+    // Square bl_val to make brightness appear more linear
+    pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
+}
+
+static void backlight_update()
+{
+    const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
+    const int OneSec = 1000 / LoopCycleMs;
+    uint32_t bl_val;
+    if (ui_get_idle_count() < GET_CFG_MENU_DISPLAY_TIME_TO_BACKLIGHT_LOW*OneSec) {
+        bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL;
+    } else {
+        bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL;
+    }
+    pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
+}
+
 static void power_off(const char *msg, bool is_error = false)
 {
     const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
@@ -205,15 +231,8 @@ int main() {
     gpio_init(PIN_LED);
     gpio_set_dir(PIN_LED, GPIO_OUT);
 
-    // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
-    gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
-    uint slice_num = pwm_gpio_to_slice_num(PICO_DEFAULT_LED_PIN);
-    pwm_config config = pwm_get_default_config();
-    pwm_config_set_clkdiv(&config, 4.f);
-    pwm_init(slice_num, &config, true);
-    int bl_val = 196;
-    // Square bl_val to make brightness appear more linear
-    pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
+    // BackLight
+    backlight_init(196);
 
     // Wait before stable power-on for 750ms
     // to avoid unintended power-on when Headphone plug in
@@ -265,7 +284,10 @@ int main() {
     const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
     while (true) {
         uint32_t time = _millis();
+
         if (ui_update() == PowerOffMode) { break; }
+        backlight_update();
+
         time = _millis() - time;
         if (time < LoopCycleMs) {
             sleep_ms(LoopCycleMs - time);

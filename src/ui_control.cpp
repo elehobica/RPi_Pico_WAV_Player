@@ -340,6 +340,11 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
     return ui_mode->getUIModeEnm();
 }
 
+uint16_t ui_get_idle_count()
+{
+    return ui_mode->getIdleCount();
+}
+
 bool uiv_get_low_battery()
 {
 #ifdef NO_BATTERY_VOLTAGE_CHECK
