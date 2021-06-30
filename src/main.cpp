@@ -72,6 +72,7 @@ static void loadFromFlash(stack_t *dir_stack, ui_mode_enm_t *init_dest_mode)
     #else // INITIALIZE_CONFIG_PARAM
     configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
     #endif // INITIALIZE_CONFIG_PARAM
+    configMenu.scanHookFunc();
     configParam.printInfo();
     configParam.incBootCount();
 
@@ -232,7 +233,7 @@ int main() {
     gpio_set_dir(PIN_LED, GPIO_OUT);
 
     // BackLight
-    backlight_init(196);
+    backlight_init(192);
 
     // Wait before stable power-on for 750ms
     // to avoid unintended power-on when Headphone plug in

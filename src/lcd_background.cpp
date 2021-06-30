@@ -9,7 +9,7 @@
 #include "LcdCanvas.h"
 #include "lcd_background.h"
 
-uint16_t lcd_get_gackground(uint16_t x, uint16_t y)
+u16 LCD_GetBackground(u16 x, u16 y)
 {
     uint16_t pix =  lcd.getTiledImage(x, y);
     pix = ((pix & 0xff00) >> 8) | ((pix & 0x00ff) << 8);
@@ -22,5 +22,5 @@ uint16_t lcd_get_gackground(uint16_t x, uint16_t y)
     uint16_t b = (((pix & 0x001f) >> 2) + ((pix & 0x001f) >> 4)) & 0x001f;
     */
     pix = r | g | b;
-    return pix;
+    return (u16) pix;
 }

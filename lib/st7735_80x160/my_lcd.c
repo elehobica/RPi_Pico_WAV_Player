@@ -1,15 +1,20 @@
 #include "my_lcd.h"
 #include "iconfont.h"
-#include "lcd_background.h"
 
 extern const u8 asc2_1608[1520];
 extern unsigned char *image; // 80*80*2
+
+__attribute__((weak))
+u16 LCD_GetBackground(u16 x, u16 y)
+{
+	return BACK_COLOR;
+}
 
 // Show 16x16 ICON
 // mode: 0: non-overlay, 1: overlay
 void LCD_ShowIcon(u16 x,u16 y,u8 index,u8 mode,u16 color)
 {
-    u8 pos,t;
+	u8 pos,t;
 	u8 *temp,size1;
 	u8 size = 16;
 	if (index == ICON16x16_UNDEF) { return; }
@@ -24,7 +29,7 @@ void LCD_ShowIcon(u16 x,u16 y,u8 index,u8 mode,u16 color)
 			} else if (!mode) {
 				LCD_WR_DATA(BACK_COLOR);//不点亮
 			} else {
-				LCD_WR_DATA(lcd_get_gackground(x+(pos%2)*8+t, y+pos/2));
+				LCD_WR_DATA(LCD_GetBackground(x+(pos%2)*8+t, y+pos/2));
 			}
 		}
 		temp++;
@@ -37,11 +42,11 @@ void LCD_ShowIcon(u16 x,u16 y,u8 index,u8 mode,u16 color)
 // color: Color
 void LCD_ShowPartialChar(i16 x,i16 y,u16 x_min,u16 x_max,u16 y_min,u16 y_max,u8 num,u8 mode,u16 color)
 {
-    u8 temp;
-    u8 pos,t;
+	u8 temp;
+	u8 pos,t;
 	i16 x0=x;
 	if (x<-8+1 || y<-16+1) { return; }
-    if (x>LCD_W-1 || y>LCD_H-1) { return; }
+    if (x>LCD_W()-1 || y>LCD_H()-1) { return; }
 	num=num-' ';
 	x_min = ((i32) x >= (i32) x_min) ? (u16) x : x_min;
 	y_min = ((i32) y >= (i32) y_min) ? (u16) y : y_min;
@@ -58,7 +63,7 @@ void LCD_ShowPartialChar(i16 x,i16 y,u16 x_min,u16 x_max,u16 y_min,u16 y_max,u8 
 				} else if (!mode) {
 					LCD_WR_DATA(BACK_COLOR);
 				} else {
-					LCD_WR_DATA(lcd_get_gackground(x_min+t, y_min+pos));
+					LCD_WR_DATA(LCD_GetBackground(x_min+t, y_min+pos));
 				}
 			}
 			temp>>=1;
@@ -75,15 +80,15 @@ void LCD_ShowPartialChar(i16 x,i16 y,u16 x_min,u16 x_max,u16 y_min,u16 y_max,u8 
 u16 LCD_ShowStringLn(i16 x,i16 y,u16 x_min,u16 x_max,const u8 *p,u8 mode,u16 color)
 {
 	u16 res = 0;
-    while (*p!='\0') {
-        LCD_ShowPartialChar(x,y,x_min,x_max,0,LCD_H-1,*p,mode,color);
-        if ((i32) x > (i32) x_max-7) {
+	while (*p!='\0') {
+		LCD_ShowPartialChar(x,y,x_min,x_max,0,LCD_H()-1,*p,mode,color);
+		if ((i32) x > (i32) x_max-7) {
 			res=1;
 			break;
 		}
-        x+=8;
-        p++;
-    }
+		x+=8;
+		p++;
+	}
 	return res;
 }
 
@@ -91,25 +96,25 @@ u16 LCD_ShowStringLn(i16 x,i16 y,u16 x_min,u16 x_max,const u8 *p,u8 mode,u16 col
 // mode: 0: non-overlay, 1: overlay
 void LCD_Scroll_ShowString(u16 x, u16 y, u16 x_min, u16 x_max, u8 *p, u8 mode, u16 color, u16 *sft_val, u32 tick)
 {
-    if (*sft_val == 0) { // Head display
-        if (LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, mode, color) && (tick % 32 == 16)) {
-            //LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);
-            (*sft_val)++;
-        }
-    } else {
-        if (((x + *sft_val)%8) != 0) {
-            // delete head & tail  gabage
-            //LCD_ShowString(x, y, (u8 *) " ", color);
-            //LCD_ShowString(LCD_W-8, y, (u8 *) " ", color);
-        }
-        //if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], color)) {
-        if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], mode, color)) {
-            (*sft_val)++;
-        } else if (tick % 32 == 23) { // Tail display returns back to Head display
-            //LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);
-            *sft_val = 0;
-        }
-    }
+	if (*sft_val == 0) { // Head display
+		if (LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, mode, color) && (tick % 32 == 16)) {
+			//LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);
+			(*sft_val)++;
+		}
+	} else {
+		if (((x + *sft_val)%8) != 0) {
+			// delete head & tail  gabage
+			//LCD_ShowString(x, y, (u8 *) " ", color);
+			//LCD_ShowString(LCD_W()-8, y, (u8 *) " ", color);
+		}
+		//if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], color)) {
+		if (LCD_ShowStringLn((i16) x - (*sft_val)%8, y, x_min, x_max, (u8 *) &p[(*sft_val)/8], mode, color)) {
+			(*sft_val)++;
+		} else if (tick % 32 == 23) { // Tail display returns back to Head display
+			//LCD_ShowStringLn(x,  y, x_min, x_max, (u8 *) p, color);
+			*sft_val = 0;
+		}
+	}
 }
 
 // dim: 0(dark) ~ 255(original)
@@ -185,11 +190,11 @@ void LCD_FillBackground(u16 xsta,u16 ysta,u16 xend,u16 yend,u8 mode,u16 color)
 		LCD_Fill(xsta, ysta, xend, yend, color);
 		return;
 	}
-	u16 x,y; 
-	LCD_Address_Set(xsta,ysta,xend,yend);      //设置光标位置 
+	u16 x,y;
+	LCD_Address_Set(xsta,ysta,xend,yend);      //设置光标位置
 	for (y=ysta;y<=yend;y++) {
 		for (x=xsta;x<=xend;x++) {
-			LCD_WR_DATA(lcd_get_gackground(x, y));
+			LCD_WR_DATA(LCD_GetBackground(x, y));
 		}
 	}
 }

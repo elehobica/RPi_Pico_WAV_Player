@@ -293,7 +293,7 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_typ
 {
     vars.init_dest_ui_mode = init_dest_ui_mode;
     vars.fs_type = fs_type;
-    vars.num_list_lines = LCD_H/16;
+    vars.num_list_lines = LCD_H()/16;
 
     // button event queue
     queue_init(&btn_evt_queue, sizeof(element_t), QueueLength);

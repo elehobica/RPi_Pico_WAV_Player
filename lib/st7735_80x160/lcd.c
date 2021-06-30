@@ -1,7 +1,7 @@
 #include "lcd.h"
 #include "oledfont.h"
-#include "lcd_background.h"
 
+static u8 _rotation = 2;  //设置横屏或者竖屏显示 0或1为竖屏 2或3为横屏
 u16 BACK_COLOR;   //背景色
 
 /******************************************************************************
@@ -65,7 +65,7 @@ void LCD_WR_REG(u8 dat)
 ******************************************************************************/
 void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 {
-	if(USE_HORIZONTAL==0)
+	if(_rotation==0)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+26);
@@ -75,7 +75,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 		LCD_WR_DATA(y2+1);
 		LCD_WR_REG(0x2c);//储存器写
 	}
-	else if(USE_HORIZONTAL==1)
+	else if(_rotation==1)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+26);
@@ -85,7 +85,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 		LCD_WR_DATA(y2+1);
 		LCD_WR_REG(0x2c);//储存器写
 	}
-	else if(USE_HORIZONTAL==2)
+	else if(_rotation==2)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+1);
@@ -142,7 +142,7 @@ void spi_config(void)
       入口数据：无
       返回值：  无
 ******************************************************************************/
-void Lcd_Init(void)
+void LCD_Init(void)
 {
 	gpio_init(PIN_LCD_DC);
 	gpio_set_dir(PIN_LCD_DC, GPIO_OUT);
@@ -255,12 +255,15 @@ void Lcd_Init(void)
 	LCD_WR_REG(0x3A);	// define the format of RGB picture data
 	LCD_WR_DATA8(0x05);	// 16-bit/pixel
 
+	LCD_SetRotation(_rotation);
+	/*
 	// Memory data access control (MADCTL)
 	LCD_WR_REG(0x36);
-	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x00 | (RGB_ORDER<<3));
-	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC0 | (RGB_ORDER<<3));
-	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x70 | (RGB_ORDER<<3));
+	if(_rotation==0)LCD_WR_DATA8(0x00 | (RGB_ORDER<<3));
+	else if(_rotation==1)LCD_WR_DATA8(0xC0 | (RGB_ORDER<<3));
+	else if(_rotation==2)LCD_WR_DATA8(0x70 | (RGB_ORDER<<3));
 	else LCD_WR_DATA8(0xA0 | (RGB_ORDER<<3));
+	*/
 
 	LCD_WR_REG(0x29);	// Display On
 }
@@ -273,13 +276,42 @@ void Lcd_Init(void)
 void LCD_Clear(u16 Color)
 {
 	u16 i,j;  	
-	LCD_Address_Set(0,0,LCD_W-1,LCD_H-1);
-	for(i=0;i<LCD_W;i++)
+	LCD_Address_Set(0,0,LCD_W()-1,LCD_H()-1);
+	for(i=0;i<LCD_W();i++)
 	{
-		for (j=0;j<LCD_H;j++)
+		for (j=0;j<LCD_H();j++)
 		{
 			LCD_WR_DATA(Color);
 		}
+	}
+}
+
+void LCD_SetRotation(u8 rot)
+{
+	_rotation = rot & 0x3;
+	// Memory data access control (MADCTL)
+	LCD_WR_REG(0x36);
+	if(_rotation==0)LCD_WR_DATA8(0x00 | (RGB_ORDER<<3));
+	else if(_rotation==1)LCD_WR_DATA8(0xC0 | (RGB_ORDER<<3));
+	else if(_rotation==2)LCD_WR_DATA8(0x70 | (RGB_ORDER<<3));
+	else LCD_WR_DATA8(0xA0 | (RGB_ORDER<<3));
+}
+
+u16 LCD_W()
+{
+	if (_rotation == 0 || _rotation == 1) {
+		return LCD_HEIGHT;
+	} else {
+		return LCD_WIDTH;
+	}
+}
+
+u16 LCD_H()
+{
+	if (_rotation == 0 || _rotation == 1) {
+		return LCD_WIDTH;
+	} else {
+		return LCD_HEIGHT;
 	}
 }
 
@@ -458,7 +490,7 @@ void LCD_ShowChar(u16 x,u16 y,u8 num,u8 mode,u16 color)
     u8 temp;
     u8 pos,t;
 	  u16 x0=x;    
-    if(x>LCD_W-8||y>LCD_H-16)return;	    //设置窗口		   
+    if(x>LCD_W()-8||y>LCD_H()-16)return;	    //设置窗口
 	num=num-' ';//得到偏移后的值
 	LCD_Address_Set(x,y,x+8-1,y+16-1);      //设置光标位置 
 	if(!mode) //非叠加方式
@@ -501,8 +533,8 @@ void LCD_ShowString(u16 x,u16 y,const u8 *p,u16 color)
 {         
     while(*p!='\0')
     {       
-        if(x>LCD_W-8){x=0;y+=16;}
-        if(y>LCD_H-16){y=x=0;LCD_Clear(RED);}
+        if(x>LCD_W()-8){x=0;y+=16;}
+        if(y>LCD_H()-16){y=x=0;LCD_Clear(RED);}
         LCD_ShowChar(x,y,*p,0,color);
         x+=8;
         p++;

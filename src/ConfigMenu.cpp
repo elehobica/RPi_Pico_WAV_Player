@@ -6,7 +6,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-//#include "LcdCanvas.h"
+#include "LcdCanvas.h"
 #include "ConfigMenu.h"
 
 //=================================
@@ -14,11 +14,8 @@
 //=================================
 void hook_disp_rotation()
 {
-    /*
-    extern LcdCanvas lcd;
-    lcd.setRotation(USERCFG_DISP_ROTATION);
+    lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
     lcd.switchToListView();
-    */
 }
 
 //=================================
@@ -48,6 +45,19 @@ uint32_t ConfigMenu::getValue(int category_idx, int item_idx)
     uint32_t sel_idx;
     configParam.read(item->paramID, &sel_idx);
     return item->selection[sel_idx].value;
+}
+
+void ConfigMenu::scanHookFunc()
+{
+    int adrs = 0;
+    for (int i = 0; i < sz_category; i++) {
+        for (int j = 0; j < category[i].num_items; j++) {
+            config_menu_item_t *item = &category[i].items[j];
+            if (item->hook_func != nullptr) {
+                item->hook_func();
+            }
+        }
+    }
 }
 
 /*

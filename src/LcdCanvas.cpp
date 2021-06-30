@@ -53,7 +53,7 @@ LcdCanvas& LcdCanvas::instance()
 LcdCanvas::LcdCanvas()
 {
 #if defined(USE_ST7735S_160x80)
-    Lcd_Init();
+    LCD_Init();
     LCD_Clear(BLACK);
     BACK_COLOR=BLACK;
 #endif
@@ -113,7 +113,12 @@ void LcdCanvas::switchToPowerOff()
 
 void LcdCanvas::clear(bool bgOpaque)
 {
-    LCD_FillBackground(0, 0, LCD_W-1, LCD_H-1, !bgOpaque, LCD_BLACK);
+    LCD_FillBackground(0, 0, LCD_W()-1, LCD_H()-1, !bgOpaque, LCD_BLACK);
+}
+
+void LcdCanvas::setRotation(uint8_t rot)
+{
+    LCD_SetRotation(rot);
 }
 
 void LcdCanvas::drawInitial()

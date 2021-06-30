@@ -44,6 +44,7 @@ class LcdCanvas
 public:
     static LcdCanvas& instance(); // Singleton
 	void clear(bool bgOpaque = false);
+	void setRotation(uint8_t rot);
 	void setImageJpeg(const char *filename);
 	void setMsg(const char *str, bool blink = false);
 	void setListItem(int column, const char *str, const uint8_t icon = ICON16x16_UNDEF, bool isFocused = false);
@@ -73,24 +74,24 @@ protected:
 	const int play_change = 350;
 #if defined(USE_ST7735S_160x80)
 	IconScrollTextBox listItem[5] = {
-		IconScrollTextBox(16*0, 16*0, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
-		IconScrollTextBox(16*0, 16*1, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
-		IconScrollTextBox(16*0, 16*2, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
-		IconScrollTextBox(16*0, 16*3, ICON16x16_UNDEF, LCD_W, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
-		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W-16*1, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true) // Battery Icon at Right-Bottom
+		IconScrollTextBox(16*0, 16*0, ICON16x16_UNDEF, LCD_W(), FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*1, ICON16x16_UNDEF, LCD_W(), FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*2, ICON16x16_UNDEF, LCD_W(), FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*3, ICON16x16_UNDEF, LCD_W(), FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true),
+		IconScrollTextBox(16*0, 16*4, ICON16x16_UNDEF, LCD_W()-16*1, FONT_HEIGHT, LCD_GRAY, LCD_BLACK, true) // Battery Icon at Right-Bottom
 	};
-	ImageBox image = ImageBox(0, 0, LCD_W, LCD_H);
-	BatteryIconBox battery = BatteryIconBox(LCD_W-16*1, LCD_H-16*1, LCD_GRAY);
-	IconTextBox volume = IconTextBox(LCD_W-16*4, LCD_H-16*1, ICON16x16_VOLUME, LCD_GRAY);
-	TextBox playTime = TextBox(LCD_W-16*4-8, LCD_H-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
-	IconScrollTextBox title = IconScrollTextBox(16*0, 16*0, ICON16x16_TITLE, LCD_W, FONT_HEIGHT, LCD_LIGHTBLUE, LCD_BLACK);
-	IconScrollTextBox artist = IconScrollTextBox(16*0, 16*1, ICON16x16_ARTIST, LCD_W, FONT_HEIGHT, LCD_LIGHTGREEN, LCD_BLACK);
-	IconScrollTextBox album = IconScrollTextBox(16*0, 16*2, ICON16x16_ALBUM, LCD_W, FONT_HEIGHT, LCD_GRAYBLUE, LCD_BLACK);
-	HorizontalBarBox levelMeterL = HorizontalBarBox(16*0, 16*3, LCD_W, 4, LCD_DARKGRAY);
-	HorizontalBarBox levelMeterR = HorizontalBarBox(16*0, 16*3+8, LCD_W, 4, LCD_DARKGRAY);
-	HorizontalBarBox timeProgress = HorizontalBarBox(16*0, 16*4-1, LCD_W, 1, LCD_BLUE, LCD_DARKGRAY, true);
-	TextBox track = TextBox(16*0, LCD_H-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
-	TextBox msg = TextBox(LCD_W/2, LCD_H/2-FONT_HEIGHT/2, LcdElementBox::AlignCenter, LCD_WHITE, LCD_BLACK, true);
+	ImageBox image = ImageBox(0, 0, LCD_W(), LCD_H());
+	BatteryIconBox battery = BatteryIconBox(LCD_W()-16*1, LCD_H()-16*1, LCD_GRAY);
+	IconTextBox volume = IconTextBox(LCD_W()-16*4, LCD_H()-16*1, ICON16x16_VOLUME, LCD_GRAY);
+	TextBox playTime = TextBox(LCD_W()-16*4-8, LCD_H()-16*1, LcdElementBox::AlignRight, LCD_GRAY, LCD_BLACK);
+	IconScrollTextBox title = IconScrollTextBox(16*0, 16*0, ICON16x16_TITLE, LCD_W(), FONT_HEIGHT, LCD_LIGHTBLUE, LCD_BLACK);
+	IconScrollTextBox artist = IconScrollTextBox(16*0, 16*1, ICON16x16_ARTIST, LCD_W(), FONT_HEIGHT, LCD_LIGHTGREEN, LCD_BLACK);
+	IconScrollTextBox album = IconScrollTextBox(16*0, 16*2, ICON16x16_ALBUM, LCD_W(), FONT_HEIGHT, LCD_GRAYBLUE, LCD_BLACK);
+	HorizontalBarBox levelMeterL = HorizontalBarBox(16*0, 16*3, LCD_W(), 4, LCD_DARKGRAY);
+	HorizontalBarBox levelMeterR = HorizontalBarBox(16*0, 16*3+8, LCD_W(), 4, LCD_DARKGRAY);
+	HorizontalBarBox timeProgress = HorizontalBarBox(16*0, 16*4-1, LCD_W(), 1, LCD_BLUE, LCD_DARKGRAY, true);
+	TextBox track = TextBox(16*0, LCD_H()-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
+	TextBox msg = TextBox(LCD_W()/2, LCD_H()/2-FONT_HEIGHT/2, LcdElementBox::AlignCenter, LCD_WHITE, LCD_BLACK, true);
 	LcdElementBox *groupInitial[2] = {&image, &msg};
 	LcdElementBox *groupListView[6] = {
 		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4], &battery

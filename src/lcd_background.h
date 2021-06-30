@@ -10,12 +10,13 @@
 #define __LCD_BACKGROUND_H_INCLUDED__
 
 #include <stdlib.h>
+#include "st7735_80x160/lcd.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-uint16_t lcd_get_gackground(uint16_t x, uint16_t y);
+u16 LCD_GetBackground(u16 x, u16 y);
 
 #ifdef __cplusplus
 }

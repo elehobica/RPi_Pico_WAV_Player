@@ -66,6 +66,7 @@ public:
     static ConfigMenu& instance(); // Singleton
     // For Read Users
     uint32_t getValue(int category_idx, int item_idx);
+    void scanHookFunc();
 
     // Menu Utilities
     int getNum();
@@ -102,8 +103,8 @@ private:
         {"3 min", 3*60}
     };
     config_sel_t sel_rotation[2] = {
-        {"0 deg", 0},
-        {"180 deg", 2}
+        {"0 deg", 2},
+        {"180 deg", 3}
     };
     config_sel_t sel_backlight_level[16] = {
         {"16", 16},
