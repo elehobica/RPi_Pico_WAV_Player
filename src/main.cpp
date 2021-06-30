@@ -25,7 +25,7 @@
 
 //#define INITIALIZE_CONFIG_PARAM
 
-const char *VersionStr = "0.3.0";
+const char *VersionStr = "0.8.0";
 
 // PIN setting
 static const uint32_t PIN_LED = 25;
