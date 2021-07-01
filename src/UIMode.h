@@ -144,6 +144,7 @@ public:
     void entry(UIMode *prevMode);
     void draw();
 protected:
+    bool loadImage;
     void play();
     //audio_codec_enm_t getAudioCodec(MutexFsBaseFile *f);
     void readTag();

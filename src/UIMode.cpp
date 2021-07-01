@@ -470,7 +470,7 @@ void UIFileViewMode::draw()
 //====================================
 // Implementation of UIPlayMode class
 //====================================
-UIPlayMode::UIPlayMode(UIVars *vars) : UIMode("UIPlayMode", PlayMode, vars)
+UIPlayMode::UIPlayMode(UIVars *vars) : UIMode("UIPlayMode", PlayMode, vars), loadImage(true)
 {
 }
 
@@ -627,19 +627,21 @@ void UIPlayMode::readTag()
     if (tag.getUTF8Artist(str, sizeof(str))) lcd.setArtist(str); else lcd.setArtist("");
     //if (tag.getUTF8Year(str, sizeof(str))) lcd.setYear(str); else lcd.setYear("");
 
-    uint16_t idx = 0;
-    while (idx < file_menu_get_num()) {
-        if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
-            file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
-            file_menu_get_fname(idx, str, sizeof(str));
-            lcd.setImageJpeg(str);
-            break;
+    if (loadImage) {
+        uint16_t idx = 0;
+        while (idx < file_menu_get_num()) {
+            if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) ||
+                file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
+                file_menu_get_fname(idx, str, sizeof(str));
+                lcd.setImageJpeg(str);
+                break;
+            }
+            idx++;
         }
-        idx++;
     }
-
     return;
 
+    #if 0
     // copy TAG image
     //lcd.deleteAlbumArt();
     for (int i = 0; i < tag.getPictureCount(); i++) {
@@ -656,8 +658,6 @@ void UIPlayMode::readTag()
                 file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
                 file_menu_get_fname(idx, str, sizeof(str));
                 printf("JPEG %s\n", str);
-
-
                 //lcd.addAlbumArtJpeg(idx, 0, f.fileSize());
                 img_cnt++;
             } else if (file_menu_match_ext(idx, "png", 3) || file_menu_match_ext(idx, "PNG", 3)) {
@@ -667,6 +667,7 @@ void UIPlayMode::readTag()
             idx++;
         }
     }
+    #endif
 }
 
 void UIPlayMode::play()
@@ -676,6 +677,7 @@ void UIPlayMode::play()
     printf("%s\n", str);
     PlayAudio *playAudio = get_audio_codec();
     readTag();
+    loadImage = false;
     playAudio->play(str, vars->fpos, vars->samples_played);
     vars->fpos = 0;
     vars->samples_played = 0;
@@ -685,6 +687,7 @@ void UIPlayMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
     if (prevMode->getUIModeEnm() != ConfigMode) {
+        loadImage = true;
         play();
     }
     lcd.switchToPlay();
