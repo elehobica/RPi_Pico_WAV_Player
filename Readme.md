@@ -1,5 +1,6 @@
 # RPi_Pico_WAV_Player
-![Scene1](doc/RPi_Pico_WAV_Player_Scene1.jpg)
+![Scene1](doc/RPi_Pico_WAV_Player_Scene3.jpg)
+![Scene1](doc/RPi_Pico_WAV_Player_Scene5.jpg)
 ![Scene2](doc/RPi_Pico_WAV_Player_Scene2.jpg)
 
 ## Overview
@@ -28,8 +29,10 @@ This project features:
 | 23 | GND | GND | GND |
 | 24 | GP18 | SDO | to PCM5102 DIN (14) |
 | 32 | GP27 | AUDIO_MUTE_CTRL | to PCM5102 XSMT (17) |
+| 36 / 40 | 3V3(OUT) / VBUS | VCC | to VIN of PCM5102 board |
 
-It is recommended that the power of PCM5102 is dedicatedly generated from 5V. But it's ok to use 36 pin 3V3(OUT) of Raspberry Pi Pico.
+From DAC noise's point of view, it is recommended to provide the power of PCM5102 from VBUS (5V).
+Under battery operation, use 3V3(OUT) pin as described in schematic.
 
 ![PCM5102_schematic](doc/RPi_Pico_WAV_Player_PCM5102_Schematic.png)
 
@@ -70,17 +73,24 @@ It is recommended that the power of PCM5102 is dedicatedly generated from 5V. Bu
 
 ![microsd_schematic](doc/RPi_Pico_WAV_Player_microsd_Schematic.png)
 
-### Switches
+### Switch Buttons
+At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to be implemented.
+
 | Pico Pin # | GPIO | Function | Connection |
 ----|----|----|----
-| 26 | GP20 | GPIO | Push Switch (Minus) |
-| 27 | GP21 | GPIO | Push Switch (Center) |
-| 29 | GP22 | GPIO | Push Switch (Plus) |
+| 26 | GP20 | GPIO | GPIO Push Button (Minus) |
+| 27 | GP21 | GPIO | GPIO Push Button (Center) |
+| 29 | GP22 | GPIO | GPIO Push Button (Plus) |
 | 31 | GP26 | ADC0 | Headphone Remote Control (MIC pin) |
+
+* When GPIO Push Buttons are not implemented, pull up GP20, GP21 and GP21 with 4.7Kohm x 3.
+* When Headphone Remote Control Buttons are not implemented, pull up GP26 with 2.2Kohm.
 
 ![buttons_schematic](doc/RPi_Pico_WAV_Player_buttons_Schematic.png)
 
 ## Schematic
+Additional power control circuit and battery voltage monitoring circuit are described in schematic for battery operation.
+
 [RPi_Pico_WAV_Player_schematic.pdf](doc/RPi_Pico_WAV_Player_schematic.pdf)
 
 ## How to build
