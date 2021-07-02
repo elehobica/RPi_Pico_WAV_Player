@@ -1,6 +1,5 @@
 # RPi_Pico_WAV_Player
-![Scene1](doc/RPi_Pico_WAV_Player_Scene3.jpg)
-![Scene1](doc/RPi_Pico_WAV_Player_Scene5.jpg)
+![Scene3_5](doc/RPi_Pico_WAV_Player_Scene3_5.jpg)
 ![Scene2](doc/RPi_Pico_WAV_Player_Scene2.jpg)
 
 ## Overview
@@ -32,7 +31,7 @@ This project features:
 | 36 / 40 | 3V3(OUT) / VBUS | VCC | to VIN of PCM5102 board |
 
 From DAC noise's point of view, it is recommended to provide the power of PCM5102 from VBUS (5V).
-Under battery operation, use 3V3(OUT) pin as described in schematic.
+For battery operation, use 3V3(OUT) pin as described in schematic.
 
 ![PCM5102_schematic](doc/RPi_Pico_WAV_Player_PCM5102_Schematic.png)
 
@@ -40,8 +39,10 @@ Under battery operation, use 3V3(OUT) pin as described in schematic.
 * tie PCM5102 SCK (12) to low (bridge short land)
 * H1L (FLT) = L
 * H2L (DEMP) = L
-* H3L (XSMT): See above
+* H3L (XSMT): Remove the bridge to H and connect GP27
 * H4L (FMT) = L
+
+![PCM5102_Board_setting](doc/PCM5102A_Board_setting.png)
 
 ### ST7735S LCD driver
 | Pico Pin # | GPIO | Function | Connection |
@@ -83,7 +84,7 @@ At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to
 | 29 | GP22 | GPIO | GPIO Push Button (Plus) |
 | 31 | GP26 | ADC0 | Headphone Remote Control (MIC pin) |
 
-* When GPIO Push Buttons are not implemented, pull up GP20, GP21 and GP21 with 4.7Kohm x 3.
+* When GPIO Push Buttons are not implemented, pull up GP20, GP21 and GP22 with 4.7Kohm x 3.
 * When Headphone Remote Control Buttons are not implemented, pull up GP26 with 2.2Kohm.
 
 ![buttons_schematic](doc/RPi_Pico_WAV_Player_buttons_Schematic.png)
@@ -123,7 +124,7 @@ Additional power control circuit and battery voltage monitoring circuit are desc
 * Put "RPi_Pico_WAV_Player.uf2" on RPI-RP2 drive
 
 ## Button Control Guide
-Button Control is available with GPIO 3 push switches or 3 button Headphone Remote Control.
+UI Control is available with GPIO 3 push switches or 3 button Headphone Remote Control.
 For Headphone Remote Control, Connect MIC pin to GP26 of Raspberry Pi Pico.
 GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 
@@ -134,7 +135,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * Center 2 click to go parent folder
 * Center 3 clicks to Random album play (go to Play Mode)
 * Long push Center button to go to Config Mode
-* 1 min passed without any button: Sequential/SequentialRepeat/Repeat/Random album play (go to Play Mode)
+* 1 min passed without any button after play finished: Sequential/SequentialRepeat/Repeat/Random album play (go to Play Mode)
 
 ### Play Mode
 * Plus/Minus button for volume up/down
@@ -144,10 +145,13 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * Long push Center button to go to Config Mode
 
 ### Config Mode
-* Up/Down button to go up/down to select config items
+* Plus/Minus button to go up/down to select config items
 * Center 1 click to determine config values
 * Center 2 clicks to go back to previous Mode (FileView or Play)
-* Long push to Power Off (Optional: external circuit needed)
+* Long push to Power Off (Optional: additional circuit needed)
+
+### Power On (Optional: additional circuit needed)
+* Long push Center button of Headphone Remote Control
 
 ## Image File Format
 ### Opening Logo File
