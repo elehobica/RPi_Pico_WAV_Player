@@ -25,13 +25,13 @@
 
 //#define INITIALIZE_CONFIG_PARAM
 
-const char *VersionStr = "0.8.0";
+const char *VersionStr = "0.8.1";
 
 // PIN setting
 static const uint32_t PIN_LED = 25;
 static const uint32_t PIN_POWER_KEEP = 19;
 static const uint32_t PIN_DCDC_PSM_CTRL = 23;
-static const uint32_t PIN_AUDIO_MUTE_CTRL = 27;
+static const uint32_t PIN_AUDIO_DAC_ENABLE = 27;
 
 static inline uint32_t _millis(void)
 {
@@ -186,7 +186,7 @@ static void power_off(const char *msg, bool is_error = false)
     if (msg != NULL) { lcd.setMsg(msg, is_error); }
     uint32_t stay_time = (is_error) ? 4000 : 1000;
     uint32_t time = _millis();
-    gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
+    gpio_put(PIN_AUDIO_DAC_ENABLE, 0);
     audio_codec_deinit();
     while (_millis() - time < stay_time) {
         sleep_ms(LoopCycleMs);
@@ -215,10 +215,10 @@ int main() {
     gpio_set_dir(PIN_DCDC_PSM_CTRL, GPIO_OUT);
     gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
 
-    // Audio Mute ON
-    gpio_init(PIN_AUDIO_MUTE_CTRL);
-    gpio_set_dir(PIN_AUDIO_MUTE_CTRL, GPIO_OUT);
-    gpio_put(PIN_AUDIO_MUTE_CTRL, 1);
+    // Audio DAC Disable (Mute On)
+    gpio_init(PIN_AUDIO_DAC_ENABLE);
+    gpio_set_dir(PIN_AUDIO_DAC_ENABLE, GPIO_OUT);
+    gpio_put(PIN_AUDIO_DAC_ENABLE, 0);
 
     audio_clock_96MHz();
 
@@ -273,8 +273,8 @@ int main() {
     ui_mode_enm_t init_dest_mode;
     loadFromFlash(dir_stack, &init_dest_mode);
 
-    // Audio Mute OFF
-    gpio_put(PIN_AUDIO_MUTE_CTRL, 0);
+    // Audio DAC Enable (Mute Off)
+    gpio_put(PIN_AUDIO_DAC_ENABLE, 1);
     // Audio Codec Initialize
     audio_codec_init();
 

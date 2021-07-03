@@ -27,7 +27,7 @@ This project features:
 | 22 | GP17 | LRCK | to PCM5102 LRCK (15) |
 | 23 | GND | GND | GND |
 | 24 | GP18 | SDO | to PCM5102 DIN (14) |
-| 32 | GP27 | AUDIO_MUTE_CTRL | to PCM5102 XSMT (17) |
+| 32 | GP27 | AUDIO_DAC_ENABLE | to PCM5102 XSMT (17) |
 | 36 / 40 | 3V3(OUT) / VBUS | VCC | to VIN of PCM5102 board |
 
 From DAC noise's point of view, it is recommended to provide the power of PCM5102 from VBUS (5V).
