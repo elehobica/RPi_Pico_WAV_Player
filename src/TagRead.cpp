@@ -983,13 +983,17 @@ int TagRead::getListChunk(FIL *file)
                         f_read(file, str, size, &br);
                         // copy LIST INFO data to ID3v1 member (note that ID3v1 members don't finish with '\0')
                         if (memcmp(chunk_id, "IART", 4) == 0) { // Artist
-                            strncpy(id3v1->artist, str, sizeof(id3v1->artist));
+                            memset(id3v1->artist, 0, sizeof(id3v1->artist));
+                            strncpy(id3v1->artist, str, sizeof(id3v1->artist) - 1);
                         } else if (memcmp(chunk_id, "INAM", 4) == 0) { // Title
-                            strncpy(id3v1->title, str, sizeof(id3v1->title));
+                            memset(id3v1->title, 0, sizeof(id3v1->title));
+                            strncpy(id3v1->title, str, sizeof(id3v1->title) - 1);
                         } else if (memcmp(chunk_id, "IPRD", 4) == 0) { // Album
-                            strncpy(id3v1->album, str, sizeof(id3v1->album));
+                            memset(id3v1->album, 0, sizeof(id3v1->album));
+                            strncpy(id3v1->album, str, sizeof(id3v1->album) - 1);
                         } else if (memcmp(chunk_id, "ICRD", 4) == 0) { // Year
-                            strncpy(id3v1->year, str, sizeof(id3v1->year));
+                            memset(id3v1->year, 0, sizeof(id3v1->year));
+                            strncpy(id3v1->year, str, sizeof(id3v1->year) - 1);
                         } else if (memcmp(chunk_id, "IPRT", 4) == 0) { // Track  ==> type not matched
                             id3v1->tracknum = (unsigned char) atoi(str); // atoi stops conversion if non-number appeared
                         //} else if (memcmp(chunk_id, "IGNR", 4) == 0) { // Genre  ==> type not matched

@@ -16,11 +16,11 @@
 
 typedef struct _id31 {
     char header[3];
-    char title[30];
-    char artist[30];
-    char album[30];
-    char year[4];
-    char comment[28];
+    char title[128];  // 30 for ID3v1
+    char artist[128]; // 30 for ID3v1
+    char album[128];  // 30 for ID3v1
+    char year[4];     // 4 for ID3v1
+    char comment[28]; // 28 for ID3v1
     char zero;
     unsigned char tracknum;
     unsigned char genre;
