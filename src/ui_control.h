@@ -31,8 +31,10 @@ typedef struct element {
 
 bool ui_get_btn_evt(button_action_t *btn_act);
 void ui_clear_btn_evt();
+bool ui_is_charging();
+void ui_set_power_keep(bool value);
 UIMode *getUIMode(ui_mode_enm_t ui_mode_enm);
-void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type);
+void ui_init(uint32_t pin_power_keep, ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type);
 ui_mode_enm_t ui_update();
 ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm);
 uint16_t ui_get_idle_count();

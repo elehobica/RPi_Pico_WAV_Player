@@ -57,11 +57,11 @@ public:
 	void setArtist(const char *str);
 	//void setYear(const char *str);
 	void setBatteryVoltage(uint16_t voltage_x1000);
-	void switchToInitial();
+	void switchToOpening();
 	void switchToListView();
 	void switchToPlay();
 	void switchToPowerOff();
-	void drawInitial();
+	void drawOpening();
 	void drawListView();
 	void drawPlay();
 	void drawPowerOff();
@@ -92,7 +92,7 @@ protected:
 	HorizontalBarBox timeProgress = HorizontalBarBox(16*0, 16*4-1, LCD_W(), 1, LCD_BLUE, LCD_DARKGRAY, true);
 	TextBox track = TextBox(16*0, LCD_H()-16*1, LcdElementBox::AlignLeft, LCD_GRAY);
 	TextBox msg = TextBox(LCD_W()/2, LCD_H()/2-FONT_HEIGHT/2, LcdElementBox::AlignCenter, LCD_WHITE, LCD_BLACK, true);
-	LcdElementBox *groupInitial[2] = {&image, &msg};
+	LcdElementBox *groupOpening[2] = {&image, &msg};
 	LcdElementBox *groupListView[6] = {
 		&listItem[0], &listItem[1], &listItem[2], &listItem[3], &listItem[4], &battery
 	};

@@ -71,6 +71,71 @@ UIInitialMode::UIInitialMode(UIVars *vars) : UIMode("UIInitialMode", InitialMode
 UIMode* UIInitialMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
+    // Always transfer to ChargeMode or OpeningMode
+    if (ui_is_charging()) {
+        return getUIMode(ChargeMode);
+    } else {
+        return getUIMode(OpeningMode);
+    }
+    idle_count++;
+    return this;
+}
+
+void UIInitialMode::entry(UIMode *prevMode)
+{
+    UIMode::entry(prevMode);
+}
+
+void UIInitialMode::draw()
+{
+    ui_clear_btn_evt();
+}
+
+//=======================================
+// Implementation of UIChargeMode class
+//=======================================
+UIChargeMode::UIChargeMode(UIVars *vars) : UIMode("UIChargeMode", ChargeMode, vars)
+{
+}
+
+UIMode* UIChargeMode::update()
+{
+    if (ui_get_btn_evt(&btn_act)) {
+        vars->do_next_play = None;
+        switch (btn_act) {
+            case ButtonCenterLong:
+                ui_set_power_keep(true);
+                return getUIMode(OpeningMode);
+                break;
+            default:
+                break;
+        }
+        idle_count = 0;
+    }
+    return this;
+}
+
+void UIChargeMode::entry(UIMode *prevMode)
+{
+    UIMode::entry(prevMode);
+    ui_set_power_keep(false);
+}
+
+void UIChargeMode::draw()
+{
+    ui_clear_btn_evt();
+}
+
+//=======================================
+// Implementation of UIOpeningMode class
+//=======================================
+UIOpeningMode::UIOpeningMode(UIVars *vars) : UIMode("UIOpeningMode", OpeningMode, vars)
+{
+}
+
+UIMode* UIOpeningMode::update()
+{
+    ui_get_btn_evt(&btn_act); // Ignore button event
     // Always transfer to FileViewMode after pre-defined period
     if (idle_count++ > 1*OneSec) {
         return getUIMode(FileViewMode);
@@ -78,15 +143,15 @@ UIMode* UIInitialMode::update()
     return this;
 }
 
-void UIInitialMode::entry(UIMode *prevMode)
+void UIOpeningMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    lcd.switchToInitial();
+    lcd.switchToOpening();
 }
 
-void UIInitialMode::draw()
+void UIOpeningMode::draw()
 {
-    lcd.drawInitial();
+    lcd.drawOpening();
     ui_clear_btn_evt();
 }
 

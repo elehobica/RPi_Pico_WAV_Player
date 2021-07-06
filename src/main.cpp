@@ -279,7 +279,7 @@ int main() {
     audio_codec_init();
 
     // UI initialize
-    ui_init(init_dest_mode, dir_stack, fs.fs_type);
+    ui_init(PIN_POWER_KEEP, init_dest_mode, dir_stack, fs.fs_type);
 
     // UI Loop
     const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)

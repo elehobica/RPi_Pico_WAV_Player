@@ -19,10 +19,13 @@
 
 typedef enum {
     InitialMode = 0,
+    ChargeMode,
+    OpeningMode,
     FileViewMode,
     PlayMode,
     ConfigMode,
-    PowerOffMode
+    PowerOffMode,
+    NUM_UI_MODES
 } ui_mode_enm_t;
 
 typedef enum {
@@ -101,6 +104,30 @@ class UIInitialMode : public UIMode
 {
 public:
     UIInitialMode(UIVars *vars);
+    UIMode* update();
+    void entry(UIMode *prevMode);
+    void draw();
+};
+
+//===================================
+// Interface of UIChargeMode class
+//===================================
+class UIChargeMode : public UIMode
+{
+public:
+    UIChargeMode(UIVars *vars);
+    UIMode* update();
+    void entry(UIMode *prevMode);
+    void draw();
+};
+
+//===================================
+// Interface of UIOpeningMode class
+//===================================
+class UIOpeningMode : public UIMode
+{
+public:
+    UIOpeningMode(UIVars *vars);
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();

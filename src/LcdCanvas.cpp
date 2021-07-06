@@ -67,12 +67,12 @@ LcdCanvas::~LcdCanvas()
 {
 }
 
-void LcdCanvas::switchToInitial()
+void LcdCanvas::switchToOpening()
 {
     clear(true);
     msg.setText("");
-    for (int i = 0; i < (int) (sizeof(groupInitial)/sizeof(*groupInitial)); i++) {
-        groupInitial[i]->update();
+    for (int i = 0; i < (int) (sizeof(groupOpening)/sizeof(*groupOpening)); i++) {
+        groupOpening[i]->update();
     }
 }
 
@@ -121,10 +121,10 @@ void LcdCanvas::setRotation(uint8_t rot)
     LCD_SetRotation(rot);
 }
 
-void LcdCanvas::drawInitial()
+void LcdCanvas::drawOpening()
 {
-    for (int i = 0; i < (int) (sizeof(groupInitial)/sizeof(*groupInitial)); i++) {
-        groupInitial[i]->draw();
+    for (int i = 0; i < (int) (sizeof(groupOpening)/sizeof(*groupOpening)); i++) {
+        groupOpening[i]->draw();
     }
 }
 

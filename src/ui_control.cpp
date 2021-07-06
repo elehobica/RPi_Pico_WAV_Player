@@ -5,6 +5,7 @@
 /------------------------------------------------------*/
 
 #include <cstdio>
+#include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "st7735_80x160/lcd.h"
 extern "C" {
@@ -13,6 +14,12 @@ extern "C" {
 #include "ui_control.h"
 
 //#define NO_BATTERY_VOLTAGE_CHECK
+
+// Power Keep PIN
+static uint32_t _pin_power_keep;
+
+// Charge detect PIN setting
+static const uint32_t PIN_CHARGE_DETECT = 24;
 
 // SW PIN setting
 static const uint32_t PIN_SW_PLUS = 22;
@@ -51,23 +58,16 @@ static repeating_timer_t timer;
 
 UIVars vars;
 UIMode *ui_mode = nullptr;
-UIMode *ui_mode_ary[5] = {};
-
-static void sw_gpio_init()
-{
-    gpio_set_dir(PIN_SW_PLUS, GPIO_IN);
-    gpio_set_dir(PIN_SW_CENTER, GPIO_IN);
-    gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
-}
+UIMode *ui_mode_ary[NUM_UI_MODES] = {};
 
 static button_status_t get_sw_status()
 {
     button_status_t ret;
-    if (gpio_get(PIN_SW_CENTER) == 0) {
+    if (gpio_get(PIN_SW_CENTER) == false) {
         ret = ButtonCenter;
-    } else if (gpio_get(PIN_SW_PLUS) == 0) {
+    } else if (gpio_get(PIN_SW_PLUS) == false) {
         ret = ButtonPlus;
-    } else if (gpio_get(PIN_SW_MINUS) == 0) {
+    } else if (gpio_get(PIN_SW_MINUS) == false) {
         ret = ButtonMinus;
     } else {
         ret = ButtonOpen;
@@ -284,13 +284,24 @@ void ui_clear_btn_evt()
     */
 }
 
+bool ui_is_charging()
+{
+    return gpio_get(PIN_CHARGE_DETECT);
+}
+
+void ui_set_power_keep(bool value)
+{
+    gpio_put(_pin_power_keep, value);
+}
+
 UIMode *getUIMode(ui_mode_enm_t ui_mode_enm)
 {
     return ui_mode_ary[ui_mode_enm];
 }
 
-void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type)
+void ui_init(uint32_t pin_power_keep, ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type)
 {
+    _pin_power_keep = pin_power_keep;
     vars.init_dest_ui_mode = init_dest_ui_mode;
     vars.fs_type = fs_type;
     vars.num_list_lines = LCD_H()/16;
@@ -301,10 +312,17 @@ void ui_init(ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_typ
     // ADC and Timer setting
     adc_timer_init();
 
+    // Charge Detect Pin initialize
+    gpio_set_dir(PIN_CHARGE_DETECT, GPIO_IN);
+
     // SW GPIO initialize
-    sw_gpio_init();
+    gpio_set_dir(PIN_SW_PLUS, GPIO_IN);
+    gpio_set_dir(PIN_SW_CENTER, GPIO_IN);
+    gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
 
     ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode(&vars);
+    ui_mode_ary[ChargeMode]   = (UIMode *) new UIChargeMode(&vars);
+    ui_mode_ary[OpeningMode]  = (UIMode *) new UIOpeningMode(&vars);
     ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode(&vars, dir_stack);
     ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode(&vars);
     ui_mode_ary[ConfigMode]   = (UIMode *) new UIConfigMode(&vars);
