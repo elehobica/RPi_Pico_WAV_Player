@@ -18,11 +18,20 @@ TagRead tag;
 
 // UIMode class instances
 button_action_t UIMode::btn_act;
+UIVars *UIMode::vars;
+stack_t *UIMode::dir_stack;
 
 //================================
 // Implementation of UIMode class
 //================================
-UIMode::UIMode(const char *name, ui_mode_enm_t ui_mode_enm, UIVars *vars) : name(name), prevMode(NULL), ui_mode_enm(ui_mode_enm), vars(vars), idle_count(0)
+/*static*/
+void UIMode::initialize(UIVars *vars, stack_t *dir_stack)
+{
+    UIMode::vars = vars;
+    UIMode::dir_stack = dir_stack;
+}
+
+UIMode::UIMode(const char *name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(NULL), ui_mode_enm(ui_mode_enm), idle_count(0)
 {
 }
 
@@ -64,7 +73,7 @@ uint16_t UIMode::getIdleCount()
 //=======================================
 // Implementation of UIInitialMode class
 //=======================================
-UIInitialMode::UIInitialMode(UIVars *vars) : UIMode("UIInitialMode", InitialMode, vars)
+UIInitialMode::UIInitialMode() : UIMode("UIInitialMode", InitialMode)
 {
 }
 
@@ -94,7 +103,7 @@ void UIInitialMode::draw()
 //=======================================
 // Implementation of UIChargeMode class
 //=======================================
-UIChargeMode::UIChargeMode(UIVars *vars) : UIMode("UIChargeMode", ChargeMode, vars)
+UIChargeMode::UIChargeMode() : UIMode("UIChargeMode", ChargeMode)
 {
 }
 
@@ -129,7 +138,7 @@ void UIChargeMode::draw()
 //=======================================
 // Implementation of UIOpeningMode class
 //=======================================
-UIOpeningMode::UIOpeningMode(UIVars *vars) : UIMode("UIOpeningMode", OpeningMode, vars)
+UIOpeningMode::UIOpeningMode() : UIMode("UIOpeningMode", OpeningMode)
 {
 }
 
@@ -158,7 +167,7 @@ void UIOpeningMode::draw()
 //=========================================
 // Implementation of UIFileViewMode class
 //=========================================
-UIFileViewMode::UIFileViewMode(UIVars *vars, stack_t *dir_stack) : UIMode("UIFileViewMode", FileViewMode, vars), dir_stack(dir_stack)
+UIFileViewMode::UIFileViewMode() : UIMode("UIFileViewMode", FileViewMode)
 {
     sft_val = new uint16_t[vars->num_list_lines];
     for (int i = 0; i < vars->num_list_lines; i++) {
@@ -535,7 +544,7 @@ void UIFileViewMode::draw()
 //====================================
 // Implementation of UIPlayMode class
 //====================================
-UIPlayMode::UIPlayMode(UIVars *vars) : UIMode("UIPlayMode", PlayMode, vars), loadImage(true)
+UIPlayMode::UIPlayMode() : UIMode("UIPlayMode", PlayMode), loadImage(true)
 {
 }
 
@@ -767,7 +776,7 @@ void UIPlayMode::draw()
 //=======================================
 // Implementation of UIConfigMode class
 //=======================================
-UIConfigMode::UIConfigMode(UIVars *vars) : UIMode("UIConfigMode", ConfigMode, vars),
+UIConfigMode::UIConfigMode() : UIMode("UIConfigMode", ConfigMode),
     path_stack(NULL), idx_head(0), idx_column(0)
 {
     path_stack = stack_init();
@@ -927,7 +936,7 @@ void UIConfigMode::draw()
 //=======================================
 // Implementation of UIPowerOffMode class
 //=======================================
-UIPowerOffMode::UIPowerOffMode(UIVars *vars) : UIMode("UIPowerOffMode", PowerOffMode, vars)
+UIPowerOffMode::UIPowerOffMode() : UIMode("UIPowerOffMode", PowerOffMode)
 {
 }
 

@@ -320,13 +320,14 @@ void ui_init(uint32_t pin_power_keep, ui_mode_enm_t init_dest_ui_mode, stack_t *
     gpio_set_dir(PIN_SW_CENTER, GPIO_IN);
     gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
 
-    ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode(&vars);
-    ui_mode_ary[ChargeMode]   = (UIMode *) new UIChargeMode(&vars);
-    ui_mode_ary[OpeningMode]  = (UIMode *) new UIOpeningMode(&vars);
-    ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode(&vars, dir_stack);
-    ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode(&vars);
-    ui_mode_ary[ConfigMode]   = (UIMode *) new UIConfigMode(&vars);
-    ui_mode_ary[PowerOffMode] = (UIMode *) new UIPowerOffMode(&vars);
+    UIMode::initialize(&vars, dir_stack);
+    ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode();
+    ui_mode_ary[ChargeMode]   = (UIMode *) new UIChargeMode();
+    ui_mode_ary[OpeningMode]  = (UIMode *) new UIOpeningMode();
+    ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode();
+    ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode();
+    ui_mode_ary[ConfigMode]   = (UIMode *) new UIConfigMode();
+    ui_mode_ary[PowerOffMode] = (UIMode *) new UIPowerOffMode();
     ui_mode = getUIMode(InitialMode);
     ui_mode->entry(ui_mode);
 }

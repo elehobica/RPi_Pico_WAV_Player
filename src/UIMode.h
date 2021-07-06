@@ -78,7 +78,8 @@ class UIMode
 {
 public:
     static const int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
-    UIMode(const char *name, ui_mode_enm_t ui_mode_enm, UIVars *vars);
+    static void initialize(UIVars *vars, stack_t *dir_stack);
+    UIMode(const char *name, ui_mode_enm_t ui_mode_enm);
     virtual UIMode* update() = 0;
     virtual void entry(UIMode *prevMode);
     virtual void draw() = 0;
@@ -89,10 +90,11 @@ protected:
     static const int OneSec = 1000 / UpdateCycleMs; // 1 Sec
     static const int OneMin = 60 * OneSec; // 1 Min
     static button_action_t btn_act;
+    static UIVars *vars;
+    static stack_t *dir_stack;
     const char *name;
     UIMode *prevMode;
     ui_mode_enm_t ui_mode_enm;
-    UIVars *vars;
     uint16_t idle_count;
     bool isAudioFile(uint16_t idx);
 };
@@ -103,7 +105,7 @@ protected:
 class UIInitialMode : public UIMode
 {
 public:
-    UIInitialMode(UIVars *vars);
+    UIInitialMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
@@ -115,7 +117,7 @@ public:
 class UIChargeMode : public UIMode
 {
 public:
-    UIChargeMode(UIVars *vars);
+    UIChargeMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
@@ -127,7 +129,7 @@ public:
 class UIOpeningMode : public UIMode
 {
 public:
-    UIOpeningMode(UIVars *vars);
+    UIOpeningMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
@@ -139,12 +141,11 @@ public:
 class UIFileViewMode : public UIMode
 {
 public:
-    UIFileViewMode(UIVars *vars, stack_t *dir_stack);
+    UIFileViewMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
 protected:
-    stack_t *dir_stack;
     uint16_t *sft_val;
     void listIdxItems();
     uint16_t getNumAudioFiles();
@@ -166,7 +167,7 @@ protected:
 class UIPlayMode : public UIMode
 {
 public:
-    UIPlayMode(UIVars *vars);
+    UIPlayMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
@@ -183,7 +184,7 @@ protected:
 class UIConfigMode : public UIMode
 {
 public:
-    UIConfigMode(UIVars *vars);
+    UIConfigMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
@@ -206,7 +207,7 @@ protected:
 class UIPowerOffMode : public UIMode
 {
 public:
-    UIPowerOffMode(UIVars *vars);
+    UIPowerOffMode();
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
