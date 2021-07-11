@@ -22,6 +22,7 @@ bool pm_is_charging();
 void pm_set_power_keep(bool value);
 bool pm_get_low_battery();
 uint16_t pm_get_battery_voltage();
+void pm_set_low_power_mode(bool flag);
 
 #ifdef __cplusplus
 }

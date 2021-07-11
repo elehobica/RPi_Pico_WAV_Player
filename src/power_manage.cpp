@@ -7,6 +7,7 @@
 #include "power_manage.h"
 #include <cstdio>
 #include "pico/stdlib.h"
+#include "pico/sleep.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/pwm.h"
@@ -15,6 +16,7 @@
 #include "ConfigParam.h"
 #include "ConfigMenu.h"
 
+static bool low_power_mode = false;
 static repeating_timer_t timer;
 // ADC Timer frequency
 const int TIMER_BATTERY_CHECK_HZ = 20;
@@ -169,4 +171,17 @@ bool pm_get_low_battery()
 uint16_t pm_get_battery_voltage()
 {
     return _bat_mv;
+}
+
+void pm_set_low_power_mode(bool flag)
+{
+    if (flag && !low_power_mode) {
+        pwm_set_gpio_level(PIN_LCD_BLK, 0);
+        gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
+    } else if (!flag && low_power_mode) {
+        uint32_t bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL;
+        pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
+        gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
+    }
+    low_power_mode = flag;
 }

@@ -43,6 +43,7 @@ pico_enable_stdio_uart(${bin_name} 0)
 target_link_libraries(${bin_name} 
         pico_stdlib
         hardware_uart
+        hardware_sleep
         hardware_pwm
         hardware_flash
         hardware_adc

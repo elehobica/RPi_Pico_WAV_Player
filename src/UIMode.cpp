@@ -120,7 +120,9 @@ UIMode* UIChargeMode::update()
         vars->do_next_play = None;
         switch (btn_act) {
             case ButtonCenterLong:
+                lcd.setMsg("");
                 pm_set_power_keep(true);
+                pm_set_low_power_mode(false);
                 return getUIMode(OpeningMode);
                 break;
             default:
@@ -128,17 +130,23 @@ UIMode* UIChargeMode::update()
         }
         idle_count = 0;
     }
+    if (idle_count >= 2*OneSec) {
+        pm_set_low_power_mode(true);
+    }
+    idle_count++;
     return this;
 }
 
 void UIChargeMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+    lcd.setMsg("Charging", true);
     pm_set_power_keep(false);
 }
 
 void UIChargeMode::draw()
 {
+    lcd.drawPowerOff();
     ui_clear_btn_evt();
 }
 
@@ -1106,4 +1114,5 @@ void UIPowerOffMode::entry(UIMode *prevMode)
 void UIPowerOffMode::draw()
 {
     lcd.drawPowerOff();
+    ui_clear_btn_evt();
 }
