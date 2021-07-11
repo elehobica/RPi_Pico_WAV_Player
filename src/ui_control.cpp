@@ -11,37 +11,22 @@
 extern "C" {
 #include "pico/util/queue.h"
 }
+#include "power_manage.h"
 #include "ui_control.h"
-
-//#define NO_BATTERY_VOLTAGE_CHECK
-
-// Power Keep PIN
-static uint32_t _pin_power_keep;
-
-// Charge detect PIN setting
-static const uint32_t PIN_CHARGE_DETECT = 24;
 
 // SW PIN setting
 static const uint32_t PIN_SW_PLUS = 22;
 static const uint32_t PIN_SW_CENTER = 21;
 static const uint32_t PIN_SW_MINUS = 20;
 
+// ADC Timer
+static repeating_timer_t timer;
 // ADC Timer frequency
-const int ADC_TIMER_HZ = 20;
-
-// Battery monitor interval
-const int BATT_CHECK_INTERVAL_SEC = 5;
+const int TIMER_UI_BUTTON_HZ = 20;
 
 // Android Headphone Remote Control Pin (GPIO26: ADC0)
 static const uint32_t PIN_HP_BUTTON = 26;
 static const uint32_t ADC_PIN_HP_BUTTON = 0;
-
-// Battery Voltage Pin (GPIO28: ADC2)
-static const uint32_t PIN_BATT_LVL = 28;
-static const uint32_t ADC_PIN_BATT_LVL = 2;
-
-// Battery Check Pin
-static const uint32_t PIN_BATT_CHECK = 8;
 
 // Configuration for button recognition
 static const uint32_t RELEASE_IGNORE_COUNT = 8;
@@ -54,7 +39,6 @@ static uint32_t button_repeat_count = LONG_LONG_PUSH_COUNT; // to ignore first b
 
 static queue_t btn_evt_queue;
 static const int QueueLength = 1;
-static repeating_timer_t timer;
 
 UIVars vars;
 UIMode *ui_mode = nullptr;
@@ -208,49 +192,21 @@ static void update_button_action()
     button_prv[0] = button;
 }
 
-static void monitor_battery_voltage()
-{
-    static int count = 0;
-    if (count % (ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC) == ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC-2) {
-        // Prepare to check battery voltage
-        gpio_put(PIN_BATT_CHECK, 1);
-    } else if (count % (ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC) == ADC_TIMER_HZ*BATT_CHECK_INTERVAL_SEC-1) {
-        // ADC Calibration Coefficients
-        // ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm
-        const int16_t coef_a = 4280;
-        const int16_t coef_b = -20;
-        adc_select_input(ADC_PIN_BATT_LVL);
-        uint16_t result = adc_read();
-        gpio_put(PIN_BATT_CHECK, 0);
-        int16_t voltage = result * coef_a / (1<<12) + coef_b;
-        //printf("Battery Voltage = %d (mV)\n", voltage);
-        vars.bat_mv = voltage;
-    }
-    count++;
-}
-
-bool timer_callback_adc(repeating_timer_t *rt) {
+bool timer_callback_ui_button(repeating_timer_t *rt) {
     update_button_action();
-    monitor_battery_voltage();
+    /*
+    pm_monitor_battery_voltage();
+    */
     return true; // keep repeating
 }
 
-static int adc_timer_init()
+static int timer_init_ui_button()
 {
-    // ADC Initialize
-    adc_init();
-
     // ADC Pin initialize
     adc_gpio_init(PIN_HP_BUTTON);
-    adc_gpio_init(PIN_BATT_LVL);
-
-    // Battery Check Pin
-    gpio_init(PIN_BATT_CHECK);
-    gpio_set_dir(PIN_BATT_CHECK, GPIO_OUT);
-    gpio_put(PIN_BATT_CHECK, 0);
 
     // negative timeout means exact delay (rather than delay between callbacks)
-    if (!add_repeating_timer_us(-1000000 / ADC_TIMER_HZ, timer_callback_adc, nullptr, &timer)) {
+    if (!add_repeating_timer_us(-1000000 / TIMER_UI_BUTTON_HZ, timer_callback_ui_button, nullptr, &timer)) {
         //printf("Failed to add timer\n");
         return 0;
     }
@@ -284,43 +240,28 @@ void ui_clear_btn_evt()
     */
 }
 
-bool ui_is_charging()
-{
-    return gpio_get(PIN_CHARGE_DETECT);
-}
-
-void ui_set_power_keep(bool value)
-{
-    gpio_put(_pin_power_keep, value);
-}
-
 UIMode *getUIMode(ui_mode_enm_t ui_mode_enm)
 {
     return ui_mode_ary[ui_mode_enm];
 }
 
-void ui_init(uint32_t pin_power_keep, ui_mode_enm_t init_dest_ui_mode, stack_t *dir_stack, uint8_t fs_type)
+void ui_init()
 {
-    _pin_power_keep = pin_power_keep;
-    vars.init_dest_ui_mode = init_dest_ui_mode;
-    vars.fs_type = fs_type;
     vars.num_list_lines = LCD_H()/16;
 
     // button event queue
     queue_init(&btn_evt_queue, sizeof(element_t), QueueLength);
 
     // ADC and Timer setting
-    adc_timer_init();
-
-    // Charge Detect Pin initialize
-    gpio_set_dir(PIN_CHARGE_DETECT, GPIO_IN);
+    timer_init_ui_button();
 
     // SW GPIO initialize
     gpio_set_dir(PIN_SW_PLUS, GPIO_IN);
     gpio_set_dir(PIN_SW_CENTER, GPIO_IN);
     gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
 
-    UIMode::initialize(&vars, dir_stack);
+    //UIMode::initialize(&vars, dir_stack);
+    UIMode::initialize(&vars);
     ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode();
     ui_mode_ary[ChargeMode]   = (UIMode *) new UIChargeMode();
     ui_mode_ary[OpeningMode]  = (UIMode *) new UIOpeningMode();
@@ -362,52 +303,4 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
 uint16_t ui_get_idle_count()
 {
     return ui_mode->getIdleCount();
-}
-
-bool uiv_get_low_battery()
-{
-#ifdef NO_BATTERY_VOLTAGE_CHECK
-    return false;
-#else
-    return (vars.bat_mv < 2900);
-#endif
-}
-
-void uiv_set_file_idx(uint16_t idx_head, uint16_t idx_column)
-{
-    vars.idx_head = idx_head;
-    vars.idx_column = idx_column;
-}
-
-void uiv_get_file_idx(uint16_t *idx_head, uint16_t *idx_column)
-{
-    *idx_head = vars.idx_head;
-    *idx_column = vars.idx_column;
-}
-
-void uiv_set_play_idx(uint16_t idx_play)
-{
-    vars.idx_play = idx_play;
-}
-
-void uiv_get_play_idx(uint16_t *idx_play)
-{
-    *idx_play = vars.idx_play;
-}
-
-void uiv_set_play_position(size_t fpos, uint32_t samples_played)
-{
-    vars.fpos = fpos;
-    vars.samples_played = samples_played;
-}
-
-void uiv_get_play_position(size_t *fpos, uint32_t *samples_played)
-{
-    *fpos = vars.fpos;
-    *samples_played = vars.samples_played;
-}
-
-void uiv_get_resume_ui_mode(ui_mode_enm_t *resume_ui_mode)
-{
-    *resume_ui_mode = vars.resume_ui_mode;
 }

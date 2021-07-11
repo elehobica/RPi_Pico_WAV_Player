@@ -10,9 +10,14 @@
 #include <cstdio>
 #include <cstring>
 #include "ui_control.h"
-#include "stack.h"
-#include "PlayAudio/audio_codec.h"
+#include "power_manage.h"
+#include "UserFlash.h"
+#include "ConfigParam.h"
 #include "ConfigMenu.h"
+#include "PlayAudio/audio_codec.h"
+#include "file_menu/file_menu_FatFs.h"
+#include "LcdCanvas.h"
+#include "TagRead.h"
 
 TagRead tag;
 
@@ -20,18 +25,19 @@ TagRead tag;
 button_action_t UIMode::btn_act;
 UIVars *UIMode::vars;
 stack_t *UIMode::dir_stack;
+UIMode::ExitType UIMode::exitType = UIMode::NoError;
 
 //================================
 // Implementation of UIMode class
 //================================
 /*static*/
-void UIMode::initialize(UIVars *vars, stack_t *dir_stack)
+void UIMode::initialize(UIVars *vars)
 {
     UIMode::vars = vars;
-    UIMode::dir_stack = dir_stack;
+    dir_stack = stack_init();
 }
 
-UIMode::UIMode(const char *name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(NULL), ui_mode_enm(ui_mode_enm), idle_count(0)
+UIMode::UIMode(const char *name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(nullptr), ui_mode_enm(ui_mode_enm), idle_count(0)
 {
 }
 
@@ -81,9 +87,10 @@ UIMode* UIInitialMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
     // Always transfer to ChargeMode or OpeningMode
-    if (ui_is_charging()) {
+    if (pm_is_charging()) {
         return getUIMode(ChargeMode);
     } else {
+        pm_set_power_keep(true);
         return getUIMode(OpeningMode);
     }
     idle_count++;
@@ -113,7 +120,7 @@ UIMode* UIChargeMode::update()
         vars->do_next_play = None;
         switch (btn_act) {
             case ButtonCenterLong:
-                ui_set_power_keep(true);
+                pm_set_power_keep(true);
                 return getUIMode(OpeningMode);
                 break;
             default:
@@ -127,7 +134,7 @@ UIMode* UIChargeMode::update()
 void UIChargeMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
-    ui_set_power_keep(false);
+    pm_set_power_keep(false);
 }
 
 void UIChargeMode::draw()
@@ -142,11 +149,68 @@ UIOpeningMode::UIOpeningMode() : UIMode("UIOpeningMode", OpeningMode)
 {
 }
 
+//#define INITIALIZE_CONFIG_PARAM
+void UIOpeningMode::loadFromFlash()
+{
+    // Load Configuration parameters from Flash
+    userFlash.printInfo();
+    #ifdef INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
+    #else // INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
+    #endif // INITIALIZE_CONFIG_PARAM
+    configMenu.scanHookFunc();
+    configParam.printInfo();
+    configParam.incBootCount();
+
+    // Restore from configParam to user parameters
+    srand(GET_CFG_SEED);
+    PlayAudio::setVolume(GET_CFG_VOLUME);
+    bool err_flg = false;
+    for (int i = GET_CFG_STACK_COUNT - 1; i >= 0; i--) {
+        stack_data_t item;
+        item.head = GET_CFG_STACK_HEAD(i);
+        item.column = GET_CFG_STACK_COLUMN(i);
+        if (item.head+item.column >= file_menu_get_num()) { err_flg = true; break; } // idx overflow
+        file_menu_sort_entry(item.head+item.column, item.head+item.column + 1);
+        if (file_menu_is_dir(item.head+item.column) <= 0 || item.head+item.column == 0) { err_flg = true; break; } // Not Directory or Parent Directory
+        stack_push(dir_stack, &item);
+        file_menu_ch_dir(item.head+item.column);
+    }
+
+    vars->init_dest_ui_mode = static_cast<ui_mode_enm_t>(GET_CFG_UIMODE);
+
+    uint16_t idx_head = GET_CFG_IDX_HEAD;
+    uint16_t idx_column = GET_CFG_IDX_COLUMN;
+    if (idx_head+idx_column >= file_menu_get_num()) { err_flg = true; } // idx overflow
+    if (err_flg) { // Load Error
+        printf("dir_stack Load Error. root directory is set\n");
+        stack_delete(dir_stack);
+        dir_stack = stack_init();
+        file_menu_open_dir("/");
+        idx_head = idx_column = 0;
+        vars->init_dest_ui_mode = FileViewMode;
+    }
+    vars->idx_head = idx_head;
+    vars->idx_column = idx_column;
+
+    vars->idx_play = 0;
+    vars->fpos = 0;
+    vars->samples_played = 0;
+    if (vars->init_dest_ui_mode == PlayMode) {
+        vars->idx_play = GET_CFG_IDX_PLAY;
+        uint64_t play_pos = GET_CFG_PLAY_POS;
+        vars->fpos = (size_t) play_pos;
+        vars->samples_played = GET_CFG_SAMPLES_PLAYED;
+    }
+}
+
 UIMode* UIOpeningMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
-    // Always transfer to FileViewMode after pre-defined period
-    if (idle_count++ > 1*OneSec) {
+    if (exitType == FatFsError) {
+        return getUIMode(PowerOffMode);
+    } else if (idle_count++ > 1*OneSec) { // Always transfer to FileViewMode after 1 sec when no error
         return getUIMode(FileViewMode);
     }
     return this;
@@ -155,12 +219,46 @@ UIMode* UIOpeningMode::update()
 void UIOpeningMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+
+    // Mount FAT
+    int count = 0;
+    FRESULT fr;
+    while (true) {
+        fr = file_menu_init(&vars->fs_type);
+        if (fr == FR_OK || count++ > 10) { break; }
+        sleep_ms(10);
+    }
+    if (fr != FR_OK) { // Mount Fail
+        exitType = FatFsError;
+        lcd.setMsg("No SD Card Found!", true);
+        return;
+    }
+    const char *fs_type_str[5] = {"NOT_MOUNTED", "FAT12", "FAT16", "FAT32", "EXFAT"};
+    printf("SD Card File System = %s\n", fs_type_str[vars->fs_type]);
+
+    // Open root directory
+    file_menu_open_dir("/");
+    if (file_menu_get_num() <= 1) { // Directory read Fail
+        exitType = FatFsError;
+        lcd.setMsg("SD Card Read Error!", true);
+        return;
+    }
+    exitType = NoError;
+    // Opening Logo
+    lcd.setImageJpeg("logo.jpg");
+
+    loadFromFlash();
+
+    pm_set_audio_dac_enable(true); // I2S DAC Mute Off
+    audio_codec_init();
+
     lcd.switchToOpening();
 }
 
 void UIOpeningMode::draw()
 {
     lcd.drawOpening();
+    pm_backlight_update();
     ui_clear_btn_evt();
 }
 
@@ -178,12 +276,13 @@ UIFileViewMode::UIFileViewMode() : UIMode("UIFileViewMode", FileViewMode)
 void UIFileViewMode::listIdxItems()
 {
     char str[256];
+    memset(str, 0, sizeof(str));
     for (int i = 0; i < vars->num_list_lines; i++) {
         if (vars->idx_head+i >= file_menu_get_num()) {
             lcd.setListItem(i, ""); // delete
             continue;
         }
-        file_menu_get_fname(vars->idx_head+i, str, sizeof(str));
+        file_menu_get_fname(vars->idx_head+i, str, sizeof(str) - 1);
         uint8_t icon = file_menu_is_dir(vars->idx_head+i) ? ICON16x16_FOLDER : ICON16x16_FILE;
         lcd.setListItem(i, str, icon, (i == vars->idx_column));
     }
@@ -514,8 +613,9 @@ UIMode* UIFileViewMode::update()
         default:
             break;
     }
-    if (uiv_get_low_battery()) {
+    if (pm_get_low_battery()) {
         lcd.setMsg("Low Battery!", true);
+        exitType = LowBatteryVoltage;
         return getUIMode(PowerOffMode);
     } else if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
         lcd.setMsg("Bye");
@@ -523,7 +623,7 @@ UIMode* UIFileViewMode::update()
     } else if (idle_count > 5*OneSec) {
         file_menu_idle(); // for background sort
     }
-    lcd.setBatteryVoltage(vars->bat_mv);
+    lcd.setBatteryVoltage(pm_get_battery_voltage());
     idle_count++;
     return this;
 }
@@ -538,6 +638,7 @@ void UIFileViewMode::entry(UIMode *prevMode)
 void UIFileViewMode::draw()
 {
     lcd.drawListView();
+    pm_backlight_update();
     ui_clear_btn_evt();
 }
 
@@ -587,10 +688,11 @@ UIMode* UIPlayMode::update()
         }
         idle_count = 0;
     }
-    if (uiv_get_low_battery()) {
+    if (pm_get_low_battery()) {
         codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
         codec->stop();
         lcd.setMsg("Low Battery!", true);
+        exitType = LowBatteryVoltage;
         return getUIMode(PowerOffMode);
     } else if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
         codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
@@ -616,7 +718,7 @@ UIMode* UIPlayMode::update()
     float levelL, levelR;
     codec->getLevel(&levelL, &levelR);
     lcd.setAudioLevel(levelL, levelR);
-    lcd.setBatteryVoltage(vars->bat_mv);
+    lcd.setBatteryVoltage(pm_get_battery_voltage());
     idle_count++;
     return this;
 }
@@ -628,10 +730,11 @@ audio_codec_enm_t UIPlayMode::getAudioCodec(MutexFsBaseFile *f)
     bool flg = false;
     int ofs = 0;
     char str[256];
+    memset(str, 0, sizeof(str));
 
     while (vars->idx_play + ofs < file_menu_get_num()) {
         file_menu_get_obj(vars->idx_play + ofs, f);
-        f->getName(str, sizeof(str));
+        f->getName(str, sizeof(str) - 1);
         char* ext_pos = strrchr(str, '.');
         if (ext_pos) {
             if (strncmp(ext_pos, ".mp3", 4) == 0 || strncmp(ext_pos, ".MP3", 4) == 0) {
@@ -676,37 +779,38 @@ void UIPlayMode::readTag()
     int img_cnt = 0;
     
     // Read TAG
-    file_menu_get_fname(vars->idx_play, str, sizeof(str));
+    memset(str, 0, sizeof(str));
+    file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
     tag.loadFile(str);
 
     // copy TAG text
-    if (tag.getUTF8Track(str, sizeof(str))) {
+    if (tag.getUTF8Track(str, sizeof(str) - 1)) {
         uint16_t track = atoi(str);
         sprintf(str, "%d/%d", track, vars->num_tracks);
     } else {
         sprintf(str, "%d/%d", vars->idx_play, vars->num_tracks);
     }
     lcd.setTrack(str);
-    if (tag.getUTF8Title(str, sizeof(str))) {
+    if (tag.getUTF8Title(str, sizeof(str) - 1)) {
         lcd.setTitle(str);
     } else { // display filename if no TAG
-        file_menu_get_fname(vars->idx_play, str, sizeof(str));
+        file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
         lcd.setTitle(str);
         /*
         file_menu_get_fname_UTF16(vars->idx_play, (char16_t *) str, sizeof(str)/2);
         lcd.setTitle(utf16_to_utf8((const char16_t *) str).c_str(), utf8);
         */
     }
-    if (tag.getUTF8Album(str, sizeof(str))) lcd.setAlbum(str); else lcd.setAlbum("");
-    if (tag.getUTF8Artist(str, sizeof(str))) lcd.setArtist(str); else lcd.setArtist("");
-    //if (tag.getUTF8Year(str, sizeof(str))) lcd.setYear(str); else lcd.setYear("");
+    if (tag.getUTF8Album(str, sizeof(str) - 1)) lcd.setAlbum(str); else lcd.setAlbum("");
+    if (tag.getUTF8Artist(str, sizeof(str) - 1)) lcd.setArtist(str); else lcd.setArtist("");
+    //if (tag.getUTF8Year(str, sizeof(str) - 1)) lcd.setYear(str); else lcd.setYear("");
 
     if (loadImage) {
         uint16_t idx = 0;
         while (idx < file_menu_get_num()) {
             if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) ||
                 file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
-                file_menu_get_fname(idx, str, sizeof(str));
+                file_menu_get_fname(idx, str, sizeof(str) - 1);
                 lcd.setImageJpeg(str);
                 break;
             }
@@ -730,7 +834,7 @@ void UIPlayMode::readTag()
         while (idx < file_menu_get_num()) {
             if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
                 file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
-                file_menu_get_fname(idx, str, sizeof(str));
+                file_menu_get_fname(idx, str, sizeof(str) - 1);
                 printf("JPEG %s\n", str);
                 //lcd.addAlbumArtJpeg(idx, 0, f.fileSize());
                 img_cnt++;
@@ -747,7 +851,8 @@ void UIPlayMode::readTag()
 void UIPlayMode::play()
 {
     char str[FF_MAX_LFN];
-    file_menu_get_fname(vars->idx_play, str, sizeof(str));
+    memset(str, 0, sizeof(str));
+    file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
     printf("%s\n", str);
     PlayAudio *playAudio = get_audio_codec();
     readTag();
@@ -770,6 +875,7 @@ void UIPlayMode::entry(UIMode *prevMode)
 void UIPlayMode::draw()
 {
     lcd.drawPlay();
+    pm_backlight_update();
     ui_clear_btn_evt();
 }
 
@@ -777,7 +883,7 @@ void UIPlayMode::draw()
 // Implementation of UIConfigMode class
 //=======================================
 UIConfigMode::UIConfigMode() : UIMode("UIConfigMode", ConfigMode),
-    path_stack(NULL), idx_head(0), idx_column(0)
+    path_stack(nullptr), idx_head(0), idx_column(0)
 {
     path_stack = stack_init();
 }
@@ -930,6 +1036,7 @@ void UIConfigMode::entry(UIMode *prevMode)
 void UIConfigMode::draw()
 {
     lcd.drawListView();
+    pm_backlight_update();
     ui_clear_btn_evt();
 }
 
@@ -940,18 +1047,63 @@ UIPowerOffMode::UIPowerOffMode() : UIMode("UIPowerOffMode", PowerOffMode)
 {
 }
 
+void UIPowerOffMode::storeToFlash()
+{
+    // Save user parameters to configParam
+    uint32_t seed = to_ms_since_boot(get_absolute_time());
+    configParam.setU32(ConfigParam::CFG_SEED, seed);
+    uint8_t volume = PlayAudio::getVolume();
+    configParam.setU8(ConfigParam::CFG_VOLUME, volume);
+    uint8_t stack_count = stack_get_count(dir_stack);
+    configParam.setU8(ConfigParam::CFG_STACK_COUNT, stack_count);
+    for (int i = 0; i < stack_count; i++) {
+        stack_data_t item;
+        stack_pop(dir_stack, &item);
+        configParam.setU16(CFG_STACK_HEAD(i), item.head);
+        configParam.setU16(CFG_STACK_COLUMN(i), item.column);
+    }
+
+    configParam.setU32(ConfigParam::CFG_UIMODE, vars->resume_ui_mode);
+
+    configParam.setU16(ConfigParam::CFG_IDX_HEAD, vars->idx_head);
+    configParam.setU16(ConfigParam::CFG_IDX_COLUMN, vars->idx_column);
+    configParam.setU16(ConfigParam::CFG_IDX_PLAY, vars->idx_play);
+
+    configParam.setU64(ConfigParam::CFG_PLAY_POS, (uint64_t) vars->fpos);
+    configParam.setU32(ConfigParam::CFG_SAMPLES_PLAYED, vars->samples_played);
+
+
+    // Store Configuration parameters to Flash
+    configParam.finalize();
+}
+
 UIMode* UIPowerOffMode::update()
 {
+    ui_get_btn_evt(&btn_act); // Ignore button event
+    if ((idle_count > 1*OneSec && exitType == NoError) || idle_count > 4*OneSec) {
+        pm_set_power_keep(false); // Power Off unless being charged
+        if (pm_is_charging()) {
+            return getUIMode(ChargeMode);
+        }
+    }
+    idle_count++;
     return this;
 }
 
 void UIPowerOffMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+    if (exitType != FatFsError) {
+        storeToFlash();
+        file_menu_close_dir();
+        audio_codec_deinit();
+    }
+    pm_set_audio_dac_enable(false); // I2S DAC Mute On
+
     lcd.switchToPowerOff();
-    lcd.drawPowerOff();
 }
 
 void UIPowerOffMode::draw()
 {
+    lcd.drawPowerOff();
 }

@@ -14,6 +14,7 @@
 //#define DEBUG_FILE_MENU
 //#define DEBUG_FILE_MENU_LVL2
 
+static FATFS fs;
 static DIR dir;
 static FILINFO fno, fno_temp;
 static int target = TGT_DIRS | TGT_FILES; // TGT_DIRS, TGT_FILES
@@ -73,7 +74,7 @@ static FRESULT idx_f_stat(uint16_t idx, FILINFO *fno)
 	FRESULT res = FR_OK;
 	int error_count = 0;
 	if (idx == 0) {
-		strcpy(fno->fname, "..");
+		strncpy(fno->fname, "..", FF_LFN_BUF);
 		fno->fattrib = AM_DIR;
 		return res;
 	}
@@ -338,6 +339,17 @@ static void idx_sort_delete(void)
 // File Menu Public Funcions
 //   provided by sorted 'order'
 //==============================
+// Mount FAT
+FRESULT file_menu_init(uint8_t *fs_type)
+{
+	FRESULT fr;
+	fr = f_mount(&fs, "", 1); // fr: 0: mount successful, 1: mount failed
+	if (fr == FR_OK) {
+		*fs_type = fs.fs_type;
+	}
+	return fr;
+}
+
 // For implicit sort all entries
 void file_menu_idle(void)
 {

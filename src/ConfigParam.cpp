@@ -29,6 +29,7 @@ ConfigParamClass::ConfigParamClass()
             item->ptr = malloc(item->size);
         }
     }
+    loadDefault();
 }
 
 ConfigParamClass::~ConfigParamClass()

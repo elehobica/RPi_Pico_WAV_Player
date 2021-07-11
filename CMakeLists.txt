@@ -23,6 +23,7 @@ add_subdirectory(lib/PlayAudio)
 set(bin_name "RPi_Pico_WAV_Player")
 add_executable(${bin_name}
     src/main.cpp
+    src/power_manage.cpp
     src/ui_control.cpp
     src/UIMode.cpp
     src/ImageFitter.cpp

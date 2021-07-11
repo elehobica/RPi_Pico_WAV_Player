@@ -9,13 +9,8 @@
 #ifndef _UIMODE_H_
 #define _UIMODE_H_
 
-#include "st7735_80x160/my_lcd.h"
-#include "file_menu/file_menu_FatFs.h"
-#include "LcdCanvas.h"
 #include "stack.h"
-#include "TagRead.h"
-//#include "audio_playback.h"
-//#include "UserConfig.h"
+#include "file_menu/file_menu_FatFs.h"
 
 typedef enum {
     InitialMode = 0,
@@ -60,7 +55,6 @@ struct UIVars
     uint16_t num_list_lines = 1;
     ui_mode_enm_t init_dest_ui_mode = InitialMode;
     ui_mode_enm_t resume_ui_mode = FileViewMode;
-    uint16_t bat_mv = 4200;
     uint16_t idx_head = 0;
     uint16_t idx_column = 0;
     uint16_t idx_play = 0;
@@ -78,7 +72,7 @@ class UIMode
 {
 public:
     static const int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
-    static void initialize(UIVars *vars, stack_t *dir_stack);
+    static void initialize(UIVars *vars);
     UIMode(const char *name, ui_mode_enm_t ui_mode_enm);
     virtual UIMode* update() = 0;
     virtual void entry(UIMode *prevMode);
@@ -87,11 +81,17 @@ public:
     ui_mode_enm_t getUIModeEnm();
     uint16_t getIdleCount();
 protected:
+    typedef enum {
+        NoError = 0,
+        FatFsError,
+        LowBatteryVoltage
+    } ExitType;
     static const int OneSec = 1000 / UpdateCycleMs; // 1 Sec
     static const int OneMin = 60 * OneSec; // 1 Min
     static button_action_t btn_act;
     static UIVars *vars;
     static stack_t *dir_stack;
+    static ExitType exitType;
     const char *name;
     UIMode *prevMode;
     ui_mode_enm_t ui_mode_enm;
@@ -133,6 +133,8 @@ public:
     UIMode* update();
     void entry(UIMode *prevMode);
     void draw();
+protected:
+    void loadFromFlash();
 };
 
 //===================================
@@ -212,6 +214,7 @@ public:
     void entry(UIMode *prevMode);
     void draw();
 protected:
+    void storeToFlash();
 };
 
 #endif //_UIMODE_H_
