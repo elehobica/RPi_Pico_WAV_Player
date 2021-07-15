@@ -38,6 +38,7 @@ void ui_init();
 ui_mode_enm_t ui_update();
 ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm);
 uint16_t ui_get_idle_count();
+uint32_t ui_set_center_switch_for_wakeup(bool flg);
 
 #ifdef __cplusplus
 }

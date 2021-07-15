@@ -7,10 +7,8 @@
 #ifndef _USER_FLASH_H_
 #define _USER_FLASH_H_
 
-extern "C" {
 #include "hardware/flash.h"
 #include "hardware/sync.h"
-}
 
 //=================================
 // Interface of UserFlash class

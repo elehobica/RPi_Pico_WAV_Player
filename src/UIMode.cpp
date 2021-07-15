@@ -116,22 +116,13 @@ UIChargeMode::UIChargeMode() : UIMode("UIChargeMode", ChargeMode)
 
 UIMode* UIChargeMode::update()
 {
-    if (ui_get_btn_evt(&btn_act)) {
-        vars->do_next_play = None;
-        switch (btn_act) {
-            case ButtonCenterLong:
-                lcd.setMsg("");
-                pm_set_power_keep(true);
-                pm_set_low_power_mode(false);
-                return getUIMode(OpeningMode);
-                break;
-            default:
-                break;
-        }
-        idle_count = 0;
-    }
+    ui_get_btn_evt(&btn_act);
     if (idle_count >= 2*OneSec) {
-        pm_set_low_power_mode(true);
+        lcd.setMsg("");
+        lcd.clear(true);
+        pm_enter_dormant_and_wake();
+        pm_set_power_keep(true);
+        return getUIMode(OpeningMode);
     }
     idle_count++;
     return this;

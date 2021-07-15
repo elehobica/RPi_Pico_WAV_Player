@@ -22,7 +22,8 @@ bool pm_is_charging();
 void pm_set_power_keep(bool value);
 bool pm_get_low_battery();
 uint16_t pm_get_battery_voltage();
-void pm_set_low_power_mode(bool flag);
+void pm_enter_dormant_and_wake();
+void pw_pll_usb_96MHz();
 
 #ifdef __cplusplus
 }

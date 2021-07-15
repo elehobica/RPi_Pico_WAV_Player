@@ -8,15 +8,20 @@
 #include <cstdio>
 #include "pico/stdlib.h"
 #include "pico/sleep.h"
+#include "hardware/pll.h"
+#include "hardware/clocks.h"
+#include "hardware/structs/clocks.h"
+#include "hardware/structs/scb.h"
+#include "hardware/rosc.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/pwm.h"
+#include "hardware/sync.h"
 #include "st7735_80x160/lcd.h"
 #include "ui_control.h"
 #include "ConfigParam.h"
 #include "ConfigMenu.h"
 
-static bool low_power_mode = false;
 static repeating_timer_t timer;
 // ADC Timer frequency
 const int TIMER_BATTERY_CHECK_HZ = 20;
@@ -66,7 +71,7 @@ void pm_backlight_init(uint32_t bl_val)
 {
     // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
     gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
-    uint slice_num = pwm_gpio_to_slice_num(PICO_DEFAULT_LED_PIN);
+    uint32_t slice_num = pwm_gpio_to_slice_num(PIN_LCD_BLK);
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, 4.f);
     pwm_init(slice_num, &config, true);
@@ -117,7 +122,7 @@ void pm_init()
     gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
 
     // BackLight
-    pm_backlight_init(192);
+    pm_backlight_init(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
 
     // Battery Check Timer start
     timer_init_battery_check();
@@ -173,15 +178,79 @@ uint16_t pm_get_battery_voltage()
     return _bat_mv;
 }
 
-void pm_set_low_power_mode(bool flag)
+// recover_from_sleep: which is great code from https://github.com/ghubcoder/PicoSleepDemo
+static void recover_from_sleep(uint32_t scb_orig, uint32_t clock0_orig, uint32_t clock1_orig){
+
+    //Re-enable ring Oscillator control
+    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
+
+    //reset procs back to default
+    scb_hw->scr = scb_orig;
+    clocks_hw->sleep_en0 = clock0_orig;
+    clocks_hw->sleep_en1 = clock1_orig;
+
+    //reset clocks
+    clocks_init();
+    stdio_init_all();
+
+    return;
+}
+
+void pm_enter_dormant_and_wake()
 {
-    if (flag && !low_power_mode) {
-        pwm_set_gpio_level(PIN_LCD_BLK, 0);
-        gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
-    } else if (!flag && low_power_mode) {
-        uint32_t bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL;
-        pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
-        gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
-    }
-    low_power_mode = flag;
+    // Preparation for dormant
+    gpio_init(PIN_LCD_BLK);
+    gpio_set_dir(PIN_LCD_BLK, GPIO_OUT);
+    gpio_put(PIN_LCD_BLK, 0);
+    gpio_put(PICO_DEFAULT_LED_PIN, 0);
+    gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
+
+    uint32_t scb_orig = scb_hw->scr;
+    uint32_t clock0_orig = clocks_hw->sleep_en0;
+    uint32_t clock1_orig = clocks_hw->sleep_en1;
+
+    // goto dormant then wake up
+    uint32_t ints = save_and_disable_interrupts();
+    uint32_t pin = ui_set_center_switch_for_wakeup(true);
+    sleep_run_from_xosc();
+    sleep_goto_dormant_until_pin(pin, true, false); // fall edge to wake up
+
+    // Treatment after wake up
+    recover_from_sleep(scb_orig, clock0_orig, clock1_orig);
+    restore_interrupts(ints);
+    ui_set_center_switch_for_wakeup(false);
+    pw_pll_usb_96MHz();
+    gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
+    pm_backlight_init(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
+    pm_backlight_update();
+
+    // wake up alert
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+    sleep_ms(500);
+    gpio_put(PICO_DEFAULT_LED_PIN, 0);
+}
+
+void pw_pll_usb_96MHz()
+{
+    // Set PLL_USB 96MHz
+    pll_init(pll_usb, 1, 1536 * MHZ, 4, 4);
+    clock_configure(clk_usb,
+        0,
+        CLOCKS_CLK_USB_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+        96 * MHZ,
+        48 * MHZ);
+    // Change clk_sys to be 96MHz.
+    clock_configure(clk_sys,
+        CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLKSRC_CLK_SYS_AUX,
+        CLOCKS_CLK_SYS_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+        96 * MHZ,
+        96 * MHZ);
+    // CLK peri is clocked from clk_sys so need to change clk_peri's freq
+    clock_configure(clk_peri,
+        0,
+        CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
+        96 * MHZ,
+        96 * MHZ);
+    // Reinit uart now that clk_peri has changed
+    stdio_init_all();
 }

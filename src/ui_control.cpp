@@ -8,9 +8,7 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "st7735_80x160/lcd.h"
-extern "C" {
 #include "pico/util/queue.h"
-}
 #include "power_manage.h"
 #include "ui_control.h"
 
@@ -212,6 +210,17 @@ static int timer_init_ui_button()
     }
 
     return 1;
+}
+
+uint32_t ui_set_center_switch_for_wakeup(bool flg)
+{
+    if (flg) {
+        gpio_set_dir(PIN_HP_BUTTON, GPIO_IN);
+        gpio_set_input_enabled(PIN_HP_BUTTON, true);
+    } else {
+        adc_gpio_init(PIN_HP_BUTTON);
+    }
+    return PIN_HP_BUTTON;
 }
 
 bool ui_get_btn_evt(button_action_t *btn_act)
