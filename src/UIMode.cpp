@@ -116,7 +116,15 @@ UIChargeMode::UIChargeMode() : UIMode("UIChargeMode", ChargeMode)
 
 UIMode* UIChargeMode::update()
 {
-    ui_get_btn_evt(&btn_act);
+    if (ui_get_btn_evt(&btn_act)) {
+        switch (btn_act) {
+            case ButtonCenterSingle:
+                return getUIMode(OpeningMode);
+            default:
+                break;
+        }
+        idle_count = 0;
+    }
     if (idle_count >= 2*OneSec) {
         lcd.setMsg("");
         lcd.clear(true);
