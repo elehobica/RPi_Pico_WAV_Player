@@ -39,6 +39,7 @@ CU_REGISTER_DEBUG_PINS(audio_timing)
 #define dma_channel_set_irqx_enabled __CONCAT(__CONCAT(dma_channel_set_irq, PICO_AUDIO_I2S_DMA_IRQ),_enabled)
 #define DMA_IRQ_x __CONCAT(DMA_IRQ_, PICO_AUDIO_I2S_DMA_IRQ)
 
+static uint loaded_offset = 0;
 static const audio_format_t *_i2s_input_audio_format;
 static const audio_format_t *_i2s_output_audio_format;
 struct {
@@ -125,13 +126,17 @@ void i2s_callback_loop()
 void audio_i2s_end() {
     audio_buffer_t *ab = shared_state.playing_buffer;
     queue_free_audio_buffer(audio_i2s_consumer, ab);
+    free(silence_buffer.buffer);
     shared_state.playing_buffer = NULL;
     uint8_t sm = shared_state.pio_sm;
+    pio_sm_drain_tx_fifo(audio_pio, sm);
     pio_sm_unclaim(audio_pio, sm);
+    pio_remove_program(audio_pio, &audio_i2s_program, loaded_offset);
     pio_clear_instruction_memory(audio_pio);
     uint8_t dma_channel = shared_state.dma_channel;
     dma_channel_unclaim(dma_channel);
     irq_remove_handler(DMA_IRQ_x, audio_i2s_dma_irq_handler);
+    dma_channel_set_irqx_enabled(dma_channel, 0);
 }
 
 const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_format, const audio_format_t *i2s_output_audio_format,
@@ -146,12 +151,12 @@ const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_form
     uint8_t sm = shared_state.pio_sm = config->pio_sm;
     pio_sm_claim(audio_pio, sm);
 
-    uint offset = pio_add_program(audio_pio, &audio_i2s_program);
+    loaded_offset = pio_add_program(audio_pio, &audio_i2s_program);
 
     assert(_i2s_output_audio_format->channel_count == AUDIO_CHANNEL_STEREO);
     assert(_i2s_output_audio_format->pcm_format == AUDIO_PCM_FORMAT_S16 || _i2s_output_audio_format->pcm_format == AUDIO_PCM_FORMAT_S32);
     uint res_bits = (_i2s_output_audio_format->pcm_format == AUDIO_PCM_FORMAT_S32) ? 32 : 16;
-    audio_i2s_program_init(audio_pio, sm, offset, config->data_pin, config->clock_pin_base, res_bits);
+    audio_i2s_program_init(audio_pio, sm, loaded_offset, config->data_pin, config->clock_pin_base, res_bits);
 
     silence_buffer.buffer = pico_buffer_alloc(PICO_AUDIO_I2S_BUFFER_SAMPLE_LENGTH * 4);
     silence_buffer.sample_count = PICO_AUDIO_I2S_BUFFER_SAMPLE_LENGTH;
@@ -225,26 +230,31 @@ const audio_format_t *audio_i2s_setup(const audio_format_t *i2s_input_audio_form
 }
 
 static void update_pio_frequency(uint32_t sample_freq, audio_pcm_format_t pcm_format, audio_channel_t channel_count) {
-    printf("setting pio freq %d\n", (int) sample_freq);
+    printf("setting PIO freq for target sampling freq = %d Hz\n", (int) sample_freq);
     uint32_t system_clock_frequency = clock_get_hz(clk_sys);
     assert(system_clock_frequency < 0x40000000);
     //uint32_t divider = system_clock_frequency * 4 / sample_freq; // avoid arithmetic overflow
     uint32_t divider;
+    uint32_t bits;
     switch (pcm_format) {
         case AUDIO_PCM_FORMAT_S8:
         case AUDIO_PCM_FORMAT_U8:
             divider = system_clock_frequency * 4 * channel_count / sample_freq;
+            bits = 8;
             break;
         case AUDIO_PCM_FORMAT_S16:
         case AUDIO_PCM_FORMAT_U16:
             divider = system_clock_frequency * 2 * channel_count / sample_freq;
+            bits = 16;
             break;
         case AUDIO_PCM_FORMAT_S32:
         case AUDIO_PCM_FORMAT_U32:
             divider = system_clock_frequency * 1 * channel_count / sample_freq;
+            bits = 32;
             break;
         default:
             divider = system_clock_frequency * 2 * channel_count / sample_freq;
+            bits = 16;
             assert(false);
             break;
     }
@@ -256,7 +266,8 @@ static void update_pio_frequency(uint32_t sample_freq, audio_pcm_format_t pcm_fo
 #else
     divider >>= 8u;
     float pio_freq = (float) system_clock_frequency / divider; // no frac
-    printf("System clock at %u Hz, I2S clock divider %d: PIO freq %7.4f Hz\n", (uint) system_clock_frequency, (uint) divider, pio_freq);
+    float samp_freq = pio_freq / ((float) bits * 2.0 * 2.0);
+    printf("System clock at %u Hz, I2S clock divider %d: PIO freq %7.4f Hz: sampling freq %7.4f Hz\n", (uint) system_clock_frequency, (uint) divider, pio_freq, samp_freq);
     pio_sm_set_clkdiv(audio_pio, shared_state.pio_sm, divider); // No Jitter. but clock freq accuracy depends on PIO source clock freq
 #endif
 
