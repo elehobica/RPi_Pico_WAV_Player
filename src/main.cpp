@@ -7,12 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 #include "pico/stdlib.h"
+#include "pico/stdio_usb.h"
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
 #include "power_manage.h"
 #include "ui_control.h"
 
-const char *VersionStr = "0.8.2";
+const char *VersionStr = "0.9.0";
 
 static inline uint32_t _millis(void)
 {
@@ -20,19 +21,14 @@ static inline uint32_t _millis(void)
 }
 
 int main() {
-    stdio_init_all();
+    // Call stdio_usb_init() in pw_set_pll_usb_96MHz() for modified code rather than stdio_init_all()
+    //stdio_init_all();
 
     // Set PLL_USB 96MHz and use it for PIO clock for I2S
-    pw_pll_usb_96MHz();
+    pw_set_pll_usb_96MHz();
 
     // Power Manage Init
     pm_init();
-
-    // Initialise UART 0
-    uart_init(uart0, 115200);
-    // Set the GPIO pin mux to the UART - 0 is TX, 1 is RX
-    gpio_set_function(0, GPIO_FUNC_UART);
-    gpio_set_function(1, GPIO_FUNC_UART);
 
     // LED
     gpio_init(PICO_DEFAULT_LED_PIN);

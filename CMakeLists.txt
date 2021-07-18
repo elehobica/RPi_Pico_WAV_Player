@@ -18,6 +18,7 @@ add_subdirectory(lib/picojpeg)
 add_subdirectory(lib/LcdElementBox)
 add_subdirectory(lib/my_pico_audio)
 add_subdirectory(lib/my_pico_audio_i2s)
+add_subdirectory(lib/my_pico_stdio_usb)
 add_subdirectory(lib/PlayAudio)
 
 set(bin_name "RPi_Pico_WAV_Player")
@@ -37,11 +38,13 @@ add_executable(${bin_name}
     src/ConfigParam.cpp
 )
 
-pico_enable_stdio_usb(${bin_name} 1)
-pico_enable_stdio_uart(${bin_name} 0)
+#pico_enable_stdio_usb(${bin_name} 1) --> pico_stdio_uart
+#pico_enable_stdio_uart(${bin_name} 1) --> my_pico_stdio_usb
 
 target_link_libraries(${bin_name} 
         pico_stdlib
+        pico_stdio_uart
+        my_pico_stdio_usb
         hardware_uart
         hardware_sleep
         hardware_pwm

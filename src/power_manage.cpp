@@ -3,11 +3,14 @@
 / Released under the BSD-2-Clause
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
+/* Except for 'recover_from_sleep' part, see comment for copyright */
 
 #include "power_manage.h"
 #include <cstdio>
 #include "pico/stdlib.h"
 #include "pico/sleep.h"
+#include "pico/stdio_uart.h"
+#include "pico/stdio_usb.h" // use lib/my_pico_stdio_usb/
 #include "hardware/pll.h"
 #include "hardware/clocks.h"
 #include "hardware/structs/clocks.h"
@@ -63,7 +66,6 @@ static int timer_init_battery_check()
         //printf("Failed to add timer\n");
         return 0;
     }
-
     return 1;
 }
 
@@ -178,48 +180,68 @@ uint16_t pm_get_battery_voltage()
     return _bat_mv;
 }
 
-// recover_from_sleep: which is great code from https://github.com/ghubcoder/PicoSleepDemo
-static void recover_from_sleep(uint32_t scb_orig, uint32_t clock0_orig, uint32_t clock1_orig){
+// === 'recover_from_sleep' part (start) ===================================
+// great reference from 'recover_from_sleep'
+// https://github.com/ghubcoder/PicoSleepDemo | https://ghubcoder.github.io/posts/awaking-the-pico/
+static void _clock_preserve_and_recovery(bool doPreserve)
+{
+    static int count = 0;
+    static uint32_t scr;
+    static uint32_t sleep_en0;
+    static uint32_t sleep_en1;
 
-    //Re-enable ring Oscillator control
-    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS);
-
-    //reset procs back to default
-    scb_hw->scr = scb_orig;
-    clocks_hw->sleep_en0 = clock0_orig;
-    clocks_hw->sleep_en1 = clock1_orig;
-
-    //reset clocks
-    clocks_init();
-    stdio_init_all();
-
-    return;
+    if (doPreserve && count == 0) { // preserve (push)
+        scr = scb_hw->scr;
+        sleep_en0 = clocks_hw->sleep_en0;
+        sleep_en1 = clocks_hw->sleep_en1;
+        count++;
+    } else if (!doPreserve && count == 1) { // recover (pop)
+        scb_hw->scr = scr;
+        clocks_hw->sleep_en0 = sleep_en0;
+        clocks_hw->sleep_en1 = sleep_en1;
+        count--;
+    } else {
+        panic("_clock_preserve_and_recovery count error!\n");
+    }
 }
+
+static void _preserve_clock_before_sleep()
+{
+    _clock_preserve_and_recovery(true); // preserve
+}
+
+static void _recover_clock_after_sleep()
+{
+    rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS); //Re-enable ring Oscillator control
+    _clock_preserve_and_recovery(false); // recover
+    clocks_init(); // reset clocks
+}
+// === 'recover_from_sleep' part (end) ===================================
 
 void pm_enter_dormant_and_wake()
 {
-    // Preparation for dormant
+    // === [1] Preparation for dormant ===
     gpio_init(PIN_LCD_BLK);
     gpio_set_dir(PIN_LCD_BLK, GPIO_OUT);
     gpio_put(PIN_LCD_BLK, 0);
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
     gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
+    stdio_usb_deinit(); // terminate usb cdc
 
-    uint32_t scb_orig = scb_hw->scr;
-    uint32_t clock0_orig = clocks_hw->sleep_en0;
-    uint32_t clock1_orig = clocks_hw->sleep_en1;
-
-    // goto dormant then wake up
-    uint32_t ints = save_and_disable_interrupts();
-    uint32_t pin = ui_set_center_switch_for_wakeup(true);
+    // === [2] goto dormant then wake up ===
+    uint32_t ints = save_and_disable_interrupts(); // (+a)
+    uint32_t pin = ui_set_center_switch_for_wakeup(true); // set ADC pin to wake up gpio pin (+b)
+    _preserve_clock_before_sleep(); // (+c)
+    //--
     sleep_run_from_xosc();
-    sleep_goto_dormant_until_pin(pin, true, false); // fall edge to wake up
+    sleep_goto_dormant_until_pin(pin, true, false); // dormant until fall edge detected
+    //--
+    _recover_clock_after_sleep(); // (-c)
+    ui_set_center_switch_for_wakeup(false); // wake up gpio pin recover to ADC pin function (-b)
+    restore_interrupts(ints); // (-a)
 
-    // Treatment after wake up
-    recover_from_sleep(scb_orig, clock0_orig, clock1_orig);
-    restore_interrupts(ints);
-    ui_set_center_switch_for_wakeup(false);
-    pw_pll_usb_96MHz();
+    // === [3] treatments after wake up ===
+    pw_set_pll_usb_96MHz();
     gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
     pm_backlight_init(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
     pm_backlight_update();
@@ -230,7 +252,7 @@ void pm_enter_dormant_and_wake()
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
 }
 
-void pw_pll_usb_96MHz()
+void pw_set_pll_usb_96MHz()
 {
     // Set PLL_USB 96MHz
     pll_init(pll_usb, 1, 1536 * MHZ, 4, 4);
@@ -251,6 +273,7 @@ void pw_pll_usb_96MHz()
         CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS,
         96 * MHZ,
         96 * MHZ);
-    // Reinit uart now that clk_peri has changed
-    stdio_init_all();
+    // Reinit uart/usb_cdc now that clk_peri has changed
+    stdio_uart_init();
+    stdio_usb_init(); // don't call multiple times without stdio_usb_deinit because of duplicated IRQ calls
 }
