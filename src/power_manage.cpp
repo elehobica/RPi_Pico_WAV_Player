@@ -25,6 +25,8 @@
 #include "ConfigParam.h"
 #include "ConfigMenu.h"
 
+//#define USE_ACTIVE_BATTERY_CHECK // Additional circuit needed
+
 static repeating_timer_t timer;
 // ADC Timer frequency
 const int TIMER_BATTERY_CHECK_HZ = 20;
@@ -41,12 +43,17 @@ static const uint32_t PIN_CHARGE_DETECT = 24;
 // Power Keep Pin
 static const uint32_t PIN_POWER_KEEP = 19;
 
+#ifdef USE_ACTIVE_BATTERY_CHECK
+// Battery Check Pin
+static const uint32_t PIN_BATT_CHECK = 8;
 // Battery Voltage Pin (GPIO28: ADC2)
 static const uint32_t PIN_BATT_LVL = 28;
 static const uint32_t ADC_PIN_BATT_LVL = 2;
-
-// Battery Check Pin
-static const uint32_t PIN_BATT_CHECK = 8;
+#else // USE_ACTIVE_BATTERY_CHECK
+// Battery Voltage Pin (GPIO29: ADC3) (Raspberry Pi Pico built-in circuit)
+static const uint32_t PIN_BATT_LVL = 29;
+static const uint32_t ADC_PIN_BATT_LVL = 3;
+#endif // USE_ACTIVE_BATTERY_CHECK
 
 // Audio DAC Enable Pin
 static const uint32_t PIN_AUDIO_DAC_ENABLE = 27;
@@ -108,10 +115,12 @@ void pm_init()
     gpio_set_dir(PIN_AUDIO_DAC_ENABLE, GPIO_OUT);
     gpio_put(PIN_AUDIO_DAC_ENABLE, 0);
 
+#ifdef USE_ACTIVE_BATTERY_CHECK
     // Battery Check Enable Pin (Output)
     gpio_init(PIN_BATT_CHECK);
     gpio_set_dir(PIN_BATT_CHECK, GPIO_OUT);
     gpio_put(PIN_BATT_CHECK, 0);
+#endif // USE_ACTIVE_BATTERY_CHECK
 
     // Battery Level Input (ADC)
     adc_gpio_init(PIN_BATT_LVL);
@@ -138,17 +147,28 @@ void pm_set_audio_dac_enable(bool value)
 void pm_monitor_battery_voltage()
 {
     static int count = 0;
+#ifdef USE_ACTIVE_BATTERY_CHECK
     if (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-2) {
         // Prepare to check battery voltage
         gpio_put(PIN_BATT_CHECK, 1);
-    } else if (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-1) {
+    } else
+#endif // USE_ACTIVE_BATTERY_CHECK
+    if (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-1) {
         // ADC Calibration Coefficients
+#ifdef USE_ACTIVE_BATTERY_CHECK
         // ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm
         const int16_t coef_a = 4280;
         const int16_t coef_b = -20;
+#else // USE_ACTIVE_BATTERY_CHECK
+        // ADC3 pin is connected to middle point of voltage divider 200Kohm + 100Kohm
+        const int16_t coef_a = 8860;
+        const int16_t coef_b = -20;
+#endif // USE_ACTIVE_BATTERY_CHECK
         adc_select_input(ADC_PIN_BATT_LVL);
         uint16_t result = adc_read();
+#ifdef USE_ACTIVE_BATTERY_CHECK
         gpio_put(PIN_BATT_CHECK, 0);
+#endif // USE_ACTIVE_BATTERY_CHECK
         int16_t voltage = result * coef_a / (1<<12) + coef_b;
         //printf("Battery Voltage = %d (mV)\n", voltage);
         _bat_mv = voltage;
