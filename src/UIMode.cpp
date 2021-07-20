@@ -19,6 +19,11 @@
 #include "LcdCanvas.h"
 #include "TagRead.h"
 
+// ENABLE_REBOOT_AFTER_WAKEUP:
+// reboot allows stdio_usb (USB CDC) and Serial terminal to be re-activated
+// otherwise, USB cable needs to be reconnected
+#define ENABLE_REBOOT_AFTER_WAKEUP
+
 TagRead tag;
 
 // UIMode class instances
@@ -128,7 +133,9 @@ UIMode* UIChargeMode::update()
         lcd.setMsg("");
         lcd.clear(true);
         pm_enter_dormant_and_wake();
+        #ifdef ENABLE_REBOOT_AFTER_WAKEUP
         pm_reboot(); // not go to below
+        #endif // ENABLE_REBOOT_AFTER_WAKEUP
         return getUIMode(OpeningMode);
     }
     idle_count++;
