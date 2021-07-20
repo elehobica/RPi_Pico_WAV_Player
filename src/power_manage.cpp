@@ -161,7 +161,7 @@ void pm_monitor_battery_voltage()
         const int16_t coef_b = -20;
 #else // USE_ACTIVE_BATTERY_CHECK
         // ADC3 pin is connected to middle point of voltage divider 200Kohm + 100Kohm
-        const int16_t coef_a = 8860;
+        const int16_t coef_a = 9875;
         const int16_t coef_b = -20;
 #endif // USE_ACTIVE_BATTERY_CHECK
         adc_select_input(ADC_PIN_BATT_LVL);
