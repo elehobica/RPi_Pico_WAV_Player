@@ -90,7 +90,6 @@ UIMode* UIInitialMode::update()
     if (pm_is_charging()) {
         return getUIMode(ChargeMode);
     } else {
-        pm_set_power_keep(true);
         return getUIMode(OpeningMode);
     }
     idle_count++;
@@ -129,7 +128,6 @@ UIMode* UIChargeMode::update()
         lcd.setMsg("");
         lcd.clear(true);
         pm_enter_dormant_and_wake();
-        pm_set_power_keep(true);
         return getUIMode(OpeningMode);
     }
     idle_count++;
@@ -226,6 +224,7 @@ UIMode* UIOpeningMode::update()
 void UIOpeningMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+    pm_set_power_keep(true);
 
     // Mount FAT
     int count = 0;
