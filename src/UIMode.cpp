@@ -87,7 +87,7 @@ UIMode* UIInitialMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
     // Always transfer to ChargeMode or OpeningMode
-    if (pm_is_charging()) {
+    if (pm_is_charging() && !pm_is_caused_reboot()) {
         return getUIMode(ChargeMode);
     } else {
         return getUIMode(OpeningMode);
@@ -128,6 +128,7 @@ UIMode* UIChargeMode::update()
         lcd.setMsg("");
         lcd.clear(true);
         pm_enter_dormant_and_wake();
+        pm_reboot(); // not go to below
         return getUIMode(OpeningMode);
     }
     idle_count++;

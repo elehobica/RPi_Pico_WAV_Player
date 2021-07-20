@@ -24,6 +24,8 @@ bool pm_get_low_battery();
 uint16_t pm_get_battery_voltage();
 void pm_enter_dormant_and_wake();
 void pw_set_pll_usb_96MHz();
+void pm_reboot();
+bool pm_is_caused_reboot();
 
 #ifdef __cplusplus
 }

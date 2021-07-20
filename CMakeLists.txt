@@ -50,6 +50,7 @@ target_link_libraries(${bin_name}
         hardware_pwm
         hardware_flash
         hardware_adc
+        hardware_watchdog
         st7735_80x160
         fatfs
         file_menu

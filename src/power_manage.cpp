@@ -20,6 +20,7 @@
 #include "hardware/adc.h"
 #include "hardware/pwm.h"
 #include "hardware/sync.h"
+#include "hardware/watchdog.h"
 #include "st7735_80x160/lcd.h"
 #include "ui_control.h"
 #include "ConfigParam.h"
@@ -296,4 +297,14 @@ void pw_set_pll_usb_96MHz()
     // Reinit uart/usb_cdc now that clk_peri has changed
     stdio_uart_init();
     stdio_usb_init(); // don't call multiple times without stdio_usb_deinit because of duplicated IRQ calls
+}
+
+void pm_reboot()
+{
+    watchdog_reboot(0, 0, PICO_STDIO_USB_RESET_RESET_TO_FLASH_DELAY_MS);
+}
+
+bool pm_is_caused_reboot()
+{
+    return watchdog_caused_reboot();
 }

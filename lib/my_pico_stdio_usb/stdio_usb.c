@@ -12,7 +12,7 @@
 #include "pico/binary_info.h"
 #include "pico/mutex.h"
 #include "hardware/irq.h"
-#include "hardware/resets.h"
+//#include "hardware/resets.h"
 
 static_assert(PICO_STDIO_USB_LOW_PRIORITY_IRQ > RTC_IRQ, ""); // note RTC_IRQ is currently the last one
 static mutex_t stdio_usb_mutex;
@@ -117,27 +117,9 @@ void stdio_usb_deinit(void) {
     irq_set_enabled(PICO_STDIO_USB_LOW_PRIORITY_IRQ, false);
     irq_remove_handler(PICO_STDIO_USB_LOW_PRIORITY_IRQ, low_priority_worker_irq);
 
-    // Reset usb controller
+    // Reset usb controller (if reset, USB never recover)
     //reset_block(RESETS_RESET_USBCTRL_BITS);
     //unreset_block_wait(RESETS_RESET_USBCTRL_BITS);
-    /*
-    reset_block(RESETS_RESET_USBCTRL_BITS);
-    unreset_block_wait(RESETS_RESET_USBCTRL_BITS);
-    */
-    /*
-    // Clear any previous state in dpram just in case
-    memset(usb_dpram, 0, sizeof(*usb_dpram)); // <1>
-    */
-    // Enable USB interrupt at processor
-    //irq_set_enabled(USBCTRL_IRQ, true);
-
-/*
-    mutex_init(&stdio_usb_mutex);
-    bool rc = add_alarm_in_us(PICO_STDIO_USB_TASK_INTERVAL_US, timer_task, NULL, true);
-    if (rc) {
-        stdio_set_driver_enabled(&stdio_usb, true);
-    }
-    */
 }
 #else
 #include "pico/stdio_usb.h"
