@@ -39,7 +39,7 @@ static uint16_t _bat_mv = 4200;
 static const uint32_t PIN_DCDC_PSM_CTRL = 23;
 
 // USB Charge detect Pin
-static const uint32_t PIN_CHARGE_DETECT = 24;
+static const uint32_t PIN_USB_POWER_DETECT = 24;
 
 // Power Keep Pin
 static const uint32_t PIN_POWER_KEEP = 19;
@@ -104,8 +104,8 @@ void pm_backlight_update()
 
 void pm_init()
 {
-    // USB Chard detect Pin (Input)
-    gpio_set_dir(PIN_CHARGE_DETECT, GPIO_IN);
+    // USB Power detect Pin = Charge detect (Input)
+    gpio_set_dir(PIN_USB_POWER_DETECT, GPIO_IN);
 
     // Power Keep Pin (Output)
     gpio_init(PIN_POWER_KEEP);
@@ -177,9 +177,9 @@ void pm_monitor_battery_voltage()
     count++;
 }
 
-bool pm_is_charging()
+bool pm_usb_power_detected()
 {
-    return gpio_get(PIN_CHARGE_DETECT);
+    return gpio_get(PIN_USB_POWER_DETECT);
 }
 
 void pm_set_power_keep(bool value)

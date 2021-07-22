@@ -18,7 +18,7 @@ void pm_backlight_update();
 void pm_init();
 void pm_set_audio_dac_enable(bool value);
 void pm_monitor_battery_voltage();
-bool pm_is_charging();
+bool pm_usb_power_detected();
 void pm_set_power_keep(bool value);
 bool pm_get_low_battery();
 uint16_t pm_get_battery_voltage();

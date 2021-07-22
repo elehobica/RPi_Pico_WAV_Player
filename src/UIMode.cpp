@@ -92,7 +92,7 @@ UIMode* UIInitialMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
     // Always transfer to ChargeMode or OpeningMode
-    if (pm_is_charging() && !pm_is_caused_reboot()) {
+    if (pm_usb_power_detected() && !pm_is_caused_reboot()) {
         return getUIMode(ChargeMode);
     } else {
         return getUIMode(OpeningMode);
@@ -1096,7 +1096,7 @@ UIMode* UIPowerOffMode::update()
     ui_get_btn_evt(&btn_act); // Ignore button event
     if ((idle_count > 1*OneSec && exitType == NoError) || idle_count > 4*OneSec) {
         pm_set_power_keep(false); // Power Off unless being charged
-        if (pm_is_charging()) {
+        if (pm_usb_power_detected()) {
             return getUIMode(ChargeMode);
         }
     }
