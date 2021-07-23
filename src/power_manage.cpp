@@ -27,23 +27,17 @@
 #include "ConfigMenu.h"
 
 //#define USE_ACTIVE_BATTERY_CHECK // Additional circuit needed
-
-static repeating_timer_t timer;
-// ADC Timer frequency
-const int TIMER_BATTERY_CHECK_HZ = 20;
-
-static uint16_t _bat_mv = 4200;
 //#define NO_BATTERY_VOLTAGE_CHECK
 
+// === Pin Settings for power management ===
 // DC/DC mode selection Pin
 static const uint32_t PIN_DCDC_PSM_CTRL = 23;
-
 // USB Charge detect Pin
 static const uint32_t PIN_USB_POWER_DETECT = 24;
-
 // Power Keep Pin
 static const uint32_t PIN_POWER_KEEP = 19;
-
+// Audio DAC Enable Pin
+static const uint32_t PIN_AUDIO_DAC_ENABLE = 27;
 #ifdef USE_ACTIVE_BATTERY_CHECK
 // Battery Check Pin
 static const uint32_t PIN_BATT_CHECK = 8;
@@ -56,11 +50,18 @@ static const uint32_t PIN_BATT_LVL = 29;
 static const uint32_t ADC_PIN_BATT_LVL = 3;
 #endif // USE_ACTIVE_BATTERY_CHECK
 
-// Audio DAC Enable Pin
-static const uint32_t PIN_AUDIO_DAC_ENABLE = 27;
+// ADC Timer & frequency
+static repeating_timer_t timer;
+const int TIMER_BATTERY_CHECK_HZ = 20;
 
 // Battery monitor interval
 const int BATT_CHECK_INTERVAL_SEC = 5;
+static uint16_t _bat_mv = 4200;
+
+// for preserving clock configuration
+static uint32_t _scr;
+static uint32_t _sleep_en0;
+static uint32_t _sleep_en1;
 
 static bool timer_callback_battery_check(repeating_timer_t *rt) {
     pm_monitor_battery_voltage();
@@ -204,37 +205,19 @@ uint16_t pm_get_battery_voltage()
 // === 'recover_from_sleep' part (start) ===================================
 // great reference from 'recover_from_sleep'
 // https://github.com/ghubcoder/PicoSleepDemo | https://ghubcoder.github.io/posts/awaking-the-pico/
-static void _clock_preserve_and_recovery(bool doPreserve)
-{
-    static int count = 0;
-    static uint32_t scr;
-    static uint32_t sleep_en0;
-    static uint32_t sleep_en1;
-
-    if (doPreserve && count == 0) { // preserve (push)
-        scr = scb_hw->scr;
-        sleep_en0 = clocks_hw->sleep_en0;
-        sleep_en1 = clocks_hw->sleep_en1;
-        count++;
-    } else if (!doPreserve && count == 1) { // recover (pop)
-        scb_hw->scr = scr;
-        clocks_hw->sleep_en0 = sleep_en0;
-        clocks_hw->sleep_en1 = sleep_en1;
-        count--;
-    } else {
-        panic("_clock_preserve_and_recovery count error!\n");
-    }
-}
-
 static void _preserve_clock_before_sleep()
 {
-    _clock_preserve_and_recovery(true); // preserve
+    _scr = scb_hw->scr;
+    _sleep_en0 = clocks_hw->sleep_en0;
+    _sleep_en1 = clocks_hw->sleep_en1;
 }
 
 static void _recover_clock_after_sleep()
 {
     rosc_write(&rosc_hw->ctrl, ROSC_CTRL_ENABLE_BITS); //Re-enable ring Oscillator control
-    _clock_preserve_and_recovery(false); // recover
+    scb_hw->scr = _scr;
+    clocks_hw->sleep_en0 = _sleep_en0;
+    clocks_hw->sleep_en1 = _sleep_en1;
     clocks_init(); // reset clocks
 }
 // === 'recover_from_sleep' part (end) ===================================
