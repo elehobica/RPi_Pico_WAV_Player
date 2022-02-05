@@ -14,7 +14,7 @@
 
 // SW PIN setting
 static const uint32_t PIN_SW_PLUS = 22;
-static const uint32_t PIN_SW_CENTER = 21;
+static const uint32_t PIN_SW_CENTER = 21; // this pin is not used any longer (integrated into pin 26 ADC input)
 static const uint32_t PIN_SW_MINUS = 20;
 
 // ADC Timer

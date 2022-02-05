@@ -222,6 +222,19 @@ static void _recover_clock_after_sleep()
 }
 // === 'recover_from_sleep' part (end) ===================================
 
+static void pm_enter_dormant_and_wake_core(uint32_t pin)
+{
+    // === [2] goto dormant then wake up ===
+    uint32_t ints = save_and_disable_interrupts(); // (+stepB)
+    _preserve_clock_before_sleep(); // (+stepC)
+    //--
+    sleep_run_from_xosc();
+    sleep_goto_dormant_until_pin(pin, true, false); // dormant until fall edge detected
+    //--
+    _recover_clock_after_sleep(); // (-stepC)
+    restore_interrupts(ints); // (-stepB)
+}
+
 void pm_enter_dormant_and_wake()
 {
     // === [1] Preparation for dormant ===
@@ -232,17 +245,22 @@ void pm_enter_dormant_and_wake()
     gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
     stdio_usb_deinit(); // terminate usb cdc
 
-    // === [2] goto dormant then wake up ===
-    uint32_t ints = save_and_disable_interrupts(); // (+a)
-    uint32_t pin = ui_set_center_switch_for_wakeup(true); // set ADC pin to wake up gpio pin (+b)
-    _preserve_clock_before_sleep(); // (+c)
-    //--
-    sleep_run_from_xosc();
-    sleep_goto_dormant_until_pin(pin, true, false); // dormant until fall edge detected
-    //--
-    _recover_clock_after_sleep(); // (-c)
-    ui_set_center_switch_for_wakeup(false); // wake up gpio pin recover to ADC pin function (-b)
-    restore_interrupts(ints); // (-a)
+    {
+        // set ADC pin to wake up gpio pin (+stepA)
+        uint32_t pin = ui_set_center_switch_for_wakeup(true);
+
+        // === [2] goto dormant then wake up ===
+        pm_enter_dormant_and_wake_core(pin);
+        // repeat dormant unless pin is being pushed for 500ms
+        sleep_ms(500);
+        while (gpio_get(pin) == true) {
+            pm_enter_dormant_and_wake_core(pin);
+            sleep_ms(500);
+        }
+
+        // wake up gpio pin recover to ADC pin function (-stepA)
+        ui_set_center_switch_for_wakeup(false);
+    }
 
     // === [3] treatments after wake up ===
     pw_set_pll_usb_96MHz();
