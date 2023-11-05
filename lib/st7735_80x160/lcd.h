@@ -1,5 +1,5 @@
 #ifndef __LCD_H
-#define __LCD_H		
+#define __LCD_H
 
 #include "pico.h"
 #include "pico/stdlib.h"
@@ -13,17 +13,28 @@ typedef char  i8;
 typedef short i16;
 typedef long  i32;
 
+//#define BOARD_WAVESHARE_RP2040_LCD_096 // Uncomment when Waveshare RP2040-LCD-0.96
+
 // SPI Setting
 #define SPI_INST        spi1
 #define SPI_CLK_FREQ    (30 * MHZ)
 
 // Pin Setting
-#define PIN_LCD_CS      13
-#define PIN_LCD_SCK     10
-#define PIN_LCD_MOSI    11
-#define PIN_LCD_DC      14
-#define PIN_LCD_RST     15
-#define PIN_LCD_BLK     9
+#if defined(BOARD_WAVESHARE_RP2040_LCD_096)
+    #define PIN_LCD_CS      9
+    #define PIN_LCD_SCK     10
+    #define PIN_LCD_MOSI    11
+    #define PIN_LCD_DC      8
+    #define PIN_LCD_RST     12
+    #define PIN_LCD_BLK     25
+#else // Raspberry Pi Pico Board
+    #define PIN_LCD_CS      13
+    #define PIN_LCD_SCK     10
+    #define PIN_LCD_MOSI    11
+    #define PIN_LCD_DC      14
+    #define PIN_LCD_RST     15
+    #define PIN_LCD_BLK     9
+#endif // #if defined(BOARD_WAVESHARE_RP2040_LCD_096)
 
 
 #define RGB_ORDER 1 // 0: RGB, 1: BGR
@@ -32,13 +43,13 @@ typedef long  i32;
 #define LCD_WIDTH 160
 #define LCD_HEIGHT 80
 
-//-----------------OLED端口定义---------------- 
+//-----------------OLED端口定义----------------
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define OLED_SCLK_Clr() 
-#define OLED_SCLK_Set() 
+#define OLED_SCLK_Clr()
+#define OLED_SCLK_Set()
 
 #define OLED_SDIN_Clr()
 #define OLED_SDIN_Set()
@@ -61,8 +72,8 @@ extern "C" {
 #define OLED_BLK_Set()
 #endif
 
-#define OLED_CMD  0	//写命令
-#define OLED_DATA 1	//写数据
+#define OLED_CMD  0 //写命令
+#define OLED_DATA 1 //写数据
 
 extern  u16 BACK_COLOR;   //背景色
 
@@ -92,29 +103,29 @@ void LCD_ShowPicture(u16 x1, u16 y1, u16 x2, u16 y2, u8* image);
 
 
 //画笔颜色
-#define WHITE         	 0xFFFF
-#define BLACK         	 0x0000	  
-#define BLUE           	 0x001F  
+#define WHITE            0xFFFF
+#define BLACK            0x0000
+#define BLUE             0x001F
 #define BRED             0XF81F
-#define GRED 			 0XFFE0
-#define GBLUE			 0X07FF
-#define RED           	 0xF800
-#define MAGENTA       	 0xF81F
-#define GREEN         	 0x07E0
-#define CYAN          	 0x7FFF
-#define YELLOW        	 0xFFE0
-#define BROWN 			 0XBC40 //棕色
-#define BRRED 			 0XFC07 //棕红色
-#define GRAY  			 0X8430 //灰色
+#define GRED             0XFFE0
+#define GBLUE            0X07FF
+#define RED              0xF800
+#define MAGENTA          0xF81F
+#define GREEN            0x07E0
+#define CYAN             0x7FFF
+#define YELLOW           0xFFE0
+#define BROWN            0XBC40 //棕色
+#define BRRED            0XFC07 //棕红色
+#define GRAY             0X8430 //灰色
 //GUI颜色
 
-#define DARKBLUE      	 0X01CF	//深蓝色
-#define LIGHTBLUE      	 0X7D7C	//浅蓝色  
-#define GRAYBLUE       	 0X5458 //灰蓝色
-//以上三色为PANEL的颜色 
- 
-#define LIGHTGREEN     	 0X841F //浅绿色
-#define LGRAY 			 0XC618 //浅灰色(PANNEL),窗体背景色
+#define DARKBLUE         0X01CF //深蓝色
+#define LIGHTBLUE        0X7D7C //浅蓝色
+#define GRAYBLUE         0X5458 //灰蓝色
+//以上三色为PANEL的颜色
+
+#define LIGHTGREEN       0X841F //浅绿色
+#define LGRAY            0XC618 //浅灰色(PANNEL),窗体背景色
 
 #define LGRAYBLUE        0XA651 //浅灰蓝色(中间层颜色)
 #define LBBLUE           0X2B12 //浅棕蓝色(选择条目的反色)
