@@ -95,8 +95,9 @@ Additional power control circuit and battery voltage monitoring circuit are desc
 
 ## How to build
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
-* Build is confirmed only in Developer Command Prompt for VS 2019 and Visual Studio Code on Windows enviroment
-* Put "pico-sdk", "pico-examples", "pico-extras" and "pico-playground" on the same level with this project folder.
+* Put "pico-sdk", "pico-examples" (, "pico-extras" and "pico-playground") on the same level with this project folder.
+* Build is confirmed in Developer Command Prompt for VS 2022 and Visual Studio Code on Windows enviroment
+* Confirmed with Pico SDK 1.4.0, cmake-3.27.2-windows-x86_64 and gcc-arm-none-eabi-10.3-2021.10-win32
 ```
 > git clone -b master https://github.com/raspberrypi/pico-sdk.git
 > cd pico-sdk
@@ -112,7 +113,7 @@ Additional power control circuit and battery voltage monitoring circuit are desc
 > 
 > git clone -b main https://github.com/elehobica/RPi_Pico_WAV_Player.git
 ```
-* Lanuch "Developer Command Prompt for VS 2019"
+* Lanuch "Developer Command Prompt for VS 2022"
 ```
 > cd RPi_Pico_WAV_Player
 > mkdir build
