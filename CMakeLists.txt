@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
-set(PICO_SDK_PATH ${CMAKE_CURRENT_LIST_DIR}/../pico-sdk)
-include(pico_sdk_import.cmake)
-include(pico_extras_import.cmake)
+include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+include($ENV{PICO_EXTRAS_PATH}/external/pico_extras_import.cmake)
 
 set(project_name "RPi_Pico_WAV_Player" C CXX)
 project(${project_name})
@@ -21,7 +20,7 @@ add_subdirectory(lib/my_pico_audio_i2s)
 add_subdirectory(lib/my_pico_stdio_usb)
 add_subdirectory(lib/PlayAudio)
 
-set(bin_name "RPi_Pico_WAV_Player")
+set(bin_name ${PROJECT_NAME})
 add_executable(${bin_name}
     src/main.cpp
     src/power_manage.cpp
@@ -37,9 +36,6 @@ add_executable(${bin_name}
     src/ConfigMenu.cpp
     src/ConfigParam.cpp
 )
-
-#pico_enable_stdio_usb(${bin_name} 1) --> pico_stdio_uart
-#pico_enable_stdio_uart(${bin_name} 1) --> my_pico_stdio_usb
 
 target_link_libraries(${bin_name} 
         pico_stdlib
@@ -59,7 +55,8 @@ target_link_libraries(${bin_name}
         PlayAudio
 )
 
-target_include_directories(${bin_name} INTERFACE src)
+#pico_enable_stdio_usb(${bin_name} 1) --> pico_stdio_uart
+#pico_enable_stdio_uart(${bin_name} 1) --> my_pico_stdio_usb
 
 target_compile_definitions(${bin_name} PRIVATE
 #    NO_BATTERY_VOLTAGE_CHECK
