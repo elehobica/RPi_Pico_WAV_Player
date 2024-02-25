@@ -14,7 +14,6 @@
 
 // SW PIN setting
 static const uint32_t PIN_SW_PLUS = 22;
-static const uint32_t PIN_SW_CENTER = 21; // this pin is not used any longer (integrated into pin 26 ADC input)
 static const uint32_t PIN_SW_MINUS = 20;
 
 // ADC Timer
@@ -45,9 +44,7 @@ UIMode *ui_mode_ary[NUM_UI_MODES] = {};
 static button_status_t get_sw_status()
 {
     button_status_t ret;
-    if (gpio_get(PIN_SW_CENTER) == false) {
-        ret = ButtonCenter;
-    } else if (gpio_get(PIN_SW_PLUS) == false) {
+    if (gpio_get(PIN_SW_PLUS) == false) {
         ret = ButtonPlus;
     } else if (gpio_get(PIN_SW_MINUS) == false) {
         ret = ButtonMinus;
@@ -266,8 +263,9 @@ void ui_init()
 
     // SW GPIO initialize
     gpio_set_dir(PIN_SW_PLUS, GPIO_IN);
-    gpio_set_dir(PIN_SW_CENTER, GPIO_IN);
+    gpio_pull_up(PIN_SW_PLUS);
     gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
+    gpio_pull_up(PIN_SW_MINUS);
 
     //UIMode::initialize(&vars, dir_stack);
     UIMode::initialize(&vars);
