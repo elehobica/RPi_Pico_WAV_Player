@@ -7,5 +7,5 @@ if (NOT TARGET picojpeg)
     )
 
     target_link_libraries(picojpeg INTERFACE pico_stdlib fatfs)
-    target_include_directories(picojpeg INTERFACE ${CMAKE_CURRENT_LIST_DIR}/../)
+    target_include_directories(picojpeg INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 endif()

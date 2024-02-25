@@ -7,7 +7,7 @@
 #ifndef __READ_BUFFER_H_INCLUDED__
 #define __READ_BUFFER_H_INCLUDED__
 
-#include "fatfs/ff.h"
+#include "ff.h"
 
 //=================================
 // Interface of ReadBuffer Class

@@ -9,7 +9,7 @@
 
 #include "hardware/sync.h"
 #include "audio_init.h"
-#include "fatfs/ff.h"
+#include "ff.h"
 #include "ReadBuffer.h"
 #include "audio_init.h"
 

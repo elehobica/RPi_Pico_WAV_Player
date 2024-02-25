@@ -5,7 +5,7 @@
 /------------------------------------------------------*/
 
 #include <cstring>
-#include "picojpeg/JPEGDecoder.h"
+#include "JPEGDecoder.h"
 #include "ImageFitter.h"
 
 //#define DEBUG_IMAGE_FITTER

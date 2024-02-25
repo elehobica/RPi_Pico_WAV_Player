@@ -16,5 +16,5 @@ if (NOT TARGET PlayAudio)
         my_pico_audio
         my_pico_audio_i2s
     )
-    target_include_directories(PlayAudio INTERFACE ${CMAKE_CURRENT_LIST_DIR}/../)
+    target_include_directories(PlayAudio INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 endif()

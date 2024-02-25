@@ -5,6 +5,10 @@ if (NOT TARGET LcdElementBox)
             ${CMAKE_CURRENT_LIST_DIR}/LcdElementBox.cpp
     )
 
-    target_link_libraries(LcdElementBox INTERFACE pico_stdlib fatfs)
-    target_include_directories(LcdElementBox INTERFACE ${CMAKE_CURRENT_LIST_DIR}/../)
+    target_link_libraries(LcdElementBox INTERFACE
+        pico_stdlib
+        fatfs
+        st7735_80x160
+    )
+    target_include_directories(LcdElementBox INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 endif()

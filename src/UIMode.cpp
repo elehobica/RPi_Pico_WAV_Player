@@ -14,8 +14,8 @@
 #include "UserFlash.h"
 #include "ConfigParam.h"
 #include "ConfigMenu.h"
-#include "PlayAudio/audio_codec.h"
-#include "file_menu/file_menu_FatFs.h"
+#include "audio_codec.h"
+#include "file_menu_FatFs.h"
 #include "LcdCanvas.h"
 #include "TagRead.h"
 

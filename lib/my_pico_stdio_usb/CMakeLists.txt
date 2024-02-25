@@ -1,7 +1,5 @@
-if (TARGET tinyusb_device_unmarked)
-    pico_add_impl_library(my_pico_stdio_usb)
-
-    target_include_directories(my_pico_stdio_usb INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+if (NOT TARGET my_pico_stdio_usb)
+    add_library(my_pico_stdio_usb INTERFACE)
 
     target_sources(my_pico_stdio_usb INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/reset_interface.c
@@ -15,4 +13,5 @@ if (TARGET tinyusb_device_unmarked)
         pico_time
         pico_unique_id
     )
+    target_include_directories(my_pico_stdio_usb INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 endif()

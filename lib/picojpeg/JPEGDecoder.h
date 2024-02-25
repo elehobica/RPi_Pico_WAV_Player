@@ -15,7 +15,7 @@ https://github.com/Bodmer/JPEGDecoder
 #define JPEGDECODER_H
 
 #include <cstdio>
-#include "fatfs/ff.h"
+#include "ff.h"
 #include "picojpeg.h"
 
 //#define DEBUG

@@ -9,13 +9,13 @@
 #ifndef __LCDCANVAS_H_INCLUDED__
 #define __LCDCANVAS_H_INCLUDED__
 
-#include "LcdElementBox/LcdElementBox.h"
+#include "LcdElementBox.h"
 
 // Select LCD device
 #define USE_ST7735S_160x80
 
 #if defined(USE_ST7735S_160x80)
-#include "st7735_80x160/my_lcd.h" // Hardware-specific library for ST7735
+#include "my_lcd.h" // Hardware-specific library for ST7735
 #endif
 
 #define FONT_HEIGHT		16

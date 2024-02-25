@@ -10,7 +10,7 @@
 #define _FILE_MENU_FATFS_H_
 
 #include <stddef.h>
-#include "fatfs/ff.h"
+#include "ff.h"
 
 #ifdef __cplusplus
 extern "C" {

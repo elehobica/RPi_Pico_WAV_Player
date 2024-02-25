@@ -12,7 +12,7 @@
 #ifndef _TAGREAD_H_
 #define _TAGREAD_H_
 
-#include "fatfs/ff.h"
+#include "ff.h"
 
 typedef struct _id31 {
     char header[3];
