@@ -69,7 +69,6 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 | 36 | 3V3(OUT) | 3.3V | VDD (4) |
 
 #### Caution
-* SPI0_TX and SPI0_RX needs to be pull-ed up with 10Kohm.
 * Wire length between Pico and SD card is very sensitive. Short wiring as possible is desired, otherwise access errors  will occur.
 
 ![microsd_schematic](doc/RPi_Pico_WAV_Player_microsd_Schematic.png)
