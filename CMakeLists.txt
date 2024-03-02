@@ -17,7 +17,7 @@ add_subdirectory(lib/picojpeg)
 add_subdirectory(lib/LcdElementBox)
 add_subdirectory(lib/pico_audio_32b)
 add_subdirectory(lib/pico_audio_i2s_32b)
-add_subdirectory(lib/my_pico_stdio_usb)
+add_subdirectory(lib/pico_stdio_usb_revised)
 add_subdirectory(lib/PlayAudio)
 
 set(bin_name ${PROJECT_NAME})
@@ -46,7 +46,7 @@ target_link_libraries(${bin_name}
         hardware_watchdog
         pico_stdlib
         pico_stdio_uart
-        my_pico_stdio_usb
+        pico_stdio_usb_revised
         pico_fatfs
         pico_st7735_80x160
         file_menu
@@ -56,7 +56,7 @@ target_link_libraries(${bin_name}
 )
 
 #pico_enable_stdio_usb(${bin_name} 1) --> pico_stdio_uart
-#pico_enable_stdio_uart(${bin_name} 1) --> my_pico_stdio_usb
+#pico_enable_stdio_uart(${bin_name} 1) --> pico_stdio_usb_revised
 
 target_compile_definitions(${bin_name} PRIVATE
 #    NO_BATTERY_VOLTAGE_CHECK

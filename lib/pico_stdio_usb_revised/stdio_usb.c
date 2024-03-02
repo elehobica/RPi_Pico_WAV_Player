@@ -109,6 +109,7 @@ bool stdio_usb_init(void) {
     return (bool) alarm_id;
 }
 
+// added by elehobica
 void stdio_usb_deinit(void) {
     stdio_set_driver_enabled(&stdio_usb, false);
     if ((bool) alarm_id) {
@@ -127,6 +128,7 @@ void stdio_usb_deinit(void) {
 bool stdio_usb_init(void) {
     return false;
 }
+// added by elehobica
 void stdio_usb_deinit(void) {
 }
 #endif

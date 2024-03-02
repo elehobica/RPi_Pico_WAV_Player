@@ -10,7 +10,7 @@
 #include "pico/stdlib.h"
 #include "pico/sleep.h"
 #include "pico/stdio_uart.h"
-#include "pico/stdio_usb.h" // use lib/my_pico_stdio_usb/
+#include "pico/stdio_usb.h" // use lib/pico_stdio_usb_revised/
 #include "hardware/pll.h"
 #include "hardware/clocks.h"
 #include "hardware/structs/clocks.h"

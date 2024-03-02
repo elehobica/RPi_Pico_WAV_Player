@@ -99,7 +99,7 @@ extern stdio_driver_t stdio_usb;
 bool stdio_usb_init(void);
 
 /*! \brief Explicitly de-initialize USB stdio and add it to the current set of stdin drivers
- *  \ingroup pico_stdio_uart
+ *  \ingroup pico_stdio_uart (added by elehobica)
  */
 void stdio_usb_deinit(void);
 
