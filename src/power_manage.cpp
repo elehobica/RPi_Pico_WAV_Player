@@ -21,7 +21,7 @@
 #include "hardware/pwm.h"
 #include "hardware/sync.h"
 #include "hardware/watchdog.h"
-#include "my_lcd.h"
+#include "lcd_extra.h"
 #include "ui_control.h"
 #include "ConfigParam.h"
 #include "ConfigMenu.h"

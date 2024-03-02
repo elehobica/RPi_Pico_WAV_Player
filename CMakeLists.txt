@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-add_subdirectory(lib/st7735_80x160)
+add_subdirectory(lib/pico_st7735_80x160)
 add_subdirectory(lib/pico_fatfs)
 add_subdirectory(lib/file_menu)
 add_subdirectory(lib/picojpeg)
@@ -48,7 +48,7 @@ target_link_libraries(${bin_name}
         pico_stdio_uart
         my_pico_stdio_usb
         pico_fatfs
-        st7735_80x160
+        pico_st7735_80x160
         file_menu
         picojpeg
         LcdElementBox

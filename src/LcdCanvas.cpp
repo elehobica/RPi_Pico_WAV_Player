@@ -10,7 +10,7 @@
 #include <cstring>
 #include "LcdCanvas.h"
 #include "ImageFitter.h"
-#include "my_lcd.h"
+#include "lcd_extra.h"
 //#include "fonts/iconfont.h"
 
 //=================================

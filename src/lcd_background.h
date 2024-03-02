@@ -10,7 +10,7 @@
 #define __LCD_BACKGROUND_H_INCLUDED__
 
 #include <stdlib.h>
-#include "my_lcd.h"
+#include "lcd_extra.h"
 
 #ifdef __cplusplus
 extern "C" {

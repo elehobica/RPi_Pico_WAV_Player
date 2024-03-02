@@ -15,7 +15,7 @@
 #define USE_ST7735S_160x80
 
 #if defined(USE_ST7735S_160x80)
-#include "my_lcd.h" // Hardware-specific library for ST7735
+#include "lcd_extra.h" // Hardware-specific library for ST7735
 #endif
 
 #define FONT_HEIGHT		16

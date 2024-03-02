@@ -8,7 +8,7 @@ if (NOT TARGET LcdElementBox)
     target_link_libraries(LcdElementBox INTERFACE
         pico_stdlib
         pico_fatfs
-        st7735_80x160
+        pico_st7735_80x160
     )
     target_include_directories(LcdElementBox INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 endif()

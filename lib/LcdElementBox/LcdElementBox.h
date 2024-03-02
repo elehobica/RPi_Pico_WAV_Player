@@ -9,7 +9,7 @@
 #ifndef __LCDELEMENTBOX_H_INCLUDED__
 #define __LCDELEMENTBOX_H_INCLUDED__
 
-#include "my_lcd.h"
+#include "lcd_extra.h"
 
 //#define DEBUG_LCD_ELEMENT_BOX
 

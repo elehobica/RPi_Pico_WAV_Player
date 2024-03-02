@@ -8,7 +8,7 @@
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "pico/util/queue.h"
-#include "my_lcd.h"
+#include "lcd_extra.h"
 #include "power_manage.h"
 #include "ui_control.h"
 
