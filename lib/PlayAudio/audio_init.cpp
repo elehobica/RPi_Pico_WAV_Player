@@ -28,7 +28,8 @@ audio_buffer_pool_t *audio_init()
     audio_i2s_config_t config = {
         .data_pin = PICO_AUDIO_I2S_DATA_PIN,
         .clock_pin_base = PICO_AUDIO_I2S_CLOCK_PIN_BASE,
-        .dma_channel = 0,
+        .dma_channel0 = 0,
+        .dma_channel1 = 1,
         .pio_sm = 0
     };
 

@@ -65,6 +65,8 @@ static inline void audio_i2s_program_init(PIO pio, uint sm, uint offset, uint da
     uint pin_mask = (1u << data_pin) | (3u << clock_pin_base);
     pio_sm_set_pindirs_with_mask(pio, sm, pin_mask, pin_mask);
     pio_sm_set_pins(pio, sm, 0); // clear pins
+    pio_sm_clear_fifos(pio, sm);
+    pio_sm_drain_tx_fifo(pio, sm);
 
     // set resolution to ISR (use as config value)
     pio_sm_set_enabled(pio, sm, false);

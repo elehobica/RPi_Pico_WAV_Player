@@ -263,10 +263,10 @@ void UIOpeningMode::entry(UIMode *prevMode)
 
     loadFromFlash();
 
-    pm_set_audio_dac_enable(true); // I2S DAC Mute Off
     audio_codec_init();
 
     lcd.switchToOpening();
+    pm_set_audio_dac_enable(true); // I2S DAC Mute Off
 }
 
 void UIOpeningMode::draw()
@@ -1107,12 +1107,12 @@ UIMode* UIPowerOffMode::update()
 void UIPowerOffMode::entry(UIMode *prevMode)
 {
     UIMode::entry(prevMode);
+    pm_set_audio_dac_enable(false); // I2S DAC Mute On
     if (exitType != FatFsError) {
         storeToFlash();
         file_menu_close_dir();
         audio_codec_deinit();
     }
-    pm_set_audio_dac_enable(false); // I2S DAC Mute On
 
     lcd.switchToPowerOff();
 }

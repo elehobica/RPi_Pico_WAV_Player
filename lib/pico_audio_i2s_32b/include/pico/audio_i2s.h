@@ -108,7 +108,8 @@ extern "C" {
 typedef struct audio_i2s_config {
     uint8_t data_pin;
     uint8_t clock_pin_base;
-    uint8_t dma_channel;
+    uint8_t dma_channel0;
+    uint8_t dma_channel1;
     uint8_t pio_sm;
 } audio_i2s_config_t;
 

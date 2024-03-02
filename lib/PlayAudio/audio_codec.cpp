@@ -44,7 +44,7 @@ PlayAudio *set_audio_codec(PlayAudio::audio_codec_t audio_codec)
 
 // callback from:
 //   void __isr __time_critical_func(audio_i2s_dma_irq_handler)()
-//   defined at my_pico_audio_i2s/audio_i2s.c
+//   defined at pico_audio_i2s_32b/audio_i2s.c
 //   where i2s_callback_func() is declared with __attribute__((weak))
 void i2s_callback_func()
 {
