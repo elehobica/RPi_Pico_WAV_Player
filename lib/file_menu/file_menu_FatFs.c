@@ -6,7 +6,9 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
+#include "tf_card.h"
 #include "file_menu_FatFs.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -343,6 +345,18 @@ static void idx_sort_delete(void)
 FRESULT file_menu_init(uint8_t *fs_type)
 {
 	FRESULT fr;
+    pico_fatfs_spi_config_t config = {
+        spi0,
+        CLK_SLOW_DEFAULT,
+		40 * MHZ,
+        PIN_SPI0_MISO_DEFAULT,
+        PIN_SPI0_CS_DEFAULT,
+        PIN_SPI0_SCK_DEFAULT,
+        PIN_SPI0_MOSI_DEFAULT,
+        true  // use internal pullup
+    };
+
+    pico_fatfs_set_config(&config);
 	fr = f_mount(&fs, "", 1); // fr: 0: mount successful, 1: mount failed
 	if (fr == FR_OK) {
 		*fs_type = fs.fs_type;

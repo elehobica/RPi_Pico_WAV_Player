@@ -12,7 +12,7 @@ if (NOT TARGET PlayAudio)
 
     target_link_libraries(PlayAudio INTERFACE
         pico_stdlib
-        fatfs
+        pico_fatfs
         my_pico_audio
         my_pico_audio_i2s
     )

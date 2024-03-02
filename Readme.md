@@ -108,6 +108,10 @@ Additional power control circuit and battery voltage monitoring circuit are desc
 > git clone -b sdk-1.5.1 https://github.com/raspberrypi/pico-extras.git
 > 
 > git clone -b main https://github.com/elehobica/RPi_Pico_WAV_Player.git
+> cd RPi_Pico_WAV_Player
+> git submodule update -i
+> cd ..
+> 
 ```
 * Lanuch "Developer Command Prompt for VS 2022"
 ```

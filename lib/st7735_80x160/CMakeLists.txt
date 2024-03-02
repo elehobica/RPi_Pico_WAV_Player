@@ -6,6 +6,10 @@ if (NOT TARGET st7735_80x160)
         ${CMAKE_CURRENT_LIST_DIR}/my_lcd.c
     )
 
-    target_link_libraries(st7735_80x160 INTERFACE pico_stdlib hardware_clocks hardware_spi)
+    target_link_libraries(st7735_80x160 INTERFACE
+        hardware_clocks
+        hardware_spi
+        pico_stdlib
+    )
     target_include_directories(st7735_80x160 INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 endif()
