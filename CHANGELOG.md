@@ -5,14 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+
+## [v0.9.3] - 2024-03-06
 ### Fixed
 * Fix build error of "cannot find -lmy_pico_stdio_usb_headers"
-* Delete obsolete CENTER button completely not to disturb other button actions when pullup is not attached. [issue](https://github.com/elehobica/RPi_Pico_WAV_Player/issues/4)
+* Delete obsolete CENTER button completely not to disturb other button actions when pullup is not attached. [issue#4](https://github.com/elehobica/RPi_Pico_WAV_Player/issues/4)
 
 ### Changed
 * Support pico-sdk 1.5.1 (previously 1.4.0)
 * Update FatFs R0.15 (previously R0.14b)
-* Changed to use submodules for pico_fatfs and pico_st7735_80x160 libraries
 * Remove external pullup resistors for PLUS, MINUS buttons
 * Remove external pullup resistors for MISO, MOSI of microsd SPI
 * Clean up libraries. pico_fatfs and pico_st7735_80x160 are switched to submodules.

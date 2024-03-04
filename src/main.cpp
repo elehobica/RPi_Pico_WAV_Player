@@ -13,7 +13,7 @@
 #include "power_manage.h"
 #include "ui_control.h"
 
-const char *VersionStr = "0.9.2";
+const char *VersionStr = "0.9.3";
 
 static inline uint32_t _millis(void)
 {
