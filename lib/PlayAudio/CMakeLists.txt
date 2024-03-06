@@ -2,7 +2,7 @@ if (NOT TARGET PlayAudio)
     add_library(PlayAudio INTERFACE)
 
     target_sources(PlayAudio INTERFACE
-            ${CMAKE_CURRENT_LIST_DIR}/audio_init.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/i2s_audio_init.cpp
             ${CMAKE_CURRENT_LIST_DIR}/audio_codec.cpp
             ${CMAKE_CURRENT_LIST_DIR}/ReadBuffer.cpp
             ${CMAKE_CURRENT_LIST_DIR}/PlayAudio.cpp

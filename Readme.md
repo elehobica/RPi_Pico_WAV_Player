@@ -110,7 +110,6 @@ Additional power control circuit and battery voltage monitoring circuit are desc
 > cd RPi_Pico_WAV_Player
 > git submodule update -i
 > cd ..
-> 
 ```
 * Lanuch "Developer Command Prompt for VS 2022"
 ```

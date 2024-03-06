@@ -10,9 +10,9 @@
 
 //#define DEBUG_PLAYAUDIO
 
-spin_lock_t *PlayAudio::spin_lock = nullptr;
-audio_buffer_pool_t *PlayAudio::ap = nullptr;
-ReadBuffer *PlayAudio::rdbuf = nullptr;
+spin_lock_t* PlayAudio::spin_lock = nullptr;
+audio_buffer_pool_t* PlayAudio::ap = nullptr;
+ReadBuffer* PlayAudio::rdbuf = nullptr;
 int16_t PlayAudio::buf_s16[SAMPLES_PER_BUFFER*2];
 uint8_t PlayAudio::volume = 65;
 
@@ -33,14 +33,14 @@ const uint32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
-    ap = audio_init();
+    ap = i2s_setup(SAMP_FREQ_44100);
     rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE/4); // auto fill if left is lower than RDBUF_SIZE/4
 }
 
 void PlayAudio::finalize()
 {
     spin_lock_unclaim(spin_lock_get_num(spin_lock));
-    audio_deinit();
+    i2s_audio_deinit();
     delete rdbuf;
 }
 
@@ -81,7 +81,7 @@ void PlayAudio::setBufPos(size_t fpos)
     }
 }
 
-void PlayAudio::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
+void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
 	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
@@ -118,17 +118,17 @@ bool PlayAudio::isPaused()
     return paused;
 }
 
-uint16_t PlayAudio::getU16LE(const char *ptr)
+uint16_t PlayAudio::getU16LE(const char* ptr)
 {
     return ((uint16_t) ptr[1] << 8) + ((uint16_t) ptr[0]);
 }
 
-uint32_t PlayAudio::getU32LE(const char *ptr)
+uint32_t PlayAudio::getU32LE(const char* ptr)
 {
     return ((uint32_t) ptr[3] << 24) + ((uint32_t) ptr[2] << 16) + ((uint32_t) ptr[1] << 8) + ((uint32_t) ptr[0]);
 }
 
-uint32_t PlayAudio::getU28BE(const char *ptr)
+uint32_t PlayAudio::getU28BE(const char* ptr)
 {
     return (((uint32_t) ptr[0] & 0x7f) << 21) + (((uint32_t) ptr[1] & 0x7f) << 14) + (((uint32_t) ptr[2] & 0x7f) << 7) + (((uint32_t) ptr[3] & 0x7f));
 }
@@ -193,7 +193,7 @@ void PlayAudio::decode()
 {
     // Performs Audio Mute
 
-    audio_buffer_t *buffer;
+    audio_buffer_t* buffer;
     if ((buffer = take_audio_buffer(ap, false)) == nullptr) { return; }
 
     #ifdef DEBUG_PLAYAUDIO
@@ -203,7 +203,7 @@ void PlayAudio::decode()
     }
     #endif // DEBUG_PLAYAUDIO
 
-    int32_t *samples = (int32_t *) buffer->buffer->bytes;
+    int32_t* samples = (int32_t *) buffer->buffer->bytes;
     buffer->sample_count = buffer->max_sample_count;
     for (int i = 0; i < buffer->sample_count; i++) {
         samples[i*2+0] = DAC_ZERO;
@@ -226,7 +226,7 @@ uint32_t PlayAudio::elapsedMillis()
     return (uint32_t) ((uint64_t) getSamplesPlayed() * 1000 / sampRateHz);
 }
 
-void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
+void PlayAudio::getCurrentPosition(size_t* fpos, uint32_t* samplesPlayed)
 {
     if (playing) {
         *fpos = rdbuf->tell();
@@ -237,7 +237,7 @@ void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
     }
 }
 
-void PlayAudio::getLevel(float *levelL, float *levelR)
+void PlayAudio::getLevel(float* levelL, float* levelR)
 {
     uint32_t save = spin_lock_blocking(spin_lock);
     *levelL = this->levelL;
