@@ -4,3 +4,6 @@
 [submodule "lib/pico_st7735_80x160"]
 	path = lib/pico_st7735_80x160
 	url = git@github.com:elehobica/pico_st7735_80x160.git
+[submodule "lib/pico_audio_i2s_32b"]
+	path = lib/pico_audio_i2s_32b
+	url = git@github.com:elehobica/pico_audio_i2s_32b.git
