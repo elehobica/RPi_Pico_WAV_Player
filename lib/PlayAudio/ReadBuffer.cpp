@@ -11,15 +11,17 @@
 // fillThreshold: auto fill if left is lower than fillThreshold
 //                set fillThreshold = 0 if using manual fill instead of auto fill
 //                set fillThreshold = size if auto fill everytime when shift (not recommended due to too many memmove)
-ReadBuffer::ReadBuffer(size_t size, size_t fillThreshold) : size(size), left(0), fillThreshold(fillThreshold)
+ReadBuffer::ReadBuffer(size_t size, size_t fillThreshold) :
+    size(size), left(0), fillThreshold(fillThreshold)
 {
-    head = (uint8_t *) calloc(size, sizeof(uint8_t));
+    head = reinterpret_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
     ptr = head;
 }
 
-ReadBuffer::ReadBuffer(FIL *fp, size_t size, size_t fillThreshold) : fp(fp), size(size), left(0), fillThreshold(fillThreshold)
+ReadBuffer::ReadBuffer(FIL *fp, size_t size, size_t fillThreshold) :
+    fp(fp), size(size), left(0), fillThreshold(fillThreshold)
 {
-    head = (uint8_t *) calloc(size, sizeof(uint8_t));
+    head = reinterpret_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
     ptr = head;
     if (left < fillThreshold) { fill(); }
 }
@@ -29,12 +31,12 @@ ReadBuffer::~ReadBuffer()
     free(head);
 }
 
-const uint8_t *ReadBuffer::buf()
+const uint8_t* ReadBuffer::buf()
 {
-    return (const uint8_t *) ptr;
+    return reinterpret_cast<const uint8_t*>(ptr);
 }
 
-void ReadBuffer::bind(FIL *fp)
+void ReadBuffer::bind(FIL* fp)
 {
     this->fp = fp;
     ptr = head;

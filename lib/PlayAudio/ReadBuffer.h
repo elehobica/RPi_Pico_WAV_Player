@@ -16,10 +16,10 @@ class ReadBuffer
 {
 public:
     ReadBuffer(size_t size, size_t fillThreshold);
-    ReadBuffer(FIL *fp, size_t size, size_t fillThreshold);
+    ReadBuffer(FIL* fp, size_t size, size_t fillThreshold);
     ~ReadBuffer();
-    const uint8_t *buf();
-    void bind(FIL *fp);
+    const uint8_t* buf();
+    void bind(FIL* fp);
     bool fill();
     bool shift(size_t bytes);
     bool shiftAll();
@@ -27,11 +27,11 @@ public:
     size_t getLeft();
     size_t tell();
 private:
-    FIL *fp;
+    FIL* fp;
     size_t size;
     size_t left;
-    uint8_t *head;
-    uint8_t *ptr;
+    uint8_t* head;
+    uint8_t* ptr;
     size_t fillThreshold;
 };
 

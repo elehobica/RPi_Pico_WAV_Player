@@ -51,10 +51,11 @@ protected:
     bool playing;
     bool paused;
     uint16_t channels;
-    uint16_t sampRateHz;
+    i2s_samp_freq_t sampFreq;
     uint16_t bitRateKbps;
     uint16_t bitsPerSample;
     uint32_t samplesPlayed;
+    bool reinitI2s;
     float levelL;
     float levelR;
     uint16_t getU16LE(const char* ptr);

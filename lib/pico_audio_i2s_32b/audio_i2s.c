@@ -628,7 +628,7 @@ void __isr __time_critical_func(audio_i2s_dma_irq_handler)() {
 #ifdef CORE1_PROCESS_I2S_CALLBACK
         bool flg = multicore_fifo_push_timeout_us(EVENT_I2S_DMA_TRANSFER_STARTED, FIFO_TIMEOUT);
         if (!flg) { printf("Core0 -> Core1 FIFO Full\n"); }
-        #else
+#else
         i2s_callback_func();
 #endif // CORE1_PROCESS_I2S_CALLBACK
     } else if (dma_irqn_get_channel_status(PICO_AUDIO_I2S_DMA_IRQ, dma_channel1)) {
@@ -646,7 +646,7 @@ void __isr __time_critical_func(audio_i2s_dma_irq_handler)() {
 #ifdef CORE1_PROCESS_I2S_CALLBACK
         bool flg = multicore_fifo_push_timeout_us(EVENT_I2S_DMA_TRANSFER_STARTED, FIFO_TIMEOUT);
         if (!flg) { printf("Core0 -> Core1 FIFO Full\n"); }
-        #else
+#else
         i2s_callback_func();
 #endif // CORE1_PROCESS_I2S_CALLBACK
     }
@@ -709,10 +709,12 @@ void audio_i2s_set_enabled(bool enabled) {
         dma_channel_abort(dma_channel0);
         dma_channel_wait_for_finish_blocking(dma_channel0);
         dma_irqn_acknowledge_channel(PICO_AUDIO_I2S_DMA_IRQ, dma_channel0);
+        dma_channel_cleanup(dma_channel0);
         dma_channel_unclaim(dma_channel0);
         dma_channel_abort(dma_channel1);
         dma_channel_wait_for_finish_blocking(dma_channel1);
         dma_irqn_acknowledge_channel(PICO_AUDIO_I2S_DMA_IRQ, dma_channel1);
+        dma_channel_cleanup(dma_channel1);
         dma_channel_unclaim(dma_channel1);
         if (!irq_has_shared_handler(DMA_IRQ_x)) {
             irq_remove_handler(DMA_IRQ_x, audio_i2s_dma_irq_handler);

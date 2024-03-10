@@ -20,7 +20,7 @@ public:
     ~PlayWav();
     uint32_t totalMillis();
 protected:
-    static PlayWav *g_inst;
+    static PlayWav* g_inst;
     uint32_t dataSize;
     void skipToDataChunk();
     void setBufPos(size_t fpos);

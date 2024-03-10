@@ -12,7 +12,7 @@
 
 //#define DEBUG_PLAYWAV
 
-PlayWav *PlayWav::g_inst = nullptr;
+PlayWav* PlayWav::g_inst = nullptr;
 
 void PlayWav::decode_func()
 {
@@ -31,19 +31,22 @@ PlayWav::~PlayWav()
 
 void PlayWav::skipToDataChunk()
 {
-    const char *buf = (const char *) rdbuf->buf();
+    const char* buf = reinterpret_cast<const char*>(rdbuf->buf());
 	if (buf[ 0]=='R' && buf[ 1]=='I' && buf[ 2]=='F' && buf[ 3]=='F' &&
 	    buf[ 8]=='W' && buf[ 9]=='A' && buf[10]=='V' && buf[11]=='E')
 	{
         size_t ofs = 12;
         while (true) {
-            const char *chunk_id = buf + ofs;
+            const char* chunk_id = buf + ofs;
             const uint32_t size = getU32LE(buf + ofs + 4);
             if (memcmp(chunk_id, "fmt ", 4) == 0) {
-                channels =      (uint16_t) getU16LE(buf + ofs + 4 + 4 + 2); // channels
-                sampRateHz =    (uint16_t) getU32LE(buf + ofs + 4 + 4 + 2 + 2); // samplerate
-                bitRateKbps =   (uint16_t) (getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
-                bitsPerSample = (uint16_t) getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2); // bitswidth
+                i2s_samp_freq_t sf;
+                channels      =      static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2)); // channels
+                sf            = static_cast<i2s_samp_freq_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2)); // samplerate
+                bitRateKbps   =   static_cast<uint16_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
+                bitsPerSample = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2)); // bitswidth
+                reinitI2s = (sampFreq != sf);
+                sampFreq = sf;
             } else if (memcmp(chunk_id, "data", 4) == 0) {
                 dataSize = size;
                 break;
@@ -63,12 +66,14 @@ void PlayWav::setBufPos(size_t fpos)
 
 void PlayWav::decode()
 {
+    if (ap == nullptr) { return; }
+
     if (!playing || paused) {
         PlayAudio::decode();
         return;
     }
 
-    audio_buffer_t *buffer;
+    audio_buffer_t* buffer;
     if ((buffer = take_audio_buffer(ap, false)) == nullptr) { return; }
 
     #ifdef DEBUG_PLAYWAV
@@ -78,7 +83,7 @@ void PlayWav::decode()
     }
     #endif // DEBUG_PLAYWAV
 
-    int32_t *samples = (int32_t *) buffer->buffer->bytes;
+    int32_t* samples = (int32_t *) buffer->buffer->bytes;
     if (rdbuf->getLeft()/4 >= buffer->max_sample_count) {
         buffer->sample_count = buffer->max_sample_count;
     } else {
@@ -88,10 +93,10 @@ void PlayWav::decode()
     uint32_t accumL = 0;
     uint32_t accumR = 0;
     for (int i = 0; i < buffer->sample_count; i++) {
-        samples[i*2+0] = (int32_t) buf_s16[i*2+0] * vol_table[volume] + DAC_ZERO;
-        samples[i*2+1] = (int32_t) buf_s16[i*2+1] * vol_table[volume] + DAC_ZERO;
-        accumL += ((int32_t) buf_s16[i*2+0] * buf_s16[i*2+0]) / 32768;
-        accumR += ((int32_t) buf_s16[i*2+1] * buf_s16[i*2+1]) / 32768;
+        samples[i*2+0] = static_cast<int32_t>(buf_s16[i*2+0]) * vol_table[volume] + DAC_ZERO;
+        samples[i*2+1] = static_cast<int32_t>(buf_s16[i*2+1]) * vol_table[volume] + DAC_ZERO;
+        accumL += (static_cast<int32_t>(buf_s16[i*2+0]) * buf_s16[i*2+0]) / 32768;
+        accumR += (static_cast<int32_t>(buf_s16[i*2+1]) * buf_s16[i*2+1]) / 32768;
     }
     incSamplesPlayed(buffer->sample_count);
     give_audio_buffer(ap, buffer);
@@ -112,7 +117,7 @@ void PlayWav::decode()
 uint32_t PlayWav::totalMillis()
 {
     return  std::max(
-        (uint32_t) ((uint64_t) dataSize * 1000 / ((uint32_t) sampRateHz * channels * bitsPerSample/8)),
+        static_cast<uint32_t>(static_cast<uint64_t>(dataSize) * 1000 / (static_cast<uint32_t>(sampFreq) * channels * bitsPerSample/8)),
         elapsedMillis()
     );
 }

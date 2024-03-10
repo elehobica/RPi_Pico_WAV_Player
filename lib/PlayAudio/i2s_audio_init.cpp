@@ -8,7 +8,7 @@
 #include "pico/stdlib.h"
 #include "i2s_audio_init.h"
 
-static audio_buffer_pool_t* _ap = nullptr;
+static audio_buffer_pool_t* _producer_pool = nullptr;
 
 static audio_format_t audio_format = {
     .sample_freq = 44100,
@@ -29,21 +29,22 @@ static audio_i2s_config_t i2s_config = {
     .pio_sm = 0
 };
 
-audio_buffer_pool_t* i2s_setup(i2s_samp_freq_t samp_freq)
+void i2s_setup(i2s_samp_freq_t samp_freq, audio_buffer_pool_t*& ap)
 {
     printf("Samp Freq = %d Hz\n", static_cast<int>(samp_freq));
-    if (_ap != nullptr) {
+    if (_producer_pool != nullptr) {
+        ap = nullptr;
         i2s_audio_deinit(); // less gap noise if deinit() is done when input is stable
     }
-    return i2s_audio_init(samp_freq);
+    i2s_audio_init(samp_freq);
+    ap = _producer_pool;
 }
 
-audio_buffer_pool_t* i2s_audio_init(uint32_t sample_freq)
+void i2s_audio_init(uint32_t sample_freq)
 {
     audio_format.sample_freq = sample_freq;
 
-    audio_buffer_pool_t *producer_pool = audio_new_producer_pool(&producer_format, 3, SAMPLES_PER_BUFFER);
-    _ap = producer_pool;
+    _producer_pool = audio_new_producer_pool(&producer_format, 3, SAMPLES_PER_BUFFER);
 
     bool __unused ok;
     const audio_format_t *output_format;
@@ -53,21 +54,19 @@ audio_buffer_pool_t* i2s_audio_init(uint32_t sample_freq)
         panic("PicoAudio: Unable to open audio device.\n");
     }
 
-    ok = audio_i2s_connect(producer_pool);
+    ok = audio_i2s_connect(_producer_pool);
     assert(ok);
     { // initial buffer data
-        audio_buffer_t* ab = take_audio_buffer(producer_pool, true);
+        audio_buffer_t* ab = take_audio_buffer(_producer_pool, true);
         int32_t* samples = (int32_t*) ab->buffer->bytes;
         for (uint i = 0; i < ab->max_sample_count; i++) {
             samples[i*2+0] = DAC_ZERO;
             samples[i*2+1] = DAC_ZERO;
         }
         ab->sample_count = ab->max_sample_count;
-        give_audio_buffer(producer_pool, ab);
+        give_audio_buffer(_producer_pool, ab);
     }
     audio_i2s_set_enabled(true);
-
-    return producer_pool;
 }
 
 void i2s_audio_deinit()
@@ -76,24 +75,24 @@ void i2s_audio_deinit()
     audio_i2s_end();
 
     audio_buffer_t* ab;
-    ab = take_audio_buffer(_ap, false);
+    ab = take_audio_buffer(_producer_pool, false);
     while (ab != nullptr) {
         free(ab->buffer->bytes);
         free(ab->buffer);
-        ab = take_audio_buffer(_ap, false);
+        ab = take_audio_buffer(_producer_pool, false);
     }
-    ab = get_free_audio_buffer(_ap, false);
+    ab = get_free_audio_buffer(_producer_pool, false);
     while (ab != nullptr) {
         free(ab->buffer->bytes);
         free(ab->buffer);
-        ab = get_free_audio_buffer(_ap, false);
+        ab = get_free_audio_buffer(_producer_pool, false);
     }
-    ab = get_full_audio_buffer(_ap, false);
+    ab = get_full_audio_buffer(_producer_pool, false);
     while (ab != nullptr) {
         free(ab->buffer->bytes);
         free(ab->buffer);
-        ab = get_full_audio_buffer(_ap, false);
+        ab = get_full_audio_buffer(_producer_pool, false);
     }
-    free(_ap);
-    _ap = nullptr;
+    free(_producer_pool);
+    _producer_pool = nullptr;
 }

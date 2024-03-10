@@ -21,6 +21,6 @@ typedef enum _i2s_samp_freq_t {
     SAMP_FREQ_192000 = 192000  /**< 192.0 KHz */
 } i2s_samp_freq_t;
 
-audio_buffer_pool_t* i2s_setup(i2s_samp_freq_t samp_freq);
-audio_buffer_pool_t* i2s_audio_init(uint32_t sample_freq);
+void i2s_setup(i2s_samp_freq_t samp_freq, audio_buffer_pool_t*& ap);
+void i2s_audio_init(uint32_t sample_freq);
 void i2s_audio_deinit();
