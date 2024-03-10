@@ -43,8 +43,10 @@ target_link_libraries(${bin_name}
         hardware_pwm
         hardware_flash
         hardware_adc
+        hardware_exception
         hardware_watchdog
         pico_stdlib
+        pico_flash
         pico_stdio_uart
         pico_stdio_usb_revised
         pico_fatfs
@@ -60,6 +62,8 @@ target_link_libraries(${bin_name}
 
 target_compile_definitions(${bin_name} PRIVATE
 #    NO_BATTERY_VOLTAGE_CHECK
+    CORE1_PROCESS_I2S_CALLBACK
+    PICO_FLASH_ASSUME_CORE1_SAFE
 )
 
 pico_add_extra_outputs(${bin_name})
