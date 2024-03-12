@@ -32,7 +32,7 @@ const int32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
-    rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE/4); // auto fill if left is lower than RDBUF_SIZE/4
+    rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE / 4); // auto fill if left is lower than RDBUF_SIZE / 4
 }
 
 void PlayAudio::finalize()
@@ -86,7 +86,7 @@ void PlayAudio::setBufPos(size_t fpos)
 void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
-	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
+    fr = f_open(&fil, (TCHAR *) filename, FA_READ);
     rdbuf->bind(&fil);
 
     setBufPos(fpos);
@@ -201,10 +201,7 @@ void PlayAudio::decode()
     if ((buffer = take_audio_buffer(ap, false)) == nullptr) { return; }
 
     #ifdef DEBUG_PLAYAUDIO
-    {
-        uint32_t time = to_ms_since_boot(get_absolute_time());
-        printf("AUDIO::decode start at %d ms\n", time);
-    }
+    uint32_t start = to_ms_since_boot(get_absolute_time());
     #endif // DEBUG_PLAYAUDIO
 
     int32_t* samples = (int32_t *) buffer->buffer->bytes;
@@ -218,10 +215,8 @@ void PlayAudio::decode()
     levelR = 0.0;
 
     #ifdef DEBUG_PLAYAUDIO
-    {
-        uint32_t time = to_ms_since_boot(get_absolute_time());
-        printf("AUDIO::decode end   at %d ms\n", time);
-    }
+    uint32_t time = to_ms_since_boot(get_absolute_time()) - start;
+    printf("AUDIO::decode %d ms\n", time);
     #endif // DEBUG_PLAYAUDIO
 }
 

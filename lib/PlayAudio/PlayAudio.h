@@ -40,7 +40,7 @@ public:
     virtual void getCurrentPosition(size_t* fpos, uint32_t* samplesPlayed);
     void getLevel(float* levelL, float* levelR);
 protected:
-    static const int RDBUF_SIZE = SAMPLES_PER_BUFFER * 12;  // 12 = LCM of 4 (16bit) and 6 (24bit)
+    static const int RDBUF_SIZE = SAMPLES_PER_BUFFER * 8;  // 4 (16bit), 6 (24bit), 8 (32bit)
     static spin_lock_t* spin_lock;
     static audio_buffer_pool_t* ap;
     static ReadBuffer* rdbuf; // Read buffer for Audio codec stream

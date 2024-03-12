@@ -27,12 +27,12 @@ public:
     size_t getLeft();
     size_t tell();
 private:
-    FIL* fp;
-    size_t size;
-    size_t left;
-    uint8_t* head;
-    uint8_t* ptr;
-    size_t fillThreshold;
+    FIL* _fp;
+    size_t _size;
+    size_t _left;
+    uint8_t* _head;
+    uint8_t* _ptr;
+    size_t _fillThreshold;
 };
 
 #endif // __READ_BUFFER_H_INCLUDED__

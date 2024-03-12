@@ -12,83 +12,83 @@
 //                set fillThreshold = 0 if using manual fill instead of auto fill
 //                set fillThreshold = size if auto fill everytime when shift (not recommended due to too many memmove)
 ReadBuffer::ReadBuffer(size_t size, size_t fillThreshold) :
-    size(size), left(0), fillThreshold(fillThreshold)
+    _size(size), _left(0), _fillThreshold(fillThreshold)
 {
-    head = reinterpret_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
-    ptr = head;
+    _head = reinterpret_cast<uint8_t*>(calloc(_size, sizeof(uint8_t)));
+    _ptr = _head;
 }
 
 ReadBuffer::ReadBuffer(FIL *fp, size_t size, size_t fillThreshold) :
-    fp(fp), size(size), left(0), fillThreshold(fillThreshold)
+    _fp(fp), _size(size), _left(0), _fillThreshold(fillThreshold)
 {
-    head = reinterpret_cast<uint8_t*>(calloc(size, sizeof(uint8_t)));
-    ptr = head;
-    if (left < fillThreshold) { fill(); }
+    _head = reinterpret_cast<uint8_t*>(calloc(_size, sizeof(uint8_t)));
+    _ptr = _head;
+    if (_left < _fillThreshold) { fill(); }
 }
 
 ReadBuffer::~ReadBuffer()
 {
-    free(head);
+    free(_head);
 }
 
 const uint8_t* ReadBuffer::buf()
 {
-    return reinterpret_cast<const uint8_t*>(ptr);
+    return reinterpret_cast<const uint8_t*>(_ptr);
 }
 
 void ReadBuffer::bind(FIL* fp)
 {
-    this->fp = fp;
-    ptr = head;
-    left = 0;
-    if (left < fillThreshold) { fill(); }
+    _fp = fp;
+    _ptr = _head;
+    _left = 0;
+    if (_left < _fillThreshold) { fill(); }
 }
 
 bool ReadBuffer::fill()
 {
-    memmove(head, ptr, left);
-    ptr = head;
-    size_t space = size - left;
+    memmove(_head, _ptr, _left);
+    _ptr = _head;
+    size_t space = _size - _left;
 
-    if (f_eof(fp) || space == 0) { return false; }
+    if (f_eof(_fp) || space == 0) { return false; }
 
     FRESULT fr;
     UINT br;
-    fr = f_read(fp, head + left, space, &br);
+    fr = f_read(_fp, _head + _left, space, &br);
     if (fr != FR_OK || br == 0) { return false; }
-    left += br;
-    if (space > br) { memset(head + left, 0, space - br); } // fill 0
+    _left += br;
+    if (space > br) { memset(_head + _left, 0, space - br); } // fill 0
     return true;
 }
 
 bool ReadBuffer::shift(size_t bytes)
 {
-    if (left < bytes) { return false; }
-    ptr += bytes;
-    left -= bytes;
-    if (left < fillThreshold) { fill(); }
+    if (_left < bytes) { return false; }
+    _ptr += bytes;
+    _left -= bytes;
+    if (_left < _fillThreshold) { fill(); }
     return true;
 }
 
 bool ReadBuffer::shiftAll()
 {
-    return shift(left);
+    return shift(_left);
 }
 
 bool ReadBuffer::seek(size_t fpos)
 {
-    ptr = head;
-    f_lseek(fp, fpos);
-    if (left < fillThreshold) { fill(); }
+    _ptr = _head;
+    f_lseek(_fp, fpos);
+    if (_left < _fillThreshold) { fill(); }
     return true;
 }
 
 size_t ReadBuffer::getLeft()
 {
-    return left;
+    return _left;
 }
 
 size_t ReadBuffer::tell()
 {
-    return (size_t) f_tell(fp) - left;
+    return (size_t) f_tell(_fp) - _left;
 }
