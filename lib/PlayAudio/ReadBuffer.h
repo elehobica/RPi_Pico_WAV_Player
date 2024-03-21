@@ -4,9 +4,10 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef __READ_BUFFER_H_INCLUDED__
-#define __READ_BUFFER_H_INCLUDED__
+#pragma once
 
+#include "pico/util/queue.h"
+#include "PlayAudio.h"
 #include "ff.h"
 
 //=================================
@@ -15,24 +16,42 @@
 class ReadBuffer
 {
 public:
-    ReadBuffer(size_t size, size_t fillThreshold);
-    ReadBuffer(FIL* fp, size_t size, size_t fillThreshold);
-    ~ReadBuffer();
-    const uint8_t* buf();
-    void bind(FIL* fp);
+    static ReadBuffer* getInstance();  // Singleton
+    ReadBuffer();
+    virtual ~ReadBuffer();
     bool fill();
+    void reqBind(FIL* fp, bool flag = true);
+    const uint8_t* buf();
     bool shift(size_t bytes);
     bool shiftAll();
     bool seek(size_t fpos);
     size_t getLeft();
     size_t tell();
 private:
+    static constexpr size_t NUM_FILL_BUFFERS = 16;
+    static constexpr size_t FILL_BUFFER_SIZE = PlayAudio::RDBUF_SIZE - PlayAudio::RDBUF_THRESHOLD;
+    static ReadBuffer* _inst;  // Singleton instance
+    uint8_t fillBuffer[FILL_BUFFER_SIZE * NUM_FILL_BUFFERS];
+    typedef struct _fillBufferItem_t {
+        int    id;
+        size_t length;
+        bool   isEof;
+    } fillBufferItem_t;
+    typedef struct _bindReq_t {
+        FIL* fp;
+        bool flag;
+    } bindReq_t;
+    queue_t fillBufferQueue;
+    queue_t bindReqQueue;
+    queue_t bindRespQueue;
     FIL* _fp;
     size_t _size;
     size_t _left;
     uint8_t* _head;
     uint8_t* _ptr;
     size_t _fillThreshold;
+    bool _isEof;
+    void bind(FIL* fp);
+    void fillLoop();
+    friend void readBufferCore1Process();
 };
-
-#endif // __READ_BUFFER_H_INCLUDED__

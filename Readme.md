@@ -155,7 +155,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 ### Opening Logo File
 * Put "logo.jpg" on root Folder of SD Card
 * File Format: JPEG format (Progressive JPEG not supported)
-* [logo.jpg example](resource/logo.jpg)
+* [logo.jpg example](tools/logo.jpg)
 
 ### Cover Art File
 * Put JPEG file on same folder where WAV files are located

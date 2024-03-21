@@ -9,8 +9,10 @@
 
 #include "hardware/sync.h"
 #include "ff.h"
-#include "ReadBuffer.h"
+//#include "ReadBuffer.h"
 #include "i2s_audio_init.h"
+
+class ReadBuffer; // to avoid inter-lock
 
 //=================================
 // Interface of PlayAudio Class
@@ -22,6 +24,8 @@ public:
         AUDIO_CODEC_NONE = 0,
         AUDIO_CODEC_WAV
     } audio_codec_t;
+    static const int RDBUF_SIZE = SAMPLES_PER_BUFFER * 8;  // 4 (16bit), 6 (24bit), 8 (32bit)
+    static const int RDBUF_THRESHOLD = RDBUF_SIZE / 4;
     static void initialize();
     static void finalize();
     static void volumeUp();
@@ -40,10 +44,8 @@ public:
     virtual void getCurrentPosition(size_t* fpos, uint32_t* samplesPlayed);
     void getLevel(float* levelL, float* levelR);
 protected:
-    static const int RDBUF_SIZE = SAMPLES_PER_BUFFER * 8;  // 4 (16bit), 6 (24bit), 8 (32bit)
     static spin_lock_t* spin_lock;
     static audio_buffer_pool_t* ap;
-    static ReadBuffer* rdbuf; // Read buffer for Audio codec stream
     static uint8_t volume;
     static const int32_t vol_table[101];
     FIL fil;
@@ -57,6 +59,7 @@ protected:
     bool reinitI2s;
     float levelL;
     float levelR;
+    ReadBuffer* rdbuf; // Read buffer for Audio codec stream
     uint16_t getU16LE(const char* ptr);
     uint32_t getU32LE(const char* ptr);
     uint32_t getU28BE(const char* ptr);

@@ -4,15 +4,16 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include "PlayAudio.h"
+
 #include <cstdio>
 #include "pico/stdlib.h"
-#include "PlayAudio.h"
+#include "ReadBuffer.h"
 
 //#define DEBUG_PLAYAUDIO
 
 spin_lock_t* PlayAudio::spin_lock = nullptr;
 audio_buffer_pool_t* PlayAudio::ap = nullptr;
-ReadBuffer* PlayAudio::rdbuf = nullptr;
 uint8_t PlayAudio::volume = 65;
 
 const int32_t PlayAudio::vol_table[101] = {
@@ -32,14 +33,12 @@ const int32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
-    rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE / 4); // auto fill if left is lower than RDBUF_SIZE / 4
 }
 
 void PlayAudio::finalize()
 {
     spin_lock_unclaim(spin_lock_get_num(spin_lock));
     i2s_audio_deinit();
-    delete rdbuf;
 }
 
 void PlayAudio::volumeUp()
@@ -66,6 +65,7 @@ PlayAudio::PlayAudio() : playing(false), paused(false),
     channels(2), sampFreq(SAMP_FREQ_NONE), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
     samplesPlayed(0), reinitI2s(false), levelL(0.0), levelR(0.0)
 {
+    rdbuf = ReadBuffer::getInstance();
 }
 
 PlayAudio::~PlayAudio()
@@ -87,8 +87,8 @@ void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
     fr = f_open(&fil, (TCHAR *) filename, FA_READ);
-    rdbuf->bind(&fil);
-
+    rdbuf->reqBind(&fil);
+    rdbuf->fill();
     setBufPos(fpos);
     setSamplesPlayed(samplesPlayed);
 
@@ -104,7 +104,10 @@ void PlayAudio::pause(bool flg)
 
 void PlayAudio::stop()
 {
-    if (playing) { f_close(&fil); }
+    if (playing) {
+        rdbuf->reqBind(&fil, false);
+        f_close(&fil);
+    }
 
     playing = false;
     paused = false;
