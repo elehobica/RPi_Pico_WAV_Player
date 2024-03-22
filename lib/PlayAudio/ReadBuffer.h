@@ -28,7 +28,7 @@ public:
     size_t tell();
 private:
     static constexpr size_t SECONDARY_BUFFER_SIZE = PlayAudio::RDBUF_SIZE - PlayAudio::RDBUF_THRESHOLD;
-    static constexpr size_t NUM_SECONDARY_BUFFERS = 16;
+    static constexpr size_t NUM_SECONDARY_BUFFERS = 8;
     static ReadBuffer* _inst;  // Singleton instance
     uint8_t secondaryBuffer[SECONDARY_BUFFER_SIZE * NUM_SECONDARY_BUFFERS];
     typedef struct _secondaryBufferItem_t {
