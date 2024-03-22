@@ -6,6 +6,7 @@
 
 #include "ReadBuffer.h"
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "pico/multicore.h"
@@ -60,7 +61,10 @@ void ReadBuffer::bind(FIL* fp)
 bool ReadBuffer::fill()
 {
     if (_isEof) { return false; }
-    while (queue_is_empty(&secondaryBufferQueue)) { sleep_ms(1); }
+    if (queue_is_empty(&secondaryBufferQueue)) {
+        printf("ERROR: ReadBuffer::secondaryBuffer is empty\r\n");
+        return false;
+    }
     secondaryBufferItem_t item;
     queue_remove_blocking(&secondaryBufferQueue, &item);
     memmove(_head, _ptr, _left);
@@ -126,7 +130,9 @@ void ReadBuffer::reqBind(FIL* fp, bool flag)
 void ReadBuffer::fillLoop()
 {
     int id = 0;
-    size_t pos;
+    size_t pos = 0;
+    FIL* fp;
+    bool reachedEof = false;
     queue_init(&bindReqQueue, sizeof(bindReq_t), 1);
     queue_init(&bindRespQueue, sizeof(bindReq_t), 1);
     queue_init(&secondaryBufferQueue, sizeof(secondaryBufferItem_t), NUM_SECONDARY_BUFFERS);
@@ -134,36 +140,45 @@ void ReadBuffer::fillLoop()
     secondaryBufferItem_t item;
 
     while (true) {
+        // expecting reqBind(true)
         while (queue_is_empty(&bindReqQueue)) {}
         queue_remove_blocking(&bindReqQueue, &req);
-        if (!req.flag) continue;
-        queue_try_add(&bindRespQueue, &req);
-        FIL* fp = req.fp;
-        bind(fp);
-        pos = f_tell(fp);
-        while (!f_eof(fp)) {
+        if (req.flag) {
+            fp = req.fp;
+            bind(fp);
+            pos = f_tell(fp);
+            reachedEof = static_cast<bool>(f_eof(fp));
+        }
+        queue_try_add(&bindRespQueue, &req);  // response regardless of flag
+        if (!req.flag) { continue; }  // retry if reqBind(false)
+
+        while (!reachedEof) {
+            // read from file to store secondaryBuffer
             while (queue_get_level(&secondaryBufferQueue) < NUM_SECONDARY_BUFFERS) {
                 FRESULT fr;
                 UINT br;
                 fr = f_read(fp, &secondaryBuffer[SECONDARY_BUFFER_SIZE * id], SECONDARY_BUFFER_SIZE, &br);
                 if (fr != FR_OK || br == 0) { return; }
+                reachedEof = static_cast<bool>(f_eof(fp));
+                pos += br;
                 item.ptr = &secondaryBuffer[SECONDARY_BUFFER_SIZE * id];
                 item.pos = pos;
                 item.length = static_cast<size_t>(br);
-                item.reachedEof = static_cast<bool>(f_eof(fp));
-                pos += item.length;
+                item.reachedEof = reachedEof;
                 queue_try_add(&secondaryBufferQueue, &item);
                 id = (id + 1) % NUM_SECONDARY_BUFFERS;
+                if (reachedEof) { break; }
             }
+            // acceptance of reqBind(false)
             if (!queue_is_empty(&bindReqQueue)) {
                 queue_remove_blocking(&bindReqQueue, &req);
                 if (!req.flag) {
                     while (!queue_is_empty(&secondaryBufferQueue)) {
                         queue_remove_blocking(&secondaryBufferQueue, &item);
                     }
-                    queue_try_add(&bindRespQueue, &req);
-                    break;
                 }
+                queue_try_add(&bindRespQueue, &req);  // response regardless of flag
+                if (!req.flag) { break; }  // start over if reqBind(false), otherwise ignore
             }
         }
     }

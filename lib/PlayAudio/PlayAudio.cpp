@@ -103,13 +103,16 @@ void PlayAudio::pause(bool flg)
 
 void PlayAudio::stop()
 {
-    if (playing) {
+    // stop playing at first to avoid blank noise
+    bool wasPlaying = playing;
+    playing = false;
+    paused = false;
+
+    // it takes some time to stop ReadBuffer due to secondary buffer
+    if (wasPlaying) {
         rdbuf->reqBind(&fil, false);
         f_close(&fil);
     }
-
-    playing = false;
-    paused = false;
 }
 
 bool PlayAudio::isPlaying()
