@@ -88,7 +88,6 @@ void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
     FRESULT fr;
     fr = f_open(&fil, (TCHAR *) filename, FA_READ);
     rdbuf->reqBind(&fil);
-    rdbuf->fill();
     setBufPos(fpos);
     setSamplesPlayed(samplesPlayed);
 

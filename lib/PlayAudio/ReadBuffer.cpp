@@ -54,20 +54,22 @@ void ReadBuffer::bind(FIL* fp)
     _fp = fp;
     _ptr = _head;
     _left = 0;
+    _isEof = false;
 }
 
 bool ReadBuffer::fill()
 {
     if (_isEof) { return false; }
-    while (queue_is_empty(&fillBufferQueue)) { sleep_ms(1); }
-    fillBufferItem_t item;
-    queue_remove_blocking(&fillBufferQueue, &item);
+    while (queue_is_empty(&secondaryBufferQueue)) { sleep_ms(1); }
+    secondaryBufferItem_t item;
+    queue_remove_blocking(&secondaryBufferQueue, &item);
     memmove(_head, _ptr, _left);
     _ptr = _head;
     size_t space = _size - _left;
-    memcpy(_head + _left, &fillBuffer[FILL_BUFFER_SIZE * item.id], item.length);
+    memcpy(_head + _left, item.ptr, item.length);
+    _pos = item.pos;
     _left += item.length;
-    _isEof = item.isEof;
+    _isEof = item.reachedEof;
     if (space > item.length) {
         memset(_head + _left, 0, space - item.length);  // fill 0
     }
@@ -90,13 +92,9 @@ bool ReadBuffer::shiftAll()
 
 bool ReadBuffer::seek(size_t fpos)
 {
-    reqBind(_fp, false);  // disconnect fillBuffer (dispose current fillBuffer)
+    reqBind(_fp, false);  // disconnect secondaryBuffer (dispose current secondaryBuffer)
     f_lseek(_fp, fpos);   // seek (move reading point)
     reqBind(_fp);         // reconnect
-    // fill fillBuffer again
-    _ptr = _head;
-    _left = 0;
-    fill();
     return true;
 }
 
@@ -107,56 +105,61 @@ size_t ReadBuffer::getLeft()
 
 size_t ReadBuffer::tell()
 {
-    return (size_t) f_tell(_fp) - _left;
+    return _pos - _left;
 }
 
 void ReadBuffer::reqBind(FIL* fp, bool flag)
 {
-    bindReq_t req;
-    req.fp = fp;
-    req.flag = flag;
+    bindReq_t req = {fp, flag};
     // send request
     queue_try_add(&bindReqQueue, &req);
     // wait response
     queue_remove_blocking(&bindRespQueue, &req);
+    if (flag) {
+        // wait until full secondaryBuffer
+        while (queue_get_level(&secondaryBufferQueue) < NUM_SECONDARY_BUFFERS) {}
+        fill();
+    }
 }
+
 
 void ReadBuffer::fillLoop()
 {
     int id = 0;
+    size_t pos;
     queue_init(&bindReqQueue, sizeof(bindReq_t), 1);
     queue_init(&bindRespQueue, sizeof(bindReq_t), 1);
-    queue_init(&fillBufferQueue, sizeof(fillBufferItem_t), NUM_FILL_BUFFERS);
+    queue_init(&secondaryBufferQueue, sizeof(secondaryBufferItem_t), NUM_SECONDARY_BUFFERS);
+    bindReq_t req;
+    secondaryBufferItem_t item;
 
     while (true) {
-        while (queue_is_empty(&bindReqQueue)) { sleep_ms(1); }
-        bindReq_t req;
+        while (queue_is_empty(&bindReqQueue)) {}
         queue_remove_blocking(&bindReqQueue, &req);
         if (!req.flag) continue;
         queue_try_add(&bindRespQueue, &req);
         FIL* fp = req.fp;
         bind(fp);
-        _isEof = false;
+        pos = f_tell(fp);
         while (!f_eof(fp)) {
-            while (queue_get_level(&fillBufferQueue) < NUM_FILL_BUFFERS) {
+            while (queue_get_level(&secondaryBufferQueue) < NUM_SECONDARY_BUFFERS) {
                 FRESULT fr;
                 UINT br;
-                fr = f_read(fp, &fillBuffer[FILL_BUFFER_SIZE * id], FILL_BUFFER_SIZE, &br);
+                fr = f_read(fp, &secondaryBuffer[SECONDARY_BUFFER_SIZE * id], SECONDARY_BUFFER_SIZE, &br);
                 if (fr != FR_OK || br == 0) { return; }
-                fillBufferItem_t item;
-                item.id = id;
+                item.ptr = &secondaryBuffer[SECONDARY_BUFFER_SIZE * id];
+                item.pos = pos;
                 item.length = static_cast<size_t>(br);
-                item.isEof = static_cast<bool>(f_eof(fp));
-                queue_try_add(&fillBufferQueue, &item);
-                id = (id + 1) % NUM_FILL_BUFFERS;
+                item.reachedEof = static_cast<bool>(f_eof(fp));
+                pos += item.length;
+                queue_try_add(&secondaryBufferQueue, &item);
+                id = (id + 1) % NUM_SECONDARY_BUFFERS;
             }
             if (!queue_is_empty(&bindReqQueue)) {
-                bindReq_t req;
                 queue_remove_blocking(&bindReqQueue, &req);
                 if (!req.flag) {
-                    while (!queue_is_empty(&fillBufferQueue)) {
-                        fillBufferItem_t item;
-                        queue_remove_blocking(&fillBufferQueue, &item);
+                    while (!queue_is_empty(&secondaryBufferQueue)) {
+                        queue_remove_blocking(&secondaryBufferQueue, &item);
                     }
                     queue_try_add(&bindRespQueue, &req);
                     break;

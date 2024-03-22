@@ -19,7 +19,6 @@ public:
     static ReadBuffer* getInstance();  // Singleton
     ReadBuffer();
     virtual ~ReadBuffer();
-    bool fill();
     void reqBind(FIL* fp, bool flag = true);
     const uint8_t* buf();
     bool shift(size_t bytes);
@@ -28,30 +27,33 @@ public:
     size_t getLeft();
     size_t tell();
 private:
-    static constexpr size_t NUM_FILL_BUFFERS = 16;
-    static constexpr size_t FILL_BUFFER_SIZE = PlayAudio::RDBUF_SIZE - PlayAudio::RDBUF_THRESHOLD;
+    static constexpr size_t SECONDARY_BUFFER_SIZE = PlayAudio::RDBUF_SIZE - PlayAudio::RDBUF_THRESHOLD;
+    static constexpr size_t NUM_SECONDARY_BUFFERS = 16;
     static ReadBuffer* _inst;  // Singleton instance
-    uint8_t fillBuffer[FILL_BUFFER_SIZE * NUM_FILL_BUFFERS];
-    typedef struct _fillBufferItem_t {
-        int    id;
-        size_t length;
-        bool   isEof;
-    } fillBufferItem_t;
+    uint8_t secondaryBuffer[SECONDARY_BUFFER_SIZE * NUM_SECONDARY_BUFFERS];
+    typedef struct _secondaryBufferItem_t {
+        uint8_t* ptr;
+        size_t   pos;
+        size_t   length;
+        bool     reachedEof;
+    } secondaryBufferItem_t;
     typedef struct _bindReq_t {
         FIL* fp;
         bool flag;
     } bindReq_t;
-    queue_t fillBufferQueue;
+    queue_t secondaryBufferQueue;
     queue_t bindReqQueue;
     queue_t bindRespQueue;
     FIL* _fp;
     size_t _size;
+    size_t _pos;
     size_t _left;
     uint8_t* _head;
     uint8_t* _ptr;
     size_t _fillThreshold;
     bool _isEof;
     void bind(FIL* fp);
+    bool fill();
     void fillLoop();
     friend void readBufferCore1Process();
 };
