@@ -63,6 +63,12 @@ bool ReadBuffer::fill()
 {
     if (_isEof) { return false; }
     if (queue_is_empty(&secondaryBufferQueue)) {
+        // insert zeros to avoid blank noise
+        memmove(_head, _ptr, _left);
+        _ptr = _head;
+        size_t space = _size - _left;
+        memset(_head + _left, 0, space);
+        _left += space;
         printf("ERROR: ReadBuffer::secondaryBuffer is empty\r\n");
         return false;
     }
@@ -111,6 +117,16 @@ size_t ReadBuffer::getLeft()
 size_t ReadBuffer::tell()
 {
     return _pos - _left;
+}
+
+bool ReadBuffer::isFull()
+{
+    return queue_is_full(&secondaryBufferQueue);
+}
+
+bool ReadBuffer::isNearEmpty()
+{
+    return (!static_cast<bool>(f_eof(_fp)) && queue_get_level(&secondaryBufferQueue) <= NUM_SECONDARY_BUFFERS / 4);
 }
 
 void ReadBuffer::reqBind(FIL* fp, bool flag)

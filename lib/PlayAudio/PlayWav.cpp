@@ -70,7 +70,7 @@ void PlayWav::decode()
 {
     if (ap == nullptr) { return; }
 
-    if (!playing || paused) {
+    if (isMuteCondition()) {
         PlayAudio::decode();
         return;
     }

@@ -51,6 +51,7 @@ protected:
     FIL fil;
     bool playing;
     bool paused;
+    bool rdbufWarning;
     uint16_t channels;
     i2s_samp_freq_t sampFreq;
     uint16_t bitRateKbps;
@@ -69,6 +70,7 @@ protected:
     void setLevelInt(uint32_t levelIntL, uint32_t levelIntR);
     virtual void setBufPos(size_t fpos);
     virtual void decode();
+    virtual bool isMuteCondition();
 private:
     float convLevelCurve(uint32_t levelInt);
 };

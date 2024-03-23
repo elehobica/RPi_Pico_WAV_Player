@@ -61,7 +61,7 @@ uint8_t PlayAudio::getVolume()
     return volume;
 }
 
-PlayAudio::PlayAudio() : playing(false), paused(false), 
+PlayAudio::PlayAudio() : playing(false), paused(false), rdbufWarning(false),
     channels(2), sampFreq(SAMP_FREQ_NONE), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
     samplesPlayed(0), reinitI2s(false), levelL(0.0), levelR(0.0)
 {
@@ -94,6 +94,7 @@ void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
     // Don't manipulate rdbuf after playing = true because decode callback handles it
     playing = true;
     paused = false;
+    rdbufWarning = false;
 }
 
 void PlayAudio::pause(bool flg)
@@ -221,8 +222,20 @@ void PlayAudio::decode()
 
     #ifdef DEBUG_PLAYAUDIO
     uint32_t time = to_ms_since_boot(get_absolute_time()) - start;
-    printf("AUDIO::decode %d ms\n", time);
+    printf("AUDIO::decode %d ms\r\n", time);
     #endif // DEBUG_PLAYAUDIO
+}
+
+bool PlayAudio::isMuteCondition()
+{
+    if (!playing || paused) { return true; }
+    if (!rdbufWarning && rdbuf->isNearEmpty()) {
+        rdbufWarning = true;
+        printf("AUDIO::rdbuf near empty. insert instant mute\r\n");
+    } else if (rdbufWarning && rdbuf->isFull()) {
+        rdbufWarning = false;
+    }
+    return rdbufWarning;
 }
 
 uint32_t PlayAudio::elapsedMillis()

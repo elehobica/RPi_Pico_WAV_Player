@@ -26,6 +26,8 @@ public:
     bool seek(size_t fpos);
     size_t getLeft();
     size_t tell();
+    bool isFull();
+    bool isNearEmpty();
 private:
     static constexpr size_t SECONDARY_BUFFER_SIZE = PlayAudio::RDBUF_SIZE - PlayAudio::RDBUF_THRESHOLD;
     static constexpr size_t NUM_SECONDARY_BUFFERS = 8;
