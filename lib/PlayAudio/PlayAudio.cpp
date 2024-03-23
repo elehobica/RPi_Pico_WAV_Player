@@ -33,6 +33,7 @@ const int32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
+    i2s_setup(SAMP_FREQ_44100, ap);  // default 44.1 KHz
 }
 
 void PlayAudio::finalize()

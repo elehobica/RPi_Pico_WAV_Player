@@ -62,7 +62,6 @@ target_link_libraries(${bin_name}
 
 target_compile_definitions(${bin_name} PRIVATE
 #    NO_BATTERY_VOLTAGE_CHECK
-    PICO_FLASH_ASSUME_CORE1_SAFE
 )
 
 pico_add_extra_outputs(${bin_name})

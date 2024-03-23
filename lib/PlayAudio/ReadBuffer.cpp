@@ -9,13 +9,15 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include "pico/flash.h"
 #include "pico/multicore.h"
 
 ReadBuffer* ReadBuffer::_inst = nullptr;
 
 void readBufferCore1Process()
 {
-    ReadBuffer::_inst->fillLoop();
+    flash_safe_execute_core_init();  // no access to flash on core1
+    ReadBuffer::getInstance()->fillLoop();
     printf("ERROR: ReadBuffer::fillLoop() exit\r\n");
 }
 
