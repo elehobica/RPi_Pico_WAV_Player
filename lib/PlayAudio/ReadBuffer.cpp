@@ -73,11 +73,12 @@ bool ReadBuffer::fill()
         return false;
     }
     secondaryBufferItem_t item;
-    queue_remove_blocking(&secondaryBufferQueue, &item);
+    queue_peek_blocking(&secondaryBufferQueue, &item);  // not remove here to preend from overwrite by new data
     memmove(_head, _ptr, _left);
     _ptr = _head;
     size_t space = _size - _left;
     memcpy(_head + _left, item.ptr, item.length);
+    queue_remove_blocking(&secondaryBufferQueue, &item);  // remove from queue here actually
     _pos = item.pos;
     _left += item.length;
     _isEof = item.reachedEof;
