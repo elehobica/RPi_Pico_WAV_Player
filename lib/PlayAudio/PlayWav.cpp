@@ -43,10 +43,10 @@ void PlayWav::skipToDataChunk()
             const uint32_t size = getU32LE(buf + ofs + 4);
             if (memcmp(chunk_id, "fmt ", 4) == 0) {
                 i2s_samp_freq_t sf;
-                channels      = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2)); // channels
+                channels      = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2)); // channels
                 sf            = static_cast<i2s_samp_freq_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2)); // samplerate
-                bitRateKbps   = static_cast<uint16_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
-                bitsPerSample = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2)); // bitswidth
+                bitRateKbps   = static_cast<uint16_t>(       getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
+                bitsPerSample = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2)); // bitswidth
                 reinitI2s = (sampFreq != sf);
                 sampFreq = sf;
             } else if (memcmp(chunk_id, "data", 4) == 0) {
@@ -88,30 +88,32 @@ void PlayWav::decode()
     bool stopFlag = false;
     const uint8_t* buf = rdbuf->buf();
     if (bitsPerSample == 16) {
-        if (rdbuf->getLeft()/4 >= buffer->max_sample_count) {
+        if (rdbuf->getLeft()/channels/2 >= buffer->max_sample_count) {
             buffer->sample_count = buffer->max_sample_count;
         } else {
-            buffer->sample_count = rdbuf->getLeft()/4;
+            buffer->sample_count = rdbuf->getLeft()/channels/2;
         }
-        for (int i = 0; i < buffer->sample_count; i++, buf += 4) {
+        for (int i = 0; i < buffer->sample_count; i++, buf += channels*2) {
             for (int j = 0; j < 2; j++) {
-                int32_t buf_s16 = static_cast<int32_t>(static_cast<int16_t>((buf[j*2+1] << 8) | buf[j*2+0]));
+                int base = (channels == 2) ? j * 2 : 0;
+                int32_t buf_s16 = static_cast<int32_t>(static_cast<int16_t>((buf[base+1] << 8) | buf[base+0]));
                 samples[i*2+j] = buf_s16 * vol_table[volume] + DAC_ZERO;  // keep 16bit resolution
                 accum[j] += buf_s16 * buf_s16 / 32768;
             }
         }
-        rdbuf->shift(buffer->sample_count*4);
-        if (rdbuf->getLeft()/4 == 0) { stopFlag = true; }
+        rdbuf->shift(buffer->sample_count*channels*2);
+        if (rdbuf->getLeft()/channels/2 == 0) { stopFlag = true; }
     } else if (bitsPerSample == 24) {
-        if (rdbuf->getLeft()/6 >= buffer->max_sample_count) {
+        if (rdbuf->getLeft()/channels/3 >= buffer->max_sample_count) {
             buffer->sample_count = buffer->max_sample_count;
         } else {
-            buffer->sample_count = rdbuf->getLeft()/6;
+            buffer->sample_count = rdbuf->getLeft()/channels/3;
         }
         int32_t vol_div256 = vol_table[volume] / 256;
-        for (int i = 0; i < buffer->sample_count; i++, buf += 6) {
+        for (int i = 0; i < buffer->sample_count; i++, buf += channels*3) {
             for (int j = 0; j < 2; j++) {
-                int32_t buf_s24 = static_cast<int32_t>((buf[j*3+2] << 24) | (buf[j*3+1] << 16) | (buf[j*3+0] << 8)) / 256;
+                int base = (channels == 2) ? j * 3 : 0;
+                int32_t buf_s24 = static_cast<int32_t>((buf[base+2] << 24) | (buf[base+1] << 16) | (buf[base+0] << 8)) / 256;
                 if (vol_div256 > 0) {  // keep 24bit resolution
                     samples[i*2+j] = buf_s24 * vol_div256 + DAC_ZERO;
                 } else {  // spoil 24bit resolution
@@ -120,8 +122,8 @@ void PlayWav::decode()
                 accum[j] += ((buf_s24/256) * (buf_s24/256)) / 32768;
             }
         }
-        rdbuf->shift(buffer->sample_count*6);
-        if (rdbuf->getLeft()/6 == 0) { stopFlag = true; }
+        rdbuf->shift(buffer->sample_count*channels*3);
+        if (rdbuf->getLeft()/channels/3 == 0) { stopFlag = true; }
     }
     give_audio_buffer(ap, buffer);
     incSamplesPlayed(buffer->sample_count);

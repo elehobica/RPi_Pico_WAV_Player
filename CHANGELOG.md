@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+* Support Hi-Res WAV up to 24bit / 192KHz
+* Support Mono WAV
 
+### Changed
+* Use submodule for pico_audio_i2s_32b library
 
 ## [v0.9.3] - 2024-03-06
 ### Fixed
