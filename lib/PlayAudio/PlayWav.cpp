@@ -43,9 +43,11 @@ void PlayWav::skipToDataChunk()
             const uint32_t size = getU32LE(buf + ofs + 4);
             if (memcmp(chunk_id, "fmt ", 4) == 0) {
                 i2s_samp_freq_t sf;
+                format        = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4)); // format
                 channels      = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2)); // channels
                 sf            = static_cast<i2s_samp_freq_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2)); // samplerate
                 bitRateKbps   = static_cast<uint16_t>(       getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
+                blockBytes    = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4)); // blockBytes
                 bitsPerSample = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2)); // bitswidth
                 reinitI2s = (sampFreq != sf);
                 sampFreq = sf;
@@ -84,51 +86,28 @@ void PlayWav::decode()
     #endif // DEBUG_PLAYWAV
 
     int32_t* samples = reinterpret_cast<int32_t*>(buffer->buffer->bytes);
-    uint32_t accum[2] = {};
-    bool stopFlag = false;
     const uint8_t* buf = rdbuf->buf();
-    if (bitsPerSample == 16) {
-        if (rdbuf->getLeft()/channels/2 >= buffer->max_sample_count) {
-            buffer->sample_count = buffer->max_sample_count;
-        } else {
-            buffer->sample_count = rdbuf->getLeft()/channels/2;
-        }
-        for (int i = 0; i < buffer->sample_count; i++, buf += channels*2) {
-            for (int j = 0; j < 2; j++) {
-                int base = (channels == 2) ? j * 2 : 0;
-                int32_t buf_s16 = static_cast<int32_t>(static_cast<int16_t>((buf[base+1] << 8) | buf[base+0]));
-                samples[i*2+j] = buf_s16 * vol_table[volume] + DAC_ZERO;  // keep 16bit resolution
-                accum[j] += buf_s16 * buf_s16 / 32768;
+    uint32_t accum[2] = {};
+    buffer->sample_count = std::min(static_cast<uint32_t>(rdbuf->getLeft()/blockBytes), buffer->max_sample_count);
+    for (int i = 0; i < buffer->sample_count; i++, buf += blockBytes) {
+        for (int j = 0; j < 2; j++) {
+            int base = (channels == 2) ? j * bitsPerSample / 8 : 0;
+            int32_t buf_s32;
+            switch (bitsPerSample) {
+                case 16: buf_s32 = static_cast<int32_t>((buf[base+1] << 24) | (buf[base+0] << 16)); break;
+                case 24: buf_s32 = static_cast<int32_t>((buf[base+2] << 24) | (buf[base+1] << 16) | (buf[base+0] << 8)); break;
+                case 32: buf_s32 = static_cast<int32_t>((buf[base+3] << 24) | (buf[base+2] << 16) | (buf[base+1] << 8) | (buf[base+0] << 0)); break;
+                default: buf_s32 = 0; break;
             }
+            samples[i*2+j] = static_cast<int32_t>((static_cast<int64_t>(buf_s32) * vol_table[volume] / 65536)) + DAC_ZERO;
+            accum[j] += (buf_s32/65536) * (buf_s32/65536) / 32768;
         }
-        rdbuf->shift(buffer->sample_count*channels*2);
-        if (rdbuf->getLeft()/channels/2 == 0) { stopFlag = true; }
-    } else if (bitsPerSample == 24) {
-        if (rdbuf->getLeft()/channels/3 >= buffer->max_sample_count) {
-            buffer->sample_count = buffer->max_sample_count;
-        } else {
-            buffer->sample_count = rdbuf->getLeft()/channels/3;
-        }
-        int32_t vol_div256 = vol_table[volume] / 256;
-        for (int i = 0; i < buffer->sample_count; i++, buf += channels*3) {
-            for (int j = 0; j < 2; j++) {
-                int base = (channels == 2) ? j * 3 : 0;
-                int32_t buf_s24 = static_cast<int32_t>((buf[base+2] << 24) | (buf[base+1] << 16) | (buf[base+0] << 8)) / 256;
-                if (vol_div256 > 0) {  // keep 24bit resolution
-                    samples[i*2+j] = buf_s24 * vol_div256 + DAC_ZERO;
-                } else {  // spoil 24bit resolution
-                    samples[i*2+j] = buf_s24 * vol_table[volume] / 256 + DAC_ZERO;
-                }
-                accum[j] += ((buf_s24/256) * (buf_s24/256)) / 32768;
-            }
-        }
-        rdbuf->shift(buffer->sample_count*channels*3);
-        if (rdbuf->getLeft()/channels/3 == 0) { stopFlag = true; }
     }
     give_audio_buffer(ap, buffer);
     incSamplesPlayed(buffer->sample_count);
     setLevelInt(accum[0] / buffer->sample_count, accum[1] / buffer->sample_count);
-    if (stopFlag) { stop(); }
+    rdbuf->shift(buffer->sample_count*blockBytes);
+    if (rdbuf->getLeft()/channels/blockBytes == 0) { stop(); }
 
     #ifdef DEBUG_PLAYWAV
     uint32_t time = static_cast<uint32_t>(to_us_since_boot(get_absolute_time()) - start);

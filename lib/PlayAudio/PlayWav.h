@@ -22,6 +22,8 @@ public:
 protected:
     static PlayWav* g_inst;
     uint32_t dataSize;
+    uint16_t blockBytes;
+    uint16_t format;  // 1: PCM, 3: IEEE float
     void skipToDataChunk();
     void setBufPos(size_t fpos);
     void decode();
