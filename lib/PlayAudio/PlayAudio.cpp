@@ -4,15 +4,16 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include "PlayAudio.h"
+
 #include <cstdio>
 #include "pico/stdlib.h"
-#include "PlayAudio.h"
+#include "ReadBuffer.h"
 
 //#define DEBUG_PLAYAUDIO
 
 spin_lock_t* PlayAudio::spin_lock = nullptr;
 audio_buffer_pool_t* PlayAudio::ap = nullptr;
-ReadBuffer* PlayAudio::rdbuf = nullptr;
 uint8_t PlayAudio::volume = 65;
 
 const int32_t PlayAudio::vol_table[101] = {
@@ -32,14 +33,12 @@ const int32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
-    rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE / 4); // auto fill if left is lower than RDBUF_SIZE / 4
 }
 
 void PlayAudio::finalize()
 {
     spin_lock_unclaim(spin_lock_get_num(spin_lock));
     i2s_audio_deinit();
-    delete rdbuf;
 }
 
 void PlayAudio::volumeUp()
@@ -62,10 +61,11 @@ uint8_t PlayAudio::getVolume()
     return volume;
 }
 
-PlayAudio::PlayAudio() : playing(false), paused(false), 
+PlayAudio::PlayAudio() : playing(false), paused(false), rdbufWarning(false),
     channels(2), sampFreq(SAMP_FREQ_NONE), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
     samplesPlayed(0), reinitI2s(false), levelL(0.0), levelR(0.0)
 {
+    rdbuf = ReadBuffer::getInstance();
 }
 
 PlayAudio::~PlayAudio()
@@ -87,14 +87,14 @@ void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
     fr = f_open(&fil, (TCHAR *) filename, FA_READ);
-    rdbuf->bind(&fil);
-
+    rdbuf->reqBind(&fil);
     setBufPos(fpos);
     setSamplesPlayed(samplesPlayed);
 
     // Don't manipulate rdbuf after playing = true because decode callback handles it
     playing = true;
     paused = false;
+    rdbufWarning = false;
 }
 
 void PlayAudio::pause(bool flg)
@@ -104,10 +104,16 @@ void PlayAudio::pause(bool flg)
 
 void PlayAudio::stop()
 {
-    if (playing) { f_close(&fil); }
-
+    // stop playing at first to avoid blank noise
+    bool wasPlaying = playing;
     playing = false;
     paused = false;
+
+    // it takes some time to stop ReadBuffer due to secondary buffer
+    if (wasPlaying) {
+        rdbuf->reqBind(&fil, false);
+        f_close(&fil);
+    }
 }
 
 bool PlayAudio::isPlaying()
@@ -216,8 +222,20 @@ void PlayAudio::decode()
 
     #ifdef DEBUG_PLAYAUDIO
     uint32_t time = to_ms_since_boot(get_absolute_time()) - start;
-    printf("AUDIO::decode %d ms\n", time);
+    printf("AUDIO::decode %d ms\r\n", time);
     #endif // DEBUG_PLAYAUDIO
+}
+
+bool PlayAudio::isMuteCondition()
+{
+    if (!playing || paused) { return true; }
+    if (!rdbufWarning && rdbuf->isNearEmpty()) {
+        rdbufWarning = true;
+        printf("AUDIO::rdbuf near empty. insert instant mute\r\n");
+    } else if (rdbufWarning && rdbuf->isFull()) {
+        rdbufWarning = false;
+    }
+    return rdbufWarning;
 }
 
 uint32_t PlayAudio::elapsedMillis()
