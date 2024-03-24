@@ -6,10 +6,10 @@
 RPi_Pico_WAV_Player is Hi-Res WAV player for Raspberry Pi Pico.
 
 This project features:
-* Playback for Hi-Res WAV format
-  * Mono/Stereo channels
+* Playback up to Hi-Res WAV format
+  * Channel: Mono, Stereo
   * Bit resolution: 16bit, 24bit
-  * Sampling frequency: up to 192 KHz
+  * Sampling frequency: 44.1KHz, 88.2KHz, 96KHz, 176.4KHz, 192KHz
 * SD Card interface (exFAT supported)
 * 160x80 LCD display
 * UI Control by 3 GPIO buttons or Headphone Remote Control Buttons
@@ -163,3 +163,25 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 ### Cover Art File
 * Put JPEG file on same folder where WAV files are located
 * File Format: JPEG format (Progressive JPEG not supported)
+
+## Volume
+* The volume function applies the gain less than 0dB against 32bit audio DAC.
+* To preserve the original lineality with the best performance of the audio DAC, playing with volume `100` is desirable.
+* For 16bit WAV, the number of resolution steps will be maintained theoritically at any volume values except for `0`.
+* For 24bit WAV, the number of resolution steps will be spoiled if applying the volume less than `34`.
+* For 32bit (int) WAV, the number of resolution steps will be spoiled if applying the volume less than `100`.
+
+## microSD card
+### Card recommendation for Hi-Res playing
+* Due to the limitation of single bit SPI interface driven by Raspberry Pi Pico, higher class SD-XC microSD cards (as of 2024) should be desirable for playing 24bit 192.0 KHz WAV files. In case of lack of card reading speed for playing, instant mute will be inserted while playing and the warning message will be displayed on serial terminal.
+* Format micorSD card in exFAT with [official SD Card Formatter](https://www.sdcard.org/downloads/formatter/) before usage. 
+
+| # | Vendor | Product Name | Part Number | Comment |
+----|----|----|----|----
+| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Enough margin for 24bit 192KHz playing|
+| 2 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Less margin for 24bit 192KHz playing, but it looks still okay. |
+
+<img src="doc/samsung-pro-plus-256gb.jpg" width="80" />  <img src="doc/sandisk-extreme-pro-256gb.jpg" width="80" />
+
+### Card trouble shooting
+* In case of card mount error or fundamental access errors, please confirm with FatFs test (lib/pico_fatfs/test).
