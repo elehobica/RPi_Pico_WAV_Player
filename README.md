@@ -1,4 +1,4 @@
-# RPi_Pico_WAV_Player
+# Hi-Res WAV player for Raspberry Pi Pico
 ![Scene3_5](doc/RPi_Pico_WAV_Player_Scene3_5.jpg)
 ![Scene2](doc/RPi_Pico_WAV_Player_Scene2.jpg)
 
@@ -165,23 +165,29 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * File Format: JPEG format (Progressive JPEG not supported)
 
 ## Volume
-* The volume function applies the gain less than 0dB against 32bit audio DAC.
-* To preserve the original lineality with the best performance of the audio DAC, playing with volume `100` is desirable.
+* The volume function applies the scale factor less than x1.0 to 32bit normalized sampling data / channel, which is sent to 32bit audio DAC.
+* To preserve the original linearity with the best quality of the audio DAC, playing with volume `100` is desirable.
 * For 16bit WAV, the number of resolution steps will be maintained theoritically at any volume values except for `0`.
 * For 24bit WAV, the number of resolution steps will be spoiled if applying the volume less than `34`.
 * For 32bit (int) WAV, the number of resolution steps will be spoiled if applying the volume less than `100`.
 
 ## microSD card
-### Card recommendation for Hi-Res playing
-* Due to the limitation of single bit SPI interface driven by Raspberry Pi Pico, higher class SD-XC microSD cards (as of 2024) should be desirable for playing 24bit 192.0 KHz WAV files. In case of lack of card reading speed for playing, instant mute will be inserted while playing and the warning message will be displayed on serial terminal.
+### Card selection for Hi-Res playing
+* The read speed stability is needed for playing Hi-Res WAV such as 24bit 192.0 KHz. In this project, the read operation is done by single bit SPI interface, which gives more severe limiation to the actual read speed perfomance compared to the nominal performance of the card.
+* In case of lack of card reading speed for playing, instant mute will be inserted while playing and the warning message will be displayed on serial terminal.
+* The read speed stability in this project is not always propotional to the maximum performance of the card, therefore, it is worth trying other grade/vendor's card if facing at read speed stability problem.
 * Format micorSD card in exFAT with [official SD Card Formatter](https://www.sdcard.org/downloads/formatter/) before usage. 
+* Following table is the reference of recommendation order. Comments are about the buffer margin for playing.
 
 | # | Vendor | Product Name | Part Number | Comment |
 ----|----|----|----|----
-| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Enough margin for 24bit 192KHz playing|
-| 2 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Less margin for 24bit 192KHz playing, but it looks still okay. |
+| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Fine with 32bit(int) 192KHz playing. Pretty fine with 24bit 192KHz playing |
+| 1 | Kioxia | Exceria G2 256GB | LMEX2L256GG2 | Fine with 32bit(int) 192KHz playing. Pretty fine with 24bit 192KHz playing |
+| 3 | Samsung | EVO Plus 256GB | MB-MC256KA | Pretty fine with 24bit 192KHz playing |
+| 4 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Fine with 24bit 192KHz playing |
+| 4 | SanDisk | Ultra 256GB | SDSQUAC-256G-GN6MN | Fine with 24bit 192KHz playing |
 
-<img src="doc/samsung-pro-plus-256gb.jpg" width="80" />  <img src="doc/sandisk-extreme-pro-256gb.jpg" width="80" />
+<img src="doc/Samsung-MB-MD256SA.jpg" width="80" />  <img src="doc/Kioxia-LMEX2L256GG2.jpg" width="80" />  <img src="doc/Samsung-MB-MC256KA.jpg" width="80" />  <img src="doc/Sandisk-SDSQXCD-256G-GN6MA.jpg" width="80" />  <img src="doc/Sandisk-SDSQUAC-256G-GN6MN.jpg" width="80" />
 
 ### Card trouble shooting
 * In case of card mount error or fundamental access errors, please confirm with FatFs test (lib/pico_fatfs/test).
