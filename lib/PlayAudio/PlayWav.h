@@ -20,6 +20,8 @@ public:
     ~PlayWav();
     uint32_t totalMillis();
 protected:
+    static constexpr uint16_t FMT_PCM   = 1;
+    static constexpr uint16_t FMT_FLOAT = 3;
     static PlayWav* g_inst;
     uint32_t dataSize;
     uint16_t blockBytes;
