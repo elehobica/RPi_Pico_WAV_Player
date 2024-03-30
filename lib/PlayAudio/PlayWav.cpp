@@ -66,6 +66,9 @@ void PlayWav::setBufPos(size_t fpos)
 {
     skipToDataChunk();
     PlayAudio::setBufPos(fpos);
+    accum[0] = 0;
+    accum[1] = 0;
+    accumCount = 0;
 }
 
 void PlayWav::decode()
@@ -87,7 +90,6 @@ void PlayWav::decode()
 
     int32_t* samples = reinterpret_cast<int32_t*>(buffer->buffer->bytes);
     const uint8_t* buf = rdbuf->buf();
-    uint32_t accum[2] = {};
     buffer->sample_count = std::min(static_cast<uint32_t>(rdbuf->getLeft()/blockBytes), buffer->max_sample_count);
     for (int i = 0; i < buffer->sample_count; i++, buf += blockBytes) {
         for (int j = 0; j < 2; j++) {
@@ -101,12 +103,18 @@ void PlayWav::decode()
                 default: buf_s32 = 0; break;
             }
             samples[i*2+j] = static_cast<int32_t>((static_cast<int64_t>(buf_s32) * vol_table[volume] / 65536)) + DAC_ZERO;
-            accum[j] += (buf_s32/65536) * (buf_s32/65536) / 32768;
+            accum[j] += (buf_s32/65536) * (buf_s32/65536) / 32768 * 44100 / sampFreq;  // normalized to 44100 Hz's level
         }
+        accumCount++;
     }
     give_audio_buffer(ap, buffer);
     incSamplesPlayed(buffer->sample_count);
-    setLevelInt(accum[0] / buffer->sample_count, accum[1] / buffer->sample_count);
+    if (accumCount >= 576 * sampFreq / 44100) {  // normalized to 44100 Hz's timing
+        setLevelInt(accum[0] / buffer->sample_count, accum[1] / buffer->sample_count);
+        accum[0] = 0;
+        accum[1] = 0;
+        accumCount = 0;
+    }
     rdbuf->shift(buffer->sample_count*blockBytes);
     if (rdbuf->getLeft()/channels/blockBytes == 0) { stop(); }
 
