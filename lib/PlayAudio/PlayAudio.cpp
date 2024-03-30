@@ -4,19 +4,19 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include "PlayAudio.h"
+
 #include <cstdio>
 #include "pico/stdlib.h"
-#include "PlayAudio.h"
+#include "ReadBuffer.h"
 
 //#define DEBUG_PLAYAUDIO
 
-spin_lock_t *PlayAudio::spin_lock = nullptr;
-audio_buffer_pool_t *PlayAudio::ap = nullptr;
-ReadBuffer *PlayAudio::rdbuf = nullptr;
-int16_t PlayAudio::buf_s16[SAMPLES_PER_BUFFER*2];
+spin_lock_t* PlayAudio::spin_lock = nullptr;
+audio_buffer_pool_t* PlayAudio::ap = nullptr;
 uint8_t PlayAudio::volume = 65;
 
-const uint32_t PlayAudio::vol_table[101] = {
+const int32_t PlayAudio::vol_table[101] = {
     0, 4, 8, 12, 16, 20, 24, 27, 29, 31,
     34, 37, 40, 44, 48, 52, 57, 61, 67, 73,
     79, 86, 94, 102, 111, 120, 131, 142, 155, 168,
@@ -33,15 +33,13 @@ const uint32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
-    ap = audio_init();
-    rdbuf = new ReadBuffer(RDBUF_SIZE, RDBUF_SIZE/4); // auto fill if left is lower than RDBUF_SIZE/4
+    i2s_setup(44100, ap);  // default 44.1 KHz
 }
 
 void PlayAudio::finalize()
 {
     spin_lock_unclaim(spin_lock_get_num(spin_lock));
-    audio_deinit();
-    delete rdbuf;
+    i2s_audio_deinit();
 }
 
 void PlayAudio::volumeUp()
@@ -64,10 +62,11 @@ uint8_t PlayAudio::getVolume()
     return volume;
 }
 
-PlayAudio::PlayAudio() : playing(false), paused(false), 
-    channels(2), sampRateHz(44100), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
-    samplesPlayed(0), levelL(0.0), levelR(0.0)
+PlayAudio::PlayAudio() : playing(false), paused(false), rdbufWarning(false),
+    channels(2), sampFreq(0), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
+    samplesPlayed(0), reinitI2s(false), levelL(0.0), levelR(0.0)
 {
+    rdbuf = ReadBuffer::getInstance();
 }
 
 PlayAudio::~PlayAudio()
@@ -79,20 +78,24 @@ void PlayAudio::setBufPos(size_t fpos)
     if (fpos > 0) {
         rdbuf->seek(fpos);
     }
+    if (reinitI2s) {
+        i2s_setup(sampFreq, ap);
+        reinitI2s = false;
+    }
 }
 
-void PlayAudio::play(const char *filename, size_t fpos, uint32_t samplesPlayed)
+void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
 {
     FRESULT fr;
-	fr = f_open(&fil, (TCHAR *) filename, FA_READ);
-    rdbuf->bind(&fil);
-
+    fr = f_open(&fil, (TCHAR *) filename, FA_READ);
+    rdbuf->reqBind(&fil);
     setBufPos(fpos);
     setSamplesPlayed(samplesPlayed);
 
     // Don't manipulate rdbuf after playing = true because decode callback handles it
     playing = true;
     paused = false;
+    rdbufWarning = false;
 }
 
 void PlayAudio::pause(bool flg)
@@ -102,10 +105,16 @@ void PlayAudio::pause(bool flg)
 
 void PlayAudio::stop()
 {
-    if (playing) { f_close(&fil); }
-
+    // stop playing at first to avoid blank noise
+    bool wasPlaying = playing;
     playing = false;
     paused = false;
+
+    // it takes some time to stop ReadBuffer due to secondary buffer
+    if (wasPlaying) {
+        rdbuf->reqBind(&fil, false);
+        f_close(&fil);
+    }
 }
 
 bool PlayAudio::isPlaying()
@@ -118,17 +127,17 @@ bool PlayAudio::isPaused()
     return paused;
 }
 
-uint16_t PlayAudio::getU16LE(const char *ptr)
+uint16_t PlayAudio::getU16LE(const char* ptr)
 {
     return ((uint16_t) ptr[1] << 8) + ((uint16_t) ptr[0]);
 }
 
-uint32_t PlayAudio::getU32LE(const char *ptr)
+uint32_t PlayAudio::getU32LE(const char* ptr)
 {
     return ((uint32_t) ptr[3] << 24) + ((uint32_t) ptr[2] << 16) + ((uint32_t) ptr[1] << 8) + ((uint32_t) ptr[0]);
 }
 
-uint32_t PlayAudio::getU28BE(const char *ptr)
+uint32_t PlayAudio::getU28BE(const char* ptr)
 {
     return (((uint32_t) ptr[0] & 0x7f) << 21) + (((uint32_t) ptr[1] & 0x7f) << 14) + (((uint32_t) ptr[2] & 0x7f) << 7) + (((uint32_t) ptr[3] & 0x7f));
 }
@@ -191,19 +200,18 @@ void PlayAudio::setLevelInt(uint32_t levelIntL, uint32_t levelIntR)
 
 void PlayAudio::decode()
 {
+    if (ap == nullptr) { return; }
+
     // Performs Audio Mute
 
-    audio_buffer_t *buffer;
+    audio_buffer_t* buffer;
     if ((buffer = take_audio_buffer(ap, false)) == nullptr) { return; }
 
     #ifdef DEBUG_PLAYAUDIO
-    {
-        uint32_t time = to_ms_since_boot(get_absolute_time());
-        printf("AUDIO::decode start at %d ms\n", time);
-    }
+    uint32_t start = to_ms_since_boot(get_absolute_time());
     #endif // DEBUG_PLAYAUDIO
 
-    int32_t *samples = (int32_t *) buffer->buffer->bytes;
+    int32_t* samples = (int32_t *) buffer->buffer->bytes;
     buffer->sample_count = buffer->max_sample_count;
     for (int i = 0; i < buffer->sample_count; i++) {
         samples[i*2+0] = DAC_ZERO;
@@ -214,19 +222,29 @@ void PlayAudio::decode()
     levelR = 0.0;
 
     #ifdef DEBUG_PLAYAUDIO
-    {
-        uint32_t time = to_ms_since_boot(get_absolute_time());
-        printf("AUDIO::decode end   at %d ms\n", time);
-    }
+    uint32_t time = to_ms_since_boot(get_absolute_time()) - start;
+    printf("AUDIO::decode %d ms\r\n", time);
     #endif // DEBUG_PLAYAUDIO
+}
+
+bool PlayAudio::isMuteCondition()
+{
+    if (!playing || paused) { return true; }
+    if (!rdbufWarning && rdbuf->isNearEmpty()) {
+        rdbufWarning = true;
+        printf("AUDIO::rdbuf near empty. insert instant mute\r\n");
+    } else if (rdbufWarning && rdbuf->isFull()) {
+        rdbufWarning = false;
+    }
+    return rdbufWarning;
 }
 
 uint32_t PlayAudio::elapsedMillis()
 {
-    return (uint32_t) ((uint64_t) getSamplesPlayed() * 1000 / sampRateHz);
+    return static_cast<uint32_t>((static_cast<uint64_t>(getSamplesPlayed()) * 1000 / sampFreq));
 }
 
-void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
+void PlayAudio::getCurrentPosition(size_t* fpos, uint32_t* samplesPlayed)
 {
     if (playing) {
         *fpos = rdbuf->tell();
@@ -237,7 +255,7 @@ void PlayAudio::getCurrentPosition(size_t *fpos, uint32_t *samplesPlayed)
     }
 }
 
-void PlayAudio::getLevel(float *levelL, float *levelR)
+void PlayAudio::getLevel(float* levelL, float* levelR)
 {
     uint32_t save = spin_lock_blocking(spin_lock);
     *levelL = this->levelL;

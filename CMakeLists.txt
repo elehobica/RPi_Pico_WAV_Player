@@ -15,7 +15,7 @@ add_subdirectory(lib/pico_fatfs)
 add_subdirectory(lib/file_menu)
 add_subdirectory(lib/picojpeg)
 add_subdirectory(lib/LcdElementBox)
-add_subdirectory(lib/pico_audio_32b)
+add_subdirectory(lib/pico_audio_i2s_32b/src/pico_audio_32b)
 add_subdirectory(lib/pico_audio_i2s_32b)
 add_subdirectory(lib/pico_stdio_usb_revised)
 add_subdirectory(lib/PlayAudio)
@@ -43,8 +43,10 @@ target_link_libraries(${bin_name}
         hardware_pwm
         hardware_flash
         hardware_adc
+        hardware_exception
         hardware_watchdog
         pico_stdlib
+        pico_flash
         pico_stdio_uart
         pico_stdio_usb_revised
         pico_fatfs

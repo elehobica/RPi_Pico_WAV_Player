@@ -6,7 +6,7 @@
 
 #include "PlayNone.h"
 
-PlayNone *PlayNone::g_inst = nullptr;
+PlayNone* PlayNone::g_inst = nullptr;
 
 void PlayNone::decode_func()
 {

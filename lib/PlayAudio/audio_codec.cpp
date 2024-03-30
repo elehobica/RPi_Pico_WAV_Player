@@ -10,15 +10,15 @@
 #include "PlayWav.h"
 #include "audio_codec.h"
 
-static PlayAudio *playAudio_ary[2] = {};
+static PlayAudio* playAudio_ary[2] = {};
 static void (*decode_func_ary[2])() = {};
 static PlayAudio::audio_codec_t cur_audio_codec = PlayAudio::AUDIO_CODEC_NONE;
 
 void audio_codec_init()
 {
     PlayAudio::initialize();
-    playAudio_ary[PlayAudio::AUDIO_CODEC_NONE] = (PlayAudio *) new PlayNone();
-    playAudio_ary[PlayAudio::AUDIO_CODEC_WAV]  = (PlayAudio *) new PlayWav();
+    playAudio_ary[PlayAudio::AUDIO_CODEC_NONE] = static_cast<PlayAudio*>(new PlayNone());
+    playAudio_ary[PlayAudio::AUDIO_CODEC_WAV]  = static_cast<PlayAudio*>(new PlayWav());
     decode_func_ary[PlayAudio::AUDIO_CODEC_NONE] = PlayNone::decode_func;
     decode_func_ary[PlayAudio::AUDIO_CODEC_WAV]  = PlayWav::decode_func;
     cur_audio_codec = PlayAudio::AUDIO_CODEC_NONE;
@@ -31,12 +31,12 @@ void audio_codec_deinit()
     delete playAudio_ary[PlayAudio::AUDIO_CODEC_WAV];
 }
 
-PlayAudio *get_audio_codec()
+PlayAudio* get_audio_codec()
 {
     return playAudio_ary[cur_audio_codec];
 }
 
-PlayAudio *set_audio_codec(PlayAudio::audio_codec_t audio_codec)
+PlayAudio* set_audio_codec(PlayAudio::audio_codec_t audio_codec)
 {
     cur_audio_codec = audio_codec;
     return get_audio_codec();

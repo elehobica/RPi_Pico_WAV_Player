@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+* Support Hi-Res WAV up to 24bit / 192KHz
+* Support Mono WAV
 
+### Changed
+* Use submodule for pico_audio_i2s_32b library
 
 ## [v0.9.3] - 2024-03-06
 ### Fixed
@@ -40,8 +45,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 * No hardware modification needed in Raspberry Pi Pico board
-- External circuit around battery charger revised to be compliant to pico-datasheet.pdf
-- Use built-in battery voltage check circuit (static battery check) as default
+  * External circuit around battery charger revised to be compliant to pico-datasheet.pdf
+  * Use built-in battery voltage check circuit (static battery check) as default
 * Increase display charactor length of title, artist and album. add measure to prevent buffer overflow
 * Remove GPIO center button and integrated into GP26 ADC level detection to detect wake up trigger
 
