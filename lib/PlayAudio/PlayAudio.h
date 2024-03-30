@@ -53,7 +53,7 @@ protected:
     bool paused;
     bool rdbufWarning;
     uint16_t channels;
-    i2s_samp_freq_t sampFreq;
+    uint32_t sampFreq;
     uint16_t bitRateKbps;
     uint16_t bitsPerSample;
     uint32_t samplesPlayed;

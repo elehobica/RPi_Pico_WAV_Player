@@ -33,7 +33,7 @@ const int32_t PlayAudio::vol_table[101] = {
 void PlayAudio::initialize()
 {
     spin_lock = spin_lock_init(spin_lock_claim_unused(true));
-    i2s_setup(SAMP_FREQ_44100, ap);  // default 44.1 KHz
+    i2s_setup(44100, ap);  // default 44.1 KHz
 }
 
 void PlayAudio::finalize()
@@ -63,7 +63,7 @@ uint8_t PlayAudio::getVolume()
 }
 
 PlayAudio::PlayAudio() : playing(false), paused(false), rdbufWarning(false),
-    channels(2), sampFreq(SAMP_FREQ_NONE), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
+    channels(2), sampFreq(0), bitRateKbps(44100*16*2/1000), bitsPerSample(16),
     samplesPlayed(0), reinitI2s(false), levelL(0.0), levelR(0.0)
 {
     rdbuf = ReadBuffer::getInstance();
@@ -241,7 +241,7 @@ bool PlayAudio::isMuteCondition()
 
 uint32_t PlayAudio::elapsedMillis()
 {
-    return static_cast<uint32_t>((static_cast<uint64_t>(getSamplesPlayed()) * 1000 / static_cast<uint32_t>(sampFreq)));
+    return static_cast<uint32_t>((static_cast<uint64_t>(getSamplesPlayed()) * 1000 / sampFreq));
 }
 
 void PlayAudio::getCurrentPosition(size_t* fpos, uint32_t* samplesPlayed)

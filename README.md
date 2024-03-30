@@ -9,7 +9,7 @@ This project features:
 * Playback up to Hi-Res WAV format
   * Channel: Mono, Stereo
   * Bit resolution: 16bit, 24bit
-  * Sampling frequency: 44.1KHz, 88.2KHz, 96KHz, 176.4KHz, 192KHz
+  * Sampling frequency: 44.1KHz, 48KHz, 88.2KHz, 96KHz, 176.4KHz, 192KHz
 * SD Card interface (exFAT supported)
 * 160x80 LCD display
 * UI Control by 3 GPIO buttons or Headphone Remote Control Buttons

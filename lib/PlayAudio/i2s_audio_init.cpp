@@ -29,7 +29,7 @@ static audio_i2s_config_t i2s_config = {
     .pio_sm = 0
 };
 
-void i2s_setup(i2s_samp_freq_t samp_freq, audio_buffer_pool_t*& ap)
+void i2s_setup(uint32_t samp_freq, audio_buffer_pool_t*& ap)
 {
     printf("Samp Freq = %d Hz\n", static_cast<int>(samp_freq));
     if (_producer_pool != nullptr) {

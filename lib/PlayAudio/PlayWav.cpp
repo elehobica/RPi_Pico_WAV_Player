@@ -42,13 +42,13 @@ void PlayWav::skipToDataChunk()
             const char* chunk_id = buf + ofs;
             const uint32_t size = getU32LE(buf + ofs + 4);
             if (memcmp(chunk_id, "fmt ", 4) == 0) {
-                i2s_samp_freq_t sf;
-                format        = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4)); // format
-                channels      = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2)); // channels
-                sf            = static_cast<i2s_samp_freq_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2)); // samplerate
-                bitRateKbps   = static_cast<uint16_t>(       getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
-                blockBytes    = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4)); // blockBytes
-                bitsPerSample = static_cast<uint16_t>(       getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2)); // bitswidth
+                uint32_t sf;
+                format        = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4)); // format
+                channels      = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2)); // channels
+                sf            = static_cast<uint32_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2)); // samplerate
+                bitRateKbps   = static_cast<uint16_t>(getU32LE(buf + ofs + 4 + 4 + 2 + 2 + 4) /* bytepersec */ * 8 / 1000); // Kbps
+                blockBytes    = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4)); // blockBytes
+                bitsPerSample = static_cast<uint16_t>(getU16LE(buf + ofs + 4 + 4 + 2 + 2 + 4 + 4 + 2)); // bitswidth
                 reinitI2s = (sampFreq != sf);
                 sampFreq = sf;
             } else if (memcmp(chunk_id, "data", 4) == 0) {
@@ -121,7 +121,7 @@ void PlayWav::decode()
 uint32_t PlayWav::totalMillis()
 {
     return  std::max(
-        static_cast<uint32_t>(static_cast<uint64_t>(dataSize) * 1000 / (static_cast<uint32_t>(sampFreq) * channels * bitsPerSample/8)),
+        static_cast<uint32_t>(static_cast<uint64_t>(dataSize) * 1000 / (sampFreq * channels * bitsPerSample/8)),
         elapsedMillis()
     );
 }
