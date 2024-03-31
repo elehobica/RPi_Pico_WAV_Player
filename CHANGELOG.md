@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 * Use submodule for pico_audio_i2s_32b library
 
+### Fixed
+* Fix wrong track number when no TAG information in WAV file
+
 ## [v0.9.3] - 2024-03-06
 ### Fixed
 * Fix build error of "cannot find -lmy_pico_stdio_usb_headers"

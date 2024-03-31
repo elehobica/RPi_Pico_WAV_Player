@@ -811,7 +811,8 @@ void UIPlayMode::readTag()
         uint16_t track = atoi(str);
         sprintf(str, "%d/%d", track, vars->num_tracks);
     } else {
-        sprintf(str, "%d/%d", vars->idx_play, vars->num_tracks);
+        uint16_t track = file_menu_get_ext_num_from_max("wav", 3, vars->idx_play + 1) + file_menu_get_ext_num_from_max("WAV", 3, vars->idx_play +1);
+        sprintf(str, "%d/%d", track, vars->num_tracks);
     }
     lcd.setTrack(str);
     if (tag.getUTF8Title(str, sizeof(str) - 1)) {
