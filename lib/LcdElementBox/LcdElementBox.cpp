@@ -16,7 +16,7 @@
 // Implementation of ImageBox class
 //=================================
 ImageBox::ImageBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height, uint16_t bgColor)
-    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), width(width), height(height), bgColor(bgColor),
+    : isUpdated(true), _hasImage(false), pos_x(pos_x), pos_y(pos_y), width(width), height(height), bgColor(bgColor),
         image(NULL), img_w(width), img_h(height), align(center)
 {
     image = (uint16_t *) calloc(width * height, sizeof(uint16_t));
@@ -68,6 +68,7 @@ void ImageBox::setImageSize(int16_t img_w, int16_t img_h)
 {
     this->img_w = img_w;
     this->img_h = img_h;
+    _hasImage = true;
     update();
 }
 
@@ -78,7 +79,7 @@ void ImageBox::setPixel(int16_t x, int16_t y, uint16_t rgb565)
     image[img_w*y+x] = rgb565;
 }
 
-void ImageBox::clearBuf()
+void ImageBox::resetImage()
 {
     this->img_w = width;
     this->img_h = height;
@@ -87,6 +88,7 @@ void ImageBox::clearBuf()
             setPixel(x, y, bgColor);
         }
     }
+    _hasImage = false;
 }
 
 uint16_t ImageBox::getPixel(uint16_t x, uint16_t y, bool tiled)
@@ -98,6 +100,11 @@ uint16_t ImageBox::getPixel(uint16_t x, uint16_t y, bool tiled)
     } else {
         return (uint16_t) 0x0000;
     }
+}
+
+bool ImageBox::hasImage()
+{
+    return _hasImage;
 }
 
 //=================================

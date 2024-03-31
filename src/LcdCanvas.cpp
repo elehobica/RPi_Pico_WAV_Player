@@ -188,50 +188,18 @@ void LcdCanvas::drawPlay()
     for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
         groupPlay[i]->draw();
     }
-    if (play_count % play_cycle < play_change/* || albumArt.getCount() == 0*/) { // Play mode 0 display
+    if (play_count % play_cycle < play_change || !image.hasImage()) { // Play mode 0 display
         for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
             groupPlay0[i]->draw();
         }
-        /*
-        if (albumArt.getCount() == 0) {
-            msg.setText("No Image");
-        } else if (play_count == 0 && albumArt.getCount() > 0) {
-            if (albumArt.loadNext()) {
-                msg.setText("");
-            } else {
-                msg.setText("Not Supported Image");
-            }
-            #ifdef USE_ALBUM_ART_SMALL
-            if (albumArtSmall.loadNext()) {
-                msg.setText("");
-            } else {
-                msg.setText("Not Supported Image");
-            }
-            #endif // #ifdef USE_ALBUM_ART_SMALL
-        } else *///if (play_count % play_cycle == play_change-1 && albumArt.getCount() > 0) { // Play mode 0 -> 1
-        if (play_count % play_cycle == play_change-1) {
+        if (play_count % play_cycle == play_change-1 && image.hasImage()) { // Play mode 0 -> 1
             clear(false);
             for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
                 groupPlay[i]->update();
             }
-            /*
-            for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
-                groupPlay0[i]->clear();
-            }
-            */
             for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
                 groupPlay1[i]->update();
             }
-            /*
-            if (albumArt.getCount() > 1) {
-                albumArt.clear();
-                if (albumArt.loadNext()) {
-                    msg.setText("");
-                } else {
-                    msg.setText("Not Supported Image");
-                }
-            }
-            */
         }
     } else { // Play mode 1 display
         for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
@@ -242,11 +210,6 @@ void LcdCanvas::drawPlay()
             for (int i = 0; i < (int) (sizeof(groupPlay)/sizeof(*groupPlay)); i++) {
                 groupPlay[i]->update();
             }
-            /*
-            for (int i = 0; i < (int) (sizeof(groupPlay1)/sizeof(*groupPlay1)); i++) {
-                groupPlay1[i]->clear();
-            }
-            */
             for (int i = 0; i < (int) (sizeof(groupPlay0)/sizeof(*groupPlay0)); i++) {
                 groupPlay0[i]->update();
             }
@@ -272,6 +235,11 @@ void LcdCanvas::setImageJpeg(const char *filename)
     imgFit.getSizeAfterFit(&w, &h);
     image.setImageSize(w, h);
     image.update();
+}
+
+void LcdCanvas::resetImage()
+{
+    image.resetImage();
 }
 
 void LcdCanvas::setMsg(const char *str, bool blink)

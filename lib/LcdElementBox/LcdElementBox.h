@@ -64,10 +64,12 @@ public:
 	void getImagePtr(uint16_t **img_ptr, uint16_t *width, uint16_t *height);
 	void setImageSize(int16_t img_w, int16_t img_h);
 	void setPixel(int16_t x, int16_t y, uint16_t rgb565);
-	void clearBuf();
+	void resetImage();
 	uint16_t getPixel(uint16_t x, uint16_t y, bool tiled = false);
+	bool hasImage();
 protected:
 	bool isUpdated;
+	bool _hasImage;
 	int16_t pos_x, pos_y;
 	uint16_t width, height; // ImageBox dimension
 	uint16_t bgColor;

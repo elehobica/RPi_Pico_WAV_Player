@@ -746,51 +746,6 @@ UIMode* UIPlayMode::update()
     return this;
 }
 
-#if 0
-audio_codec_enm_t UIPlayMode::getAudioCodec(MutexFsBaseFile* f)
-{
-    audio_codec_enm_t audio_codec_enm = CodecNone;
-    bool flg = false;
-    int ofs = 0;
-    char str[256];
-    memset(str, 0, sizeof(str));
-
-    while (vars->idx_play + ofs < file_menu_get_num()) {
-        file_menu_get_obj(vars->idx_play + ofs, f);
-        f->getName(str, sizeof(str) - 1);
-        char* ext_pos = strrchr(str, '.');
-        if (ext_pos) {
-            if (strncmp(ext_pos, ".mp3", 4) == 0 || strncmp(ext_pos, ".MP3", 4) == 0) {
-                audio_codec_enm = CodecMp3;
-                flg = true;
-                break;
-            } else if (strncmp(ext_pos, ".wav", 4) == 0 || strncmp(ext_pos, ".WAV", 4) == 0) {
-                audio_codec_enm = CodecWav;
-                flg = true;
-                break;
-            } else if (strncmp(ext_pos, ".m4a", 4) == 0 || strncmp(ext_pos, ".M4A", 4) == 0) {
-                audio_codec_enm = CodecAac;
-                flg = true;
-                break;
-            } else if (strncmp(ext_pos, ".flac", 5) == 0 || strncmp(ext_pos, ".FLAC", 5) == 0) {
-                audio_codec_enm = CodecFlac;
-                flg = true;
-                break;
-            }
-        }
-        ofs++;
-    }
-    if (flg) {
-        file_menu_get_fname_UTF16(vars->idx_play + ofs, (char16_t*) str, sizeof(str)/2);
-        Serial.println(utf16_to_utf8((const char16_t*) str).c_str());
-        vars->idx_play += ofs;
-    } else {
-        vars->idx_play = 0;
-    }
-    return audio_codec_enm;
-}
-#endif
-
 void UIPlayMode::readTag()
 {
     char str[256];
@@ -831,45 +786,20 @@ void UIPlayMode::readTag()
 
     if (loadImage) {
         uint16_t idx = 0;
+        bool loaded = false;
         while (idx < file_menu_get_num()) {
             if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) ||
                 file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
                 file_menu_get_fname(idx, str, sizeof(str) - 1);
                 lcd.setImageJpeg(str);
+                loaded = true;
                 break;
             }
             idx++;
         }
+        if (!loaded) { lcd.resetImage(); }
     }
     return;
-
-    #if 0
-    // copy TAG image
-    //lcd.deleteAlbumArt();
-    for (int i = 0; i < tag.getPictureCount(); i++) {
-        if (tag.getPicturePos(i, &mime, &ptype, &img_pos, &size, &is_unsync)) {
-            if (mime == jpeg) { /*lcd.addAlbumArtJpeg(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
-            else if (mime == png) { /*lcd.addAlbumArtPng(vars->idx_play, img_pos, size, is_unsync); */img_cnt++; }
-        }
-    }
-    // if no AlbumArt in TAG, use JPEG or PNG in current folder
-    if (img_cnt == 0) {
-        uint16_t idx = 0;
-        while (idx < file_menu_get_num()) {
-            if (file_menu_match_ext(idx, "jpg", 3) || file_menu_match_ext(idx, "JPG", 3) || 
-                file_menu_match_ext(idx, "jpeg", 4) || file_menu_match_ext(idx, "JPEG", 4)) {
-                file_menu_get_fname(idx, str, sizeof(str) - 1);
-                printf("JPEG %s\n", str);
-                //lcd.addAlbumArtJpeg(idx, 0, f.fileSize());
-                img_cnt++;
-            } else if (file_menu_match_ext(idx, "png", 3) || file_menu_match_ext(idx, "PNG", 3)) {
-                //ilcd.addAlbumArtPng(idx, 0, f.fileSize());
-                img_cnt++;
-            }
-            idx++;
-        }
-    }
-    #endif
 }
 
 void UIPlayMode::play()
