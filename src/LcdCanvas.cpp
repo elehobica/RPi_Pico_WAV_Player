@@ -6,12 +6,11 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
+#include "LcdCanvas.h"
+
 #include <cstdio>
 #include <cstring>
-#include "LcdCanvas.h"
 #include "ImageFitter.h"
-#include "lcd_extra.h"
-//#include "fonts/iconfont.h"
 
 //=================================
 // Implementation of BatteryIconBox class
@@ -43,28 +42,77 @@ void BatteryIconBox::setLevel(uint8_t value)
 //=================================
 // Implementation of LcdCanvas class
 //=================================
-LcdCanvas LcdCanvas::_instance; // Singleton
-
-LcdCanvas& LcdCanvas::instance()
+void LcdCanvas::configureLcd(uint cfg_id)
 {
-    return _instance;
-}
-
-LcdCanvas::LcdCanvas()
-{
-#if defined(USE_ST7735S_160x80)
+    pico_st7735_80x160_config_t lcd_cfg[3] = {
+        {
+            SPI_CLK_FREQ_DEFAULT,
+            spi1,
+            PIN_LCD_SPI1_CS_DEFAULT,
+            PIN_LCD_SPI1_SCK_DEFAULT,
+            PIN_LCD_SPI1_MOSI_DEFAULT,
+            PIN_LCD_DC_DEFAULT,
+            PIN_LCD_RST_DEFAULT,
+            PIN_LCD_BLK_DEFAULT,
+            PWM_BLK_DEFAULT,
+            INVERSION_DEFAULT,  // 0: non-color-inversion, 1: color-inversion
+            RGB_ORDER_DEFAULT,  // 0: RGB, 1: BGR
+            ROTATION_DEFAULT,
+            H_OFS_DEFAULT,
+            V_OFS_DEFAULT,
+            X_MIRROR_DEFAULT
+        },
+        {
+            SPI_CLK_FREQ_DEFAULT,
+            spi1,
+            PIN_LCD_SPI1_CS_DEFAULT,
+            PIN_LCD_SPI1_SCK_DEFAULT,
+            PIN_LCD_SPI1_MOSI_DEFAULT,
+            PIN_LCD_DC_DEFAULT,
+            PIN_LCD_RST_DEFAULT,
+            PIN_LCD_BLK_DEFAULT,
+            PWM_BLK_DEFAULT,
+            0,  //INVERSION_DEFAULT,  // 0: non-color-inversion, 1: color-inversion
+            RGB_ORDER_DEFAULT,  // 0: RGB, 1: BGR
+            ROTATION_DEFAULT,
+            0,  //H_OFS_DEFAULT,
+            24,  //V_OFS_DEFAULT
+            X_MIRROR_DEFAULT
+        },
+        {
+            SPI_CLK_FREQ_DEFAULT,
+            spi1,
+            PIN_LCD_SPI1_CS_DEFAULT,
+            PIN_LCD_SPI1_SCK_DEFAULT,
+            PIN_LCD_SPI1_MOSI_DEFAULT,
+            PIN_LCD_DC_DEFAULT,
+            PIN_LCD_RST_DEFAULT,
+            PIN_LCD_BLK_DEFAULT,
+            PWM_BLK_DEFAULT,
+            INVERSION_DEFAULT,  // 0: non-color-inversion, 1: color-inversion
+            0,  //RGB_ORDER_DEFAULT,  // 0: RGB, 1: BGR
+            ROTATION_DEFAULT,
+            H_OFS_DEFAULT,
+            V_OFS_DEFAULT,
+            1  //X_MIRROR_DEFAULT
+        }
+    };
+    if (cfg_id < sizeof(lcd_cfg) / sizeof(pico_st7735_80x160_config_t)) {
+        LCD_Config(&lcd_cfg[cfg_id]);
+    }
     LCD_Init();
     LCD_Clear(BLACK);
     BACK_COLOR=BLACK;
-#endif
-
-    // ListView parts (nothing to set here)
-
-    // Play parts (nothing to set here)
 }
 
-LcdCanvas::~LcdCanvas()
+LcdCanvas& LcdCanvas::instance()
 {
+    // since LcdCanvas refers to LCD_H(), LCD_V() in its initialization, the instance must be generated dynamically after LCD initialization
+    static LcdCanvas* _instance = nullptr; // Singleton
+    if (_instance == nullptr) {
+        _instance = new LcdCanvas();
+    }
+    return *_instance;
 }
 
 void LcdCanvas::switchToOpening()

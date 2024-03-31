@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 * Support Hi-Res WAV up to 24bit / 192KHz
 * Support Mono WAV
+* Add Lcd Config in Config Menu
 
 ### Changed
 * Use submodule for pico_audio_i2s_32b library

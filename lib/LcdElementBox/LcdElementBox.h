@@ -6,8 +6,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#ifndef __LCDELEMENTBOX_H_INCLUDED__
-#define __LCDELEMENTBOX_H_INCLUDED__
+#pragma once
 
 #include "lcd_extra.h"
 
@@ -224,6 +223,3 @@ protected:
 	bool bgOpaque;
 	float level;
 };
-
-
-#endif // __LCDELEMENTBOX_H_INCLUDED__

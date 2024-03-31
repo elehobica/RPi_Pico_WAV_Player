@@ -6,8 +6,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef _UIMODE_H_
-#define _UIMODE_H_
+#pragma once
 
 #include "stack.h"
 #include "file_menu_FatFs.h"
@@ -72,12 +71,12 @@ class UIMode
 {
 public:
     static const int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
-    static void initialize(UIVars *vars);
-    UIMode(const char *name, ui_mode_enm_t ui_mode_enm);
+    static void initialize(UIVars* vars);
+    UIMode(const char* name, ui_mode_enm_t ui_mode_enm);
     virtual UIMode* update() = 0;
-    virtual void entry(UIMode *prevMode);
+    virtual void entry(UIMode* prevMode);
     virtual void draw() = 0;
-    const char *getName();
+    const char* getName();
     ui_mode_enm_t getUIModeEnm();
     uint16_t getIdleCount();
 protected:
@@ -89,11 +88,11 @@ protected:
     static const int OneSec = 1000 / UpdateCycleMs; // 1 Sec
     static const int OneMin = 60 * OneSec; // 1 Min
     static button_action_t btn_act;
-    static UIVars *vars;
-    static stack_t *dir_stack;
+    static UIVars* vars;
+    static stack_t* dir_stack;
     static ExitType exitType;
-    const char *name;
-    UIMode *prevMode;
+    const char* name;
+    UIMode* prevMode;
     ui_mode_enm_t ui_mode_enm;
     uint16_t idle_count;
     bool isAudioFile(uint16_t idx);
@@ -107,8 +106,10 @@ class UIInitialMode : public UIMode
 public:
     UIInitialMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
+protected:
+    void loadFromFlash();
 };
 
 //===================================
@@ -119,7 +120,7 @@ class UIChargeMode : public UIMode
 public:
     UIChargeMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
 };
 
@@ -131,10 +132,10 @@ class UIOpeningMode : public UIMode
 public:
     UIOpeningMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
 protected:
-    void loadFromFlash();
+    void restoreFromFlash();
 };
 
 //===================================
@@ -145,16 +146,16 @@ class UIFileViewMode : public UIMode
 public:
     UIFileViewMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
 protected:
-    uint16_t *sft_val;
+    uint16_t* sft_val;
     void listIdxItems();
     uint16_t getNumAudioFiles();
     void chdir();
-    UIMode *nextPlay();
-    UIMode *sequentialSearch(bool repeatFlg);
-    UIMode *randomSearch(uint16_t depth);
+    UIMode* nextPlay();
+    UIMode* sequentialSearch(bool repeatFlg);
+    UIMode* randomSearch(uint16_t depth);
     void findFirstAudioTrack();
     void idxInc();
     void idxDec();
@@ -171,12 +172,12 @@ class UIPlayMode : public UIMode
 public:
     UIPlayMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
 protected:
     bool loadImage;
     void play();
-    //audio_codec_enm_t getAudioCodec(MutexFsBaseFile *f);
+    //audio_codec_enm_t getAudioCodec(MutexFsBaseFile* f);
     void readTag();
 };
 
@@ -188,14 +189,14 @@ class UIConfigMode : public UIMode
 public:
     UIConfigMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
 protected:
-    stack_t *path_stack;
+    stack_t* path_stack;
     uint16_t idx_head;
     uint16_t idx_column;
     uint16_t getNum();
-    const char *getStr(uint16_t idx);
+    const char* getStr(uint16_t idx);
     uint8_t getIcon(uint16_t idx);
     void listIdxItems();
     void idxInc();
@@ -211,10 +212,8 @@ class UIPowerOffMode : public UIMode
 public:
     UIPowerOffMode();
     UIMode* update();
-    void entry(UIMode *prevMode);
+    void entry(UIMode* prevMode);
     void draw();
 protected:
     void storeToFlash();
 };
-
-#endif //_UIMODE_H_

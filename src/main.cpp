@@ -12,6 +12,7 @@
 #include "hardware/gpio.h"
 #include "power_manage.h"
 #include "ui_control.h"
+#include "lcd.h"
 
 const char *VersionStr = "0.9.3";
 

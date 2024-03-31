@@ -4,16 +4,12 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef _UI_CONTROL_H_
-#define _UI_CONTROL_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "pico/stdlib.h"
-#include "stack.h"
-#include "LcdCanvas.h"
 #include "UIMode.h"
 
 typedef enum _button_status_t {
@@ -29,10 +25,10 @@ typedef struct element {
     button_action_t button_action;
 } element_t;
 
-bool ui_get_btn_evt(button_action_t *btn_act);
+bool ui_get_btn_evt(button_action_t* btn_act);
 void ui_clear_btn_evt();
 
-UIMode *getUIMode(ui_mode_enm_t ui_mode_enm);
+UIMode* getUIMode(ui_mode_enm_t ui_mode_enm);
 
 void ui_init();
 ui_mode_enm_t ui_update();
@@ -43,5 +39,3 @@ uint32_t ui_set_center_switch_for_wakeup(bool flg);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // _UI_CONTROL_H_

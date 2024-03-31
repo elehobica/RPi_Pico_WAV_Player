@@ -75,6 +75,7 @@ namespace ConfigParam
         CFG_SAMPLES_PLAYED,
         CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,
         CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,
+        CFG_MENU_IDX_DISPLAY_LCD_CONFIG,
         CFG_MENU_IDX_DISPLAY_ROTATION,
         CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,
         CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,
@@ -164,13 +165,14 @@ namespace ConfigParam
             // type of CFG_MENU must be "CFG_UINT32_T" and default values indicates index of selection (see ConfigMenu.h)
             {CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,        "CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF",       CFG_UINT32_T,   4,  "0",    0x080,  nullptr},
             {CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,     "CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG",    CFG_UINT32_T,   4,  "1",    0x084,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_ROTATION,                 "CFG_MENU_IDX_DISPLAY_ROTATION",                CFG_UINT32_T,   4,  "0",    0x088,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,      "CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL",     CFG_UINT32_T,   4,  "7",    0x08c,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,     "CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL",    CFG_UINT32_T,   4,  "12",   0x090,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW,    "CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW",   CFG_UINT32_T,   4,  "1",    0x094,  nullptr},
-            {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,           "CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",          CFG_UINT32_T,   4,  "2",    0x098,  nullptr},
-            {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,             "CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",            CFG_UINT32_T,   4,  "1",    0x09c,  nullptr},
-            {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,            "CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",           CFG_UINT32_T,   4,  "1",    0x0a0,  nullptr},
+            {CFG_MENU_IDX_DISPLAY_LCD_CONFIG,               "CFG_MENU_IDX_DISPLAY_LCD_CONFIG",              CFG_UINT32_T,   4,  "0",    0x088,  nullptr},
+            {CFG_MENU_IDX_DISPLAY_ROTATION,                 "CFG_MENU_IDX_DISPLAY_ROTATION",                CFG_UINT32_T,   4,  "0",    0x08c,  nullptr},
+            {CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,      "CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL",     CFG_UINT32_T,   4,  "7",    0x090,  nullptr},
+            {CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,     "CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL",    CFG_UINT32_T,   4,  "12",   0x094,  nullptr},
+            {CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW,    "CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW",   CFG_UINT32_T,   4,  "1",    0x098,  nullptr},
+            {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,           "CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",          CFG_UINT32_T,   4,  "2",    0x09c,  nullptr},
+            {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,             "CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",            CFG_UINT32_T,   4,  "1",    0x0a0,  nullptr},
+            {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,            "CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",           CFG_UINT32_T,   4,  "1",    0x0a4,  nullptr},
         };
 
         ConfigParamClass();

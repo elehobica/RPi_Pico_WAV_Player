@@ -17,10 +17,11 @@
 
 #define GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF      (configMenu.getValue(0, 0))
 #define GET_CFG_MENU_GENERAL_TIME_TO_LEAVE_CONFIG   (configMenu.getValue(0, 1))
-#define GET_CFG_MENU_DISPLAY_ROTATION               (configMenu.getValue(1, 0))
-#define GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL    (configMenu.getValue(1, 1))
-#define GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL   (configMenu.getValue(1, 2))
-#define GET_CFG_MENU_DISPLAY_TIME_TO_BACKLIGHT_LOW  (configMenu.getValue(1, 3))
+#define GET_CFG_MENU_DISPLAY_LCD_CONFIG             (configMenu.getValue(1, 0))
+#define GET_CFG_MENU_DISPLAY_ROTATION               (configMenu.getValue(1, 1))
+#define GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL    (configMenu.getValue(1, 2))
+#define GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL   (configMenu.getValue(1, 3))
+#define GET_CFG_MENU_DISPLAY_TIME_TO_BACKLIGHT_LOW  (configMenu.getValue(1, 4))
 #define GET_CFG_MENU_PLAY_TIME_TO_NEXT_PLAY         (configMenu.getValue(2, 0))
 #define GET_CFG_MENU_PLAY_NEXT_PLAY_ALBUM           (configMenu.getValue(2, 1))
 #define GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH          (configMenu.getValue(2, 2))
@@ -28,6 +29,7 @@
 //=================================
 // Interface of Hook Functions
 //=================================
+void hook_disp_lcd_config();
 void hook_disp_rotation();
 
 //=================================
@@ -102,9 +104,14 @@ private:
         {"2 min", 2*60},
         {"3 min", 3*60}
     };
+    config_sel_t sel_lcd_config[3] = {
+        {"0", 0},
+        {"1", 1},
+        {"2", 2}
+    };
     config_sel_t sel_rotation[2] = {
-        {"0 deg", 2},
-        {"180 deg", 3}
+        {"0 deg", 0},
+        {"180 deg", 1}
     };
     config_sel_t sel_backlight_level[16] = {
         {"16", 16},
@@ -144,8 +151,9 @@ private:
         {"Time to Power Off",       ConfigParam::CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,        sel_time0,              sz_sel(sel_time0),              nullptr},
         {"Time to Leave Config",    ConfigParam::CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,     sel_time2,              sz_sel(sel_time2),              nullptr}
     };
-    config_menu_item_t items_display[4] = {
+    config_menu_item_t items_display[5] = {
     //  Name                        ConfigParam::paramID_t                                      selection               num_selections                  hook_func
+        {"Lcd Config",              ConfigParam::CFG_MENU_IDX_DISPLAY_LCD_CONFIG,               sel_lcd_config,         sz_sel(sel_lcd_config),         hook_disp_lcd_config},
         {"Rotation",                ConfigParam::CFG_MENU_IDX_DISPLAY_ROTATION,                 sel_rotation,           sz_sel(sel_rotation),           hook_disp_rotation},
         {"Backlight Low Level",     ConfigParam::CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,      sel_backlight_level,    sz_sel(sel_backlight_level),    nullptr},
         {"Backlight High Level",    ConfigParam::CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,     sel_backlight_level,    sz_sel(sel_backlight_level),    nullptr},

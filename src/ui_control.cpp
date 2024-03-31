@@ -4,13 +4,18 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include "ui_control.h"
+
 #include <cstdio>
+#include "pico/stdlib.h"
+#include "stack.h"
+#include "LcdCanvas.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "pico/util/queue.h"
 #include "lcd_extra.h"
 #include "power_manage.h"
-#include "ui_control.h"
+#include "ConfigMenu.h"
 
 // SW PIN setting
 static const uint32_t PIN_SW_PLUS = 22;
@@ -38,8 +43,8 @@ static queue_t btn_evt_queue;
 static const int QueueLength = 1;
 
 UIVars vars;
-UIMode *ui_mode = nullptr;
-UIMode *ui_mode_ary[NUM_UI_MODES] = {};
+UIMode* ui_mode = nullptr;
+UIMode* ui_mode_ary[NUM_UI_MODES] = {};
 
 static button_status_t get_sw_status()
 {
@@ -187,7 +192,7 @@ static void update_button_action()
     button_prv[0] = button;
 }
 
-bool timer_callback_ui_button(repeating_timer_t *rt) {
+bool timer_callback_ui_button(repeating_timer_t* rt) {
     update_button_action();
     /*
     pm_monitor_battery_voltage();
@@ -220,7 +225,7 @@ uint32_t ui_set_center_switch_for_wakeup(bool flg)
     return PIN_HP_BUTTON;
 }
 
-bool ui_get_btn_evt(button_action_t *btn_act)
+bool ui_get_btn_evt(button_action_t* btn_act)
 {
     int count = queue_get_level(&btn_evt_queue);
     if (count) {
@@ -246,13 +251,15 @@ void ui_clear_btn_evt()
     */
 }
 
-UIMode *getUIMode(ui_mode_enm_t ui_mode_enm)
+UIMode* getUIMode(ui_mode_enm_t ui_mode_enm)
 {
     return ui_mode_ary[ui_mode_enm];
 }
 
 void ui_init()
 {
+    LcdCanvas::configureLcd(GET_CFG_MENU_DISPLAY_LCD_CONFIG);
+    lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
     vars.num_list_lines = LCD_H()/16;
 
     // button event queue
@@ -269,13 +276,13 @@ void ui_init()
 
     //UIMode::initialize(&vars, dir_stack);
     UIMode::initialize(&vars);
-    ui_mode_ary[InitialMode]  = (UIMode *) new UIInitialMode();
-    ui_mode_ary[ChargeMode]   = (UIMode *) new UIChargeMode();
-    ui_mode_ary[OpeningMode]  = (UIMode *) new UIOpeningMode();
-    ui_mode_ary[FileViewMode] = (UIMode *) new UIFileViewMode();
-    ui_mode_ary[PlayMode]     = (UIMode *) new UIPlayMode();
-    ui_mode_ary[ConfigMode]   = (UIMode *) new UIConfigMode();
-    ui_mode_ary[PowerOffMode] = (UIMode *) new UIPowerOffMode();
+    ui_mode_ary[InitialMode]  = (UIMode*) new UIInitialMode();
+    ui_mode_ary[ChargeMode]   = (UIMode*) new UIChargeMode();
+    ui_mode_ary[OpeningMode]  = (UIMode*) new UIOpeningMode();
+    ui_mode_ary[FileViewMode] = (UIMode*) new UIFileViewMode();
+    ui_mode_ary[PlayMode]     = (UIMode*) new UIPlayMode();
+    ui_mode_ary[ConfigMode]   = (UIMode*) new UIConfigMode();
+    ui_mode_ary[PowerOffMode] = (UIMode*) new UIPowerOffMode();
     ui_mode = getUIMode(InitialMode);
     ui_mode->entry(ui_mode);
 }
@@ -283,7 +290,7 @@ void ui_init()
 ui_mode_enm_t ui_update()
 {
     //printf("%s\n", ui_mode->getName());
-    UIMode *ui_mode_next = ui_mode->update();
+    UIMode* ui_mode_next = ui_mode->update();
     if (ui_mode_next != ui_mode) {
         ui_mode_next->entry(ui_mode);
         ui_mode = ui_mode_next;
@@ -297,7 +304,7 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
 {
     //printf("%s\n", ui_mode->getName());
     ui_mode->update();
-    UIMode *ui_mode_next = getUIMode(ui_mode_enm);
+    UIMode* ui_mode_next = getUIMode(ui_mode_enm);
     if (ui_mode_next != ui_mode) {
         ui_mode_next->entry(ui_mode);
         ui_mode = ui_mode_next;

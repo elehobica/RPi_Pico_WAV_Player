@@ -6,11 +6,8 @@
 /* Except for 'recover_from_sleep' part, see comment for copyright */
 
 #include "power_manage.h"
-#include <cstdio>
-#include "pico/stdlib.h"
-#include "pico/sleep.h"
-#include "pico/stdio_uart.h"
-#include "pico/stdio_usb.h" // use lib/pico_stdio_usb_revised/
+
+//#include <cstdio>
 #include "hardware/pll.h"
 #include "hardware/clocks.h"
 #include "hardware/structs/clocks.h"
@@ -18,9 +15,12 @@
 #include "hardware/rosc.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
-#include "hardware/pwm.h"
 #include "hardware/sync.h"
 #include "hardware/watchdog.h"
+#include "pico/stdlib.h"
+#include "pico/sleep.h"
+#include "pico/stdio_uart.h"
+#include "pico/stdio_usb.h" // use lib/pico_stdio_usb_revised/
 #include "lcd_extra.h"
 #include "ui_control.h"
 #include "ConfigParam.h"
@@ -78,18 +78,6 @@ static int timer_init_battery_check()
     return 1;
 }
 
-void pm_backlight_init(uint32_t bl_val)
-{
-    // BackLight PWM (125MHz / 65536 / 4 = 476.84 Hz)
-    gpio_set_function(PIN_LCD_BLK, GPIO_FUNC_PWM);
-    uint32_t slice_num = pwm_gpio_to_slice_num(PIN_LCD_BLK);
-    pwm_config config = pwm_get_default_config();
-    pwm_config_set_clkdiv(&config, 4.f);
-    pwm_init(slice_num, &config, true);
-    // Square bl_val to make brightness appear more linear
-    pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
-}
-
 void pm_backlight_update()
 {
     const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
@@ -100,7 +88,7 @@ void pm_backlight_update()
     } else {
         bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL;
     }
-    pwm_set_gpio_level(PIN_LCD_BLK, bl_val * bl_val);
+    OLED_BLK_Set_PWM(bl_val);
 }
 
 void pm_init()
@@ -135,7 +123,7 @@ void pm_init()
     gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
 
     // BackLight
-    pm_backlight_init(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
+    OLED_BLK_Set_PWM(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
 
     // Battery Check Timer start
     timer_init_battery_check();
@@ -238,9 +226,8 @@ static void pm_enter_dormant_and_wake_core(uint32_t pin)
 void pm_enter_dormant_and_wake()
 {
     // === [1] Preparation for dormant ===
-    gpio_init(PIN_LCD_BLK);
-    gpio_set_dir(PIN_LCD_BLK, GPIO_OUT);
-    gpio_put(PIN_LCD_BLK, 0);
+    OLED_BLK_Set_PWM(0);
+
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
     gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
     stdio_usb_deinit(); // terminate usb cdc
@@ -265,7 +252,6 @@ void pm_enter_dormant_and_wake()
     // === [3] treatments after wake up ===
     pw_set_pll_usb_96MHz();
     gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
-    pm_backlight_init(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
     pm_backlight_update();
 
     // wake up alert

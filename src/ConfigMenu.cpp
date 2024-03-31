@@ -12,6 +12,13 @@
 //=================================
 // Implementation of Hook Functions
 //=================================
+void hook_disp_lcd_config()
+{
+    LcdCanvas::configureLcd(GET_CFG_MENU_DISPLAY_LCD_CONFIG);
+    lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
+    lcd.switchToListView();
+}
+
 void hook_disp_rotation()
 {
     lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);

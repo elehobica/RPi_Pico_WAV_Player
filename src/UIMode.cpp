@@ -7,8 +7,10 @@
 /------------------------------------------------------*/
 
 #include "UIMode.h"
+
 #include <cstdio>
 #include <cstring>
+#include "pico/stdlib.h"
 #include "ui_control.h"
 #include "power_manage.h"
 #include "UserFlash.h"
@@ -28,25 +30,25 @@ TagRead tag;
 
 // UIMode class instances
 button_action_t UIMode::btn_act;
-UIVars *UIMode::vars;
-stack_t *UIMode::dir_stack;
+UIVars* UIMode::vars;
+stack_t* UIMode::dir_stack;
 UIMode::ExitType UIMode::exitType = UIMode::NoError;
 
 //================================
 // Implementation of UIMode class
 //================================
 /*static*/
-void UIMode::initialize(UIVars *vars)
+void UIMode::initialize(UIVars* vars)
 {
     UIMode::vars = vars;
     dir_stack = stack_init();
 }
 
-UIMode::UIMode(const char *name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(nullptr), ui_mode_enm(ui_mode_enm), idle_count(0)
+UIMode::UIMode(const char* name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(nullptr), ui_mode_enm(ui_mode_enm), idle_count(0)
 {
 }
 
-void UIMode::entry(UIMode *prevMode)
+void UIMode::entry(UIMode* prevMode)
 {
     this->prevMode = prevMode;
     idle_count = 0;
@@ -66,7 +68,7 @@ bool UIMode::isAudioFile(uint16_t idx)
     return false;
 }
 
-const char *UIMode::getName()
+const char* UIMode::getName()
 {
     return name;
 }
@@ -101,14 +103,27 @@ UIMode* UIInitialMode::update()
     return this;
 }
 
-void UIInitialMode::entry(UIMode *prevMode)
+void UIInitialMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
+    loadFromFlash();
 }
 
 void UIInitialMode::draw()
 {
     ui_clear_btn_evt();
+}
+
+//#define INITIALIZE_CONFIG_PARAM
+void UIInitialMode::loadFromFlash()
+{
+    // Load Configuration parameters from Flash
+    #ifdef INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
+    #else // INITIALIZE_CONFIG_PARAM
+    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
+    #endif // INITIALIZE_CONFIG_PARAM
+    configMenu.scanHookFunc();
 }
 
 //=======================================
@@ -142,7 +157,7 @@ UIMode* UIChargeMode::update()
     return this;
 }
 
-void UIChargeMode::entry(UIMode *prevMode)
+void UIChargeMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     lcd.setMsg("Charging", true);
@@ -163,16 +178,10 @@ UIOpeningMode::UIOpeningMode() : UIMode("UIOpeningMode", OpeningMode)
 }
 
 //#define INITIALIZE_CONFIG_PARAM
-void UIOpeningMode::loadFromFlash()
+void UIOpeningMode::restoreFromFlash()
 {
     // Load Configuration parameters from Flash
     userFlash.printInfo();
-    #ifdef INITIALIZE_CONFIG_PARAM
-    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
-    #else // INITIALIZE_CONFIG_PARAM
-    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
-    #endif // INITIALIZE_CONFIG_PARAM
-    configMenu.scanHookFunc();
     configParam.printInfo();
     configParam.incBootCount();
 
@@ -229,7 +238,7 @@ UIMode* UIOpeningMode::update()
     return this;
 }
 
-void UIOpeningMode::entry(UIMode *prevMode)
+void UIOpeningMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     pm_set_power_keep(true);
@@ -247,7 +256,7 @@ void UIOpeningMode::entry(UIMode *prevMode)
         lcd.setMsg("No SD Card Found!", true);
         return;
     }
-    const char *fs_type_str[5] = {"NOT_MOUNTED", "FAT12", "FAT16", "FAT32", "EXFAT"};
+    const char* fs_type_str[5] = {"NOT_MOUNTED", "FAT12", "FAT16", "FAT32", "EXFAT"};
     printf("SD Card File System = %s\n", fs_type_str[vars->fs_type]);
 
     // Open root directory
@@ -261,7 +270,7 @@ void UIOpeningMode::entry(UIMode *prevMode)
     // Opening Logo
     lcd.setImageJpeg("logo.jpg");
 
-    loadFromFlash();
+    restoreFromFlash();
 
     audio_codec_init();
 
@@ -315,7 +324,7 @@ void UIFileViewMode::chdir()
     if (vars->idx_head+vars->idx_column == 0) { // upper ("..") dirctory
         if (stack_get_count(dir_stack) > 0) {
             if (vars->fs_type == FS_EXFAT) { // This is workaround for FatFs known bug for ".." in EXFAT
-                stack_t *temp_stack = stack_init();
+                stack_t* temp_stack = stack_init();
                 while (stack_get_count(dir_stack) > 0) {
                     stack_pop(dir_stack, &item);
                     //printf("pop %d %d %d\n", stack_get_count(dir_stack), item.head, item.column);
@@ -357,7 +366,7 @@ void UIFileViewMode::chdir()
     }
 }
 
-UIMode *UIFileViewMode::nextPlay()
+UIMode* UIFileViewMode::nextPlay()
 {
     switch (GET_CFG_MENU_PLAY_NEXT_PLAY_ALBUM) {
         case ConfigMenu::next_play_action_t::Sequential:
@@ -382,7 +391,7 @@ UIMode *UIFileViewMode::nextPlay()
     return this;
 }
 
-UIMode *UIFileViewMode::sequentialSearch(bool repeatFlg)
+UIMode* UIFileViewMode::sequentialSearch(bool repeatFlg)
 {
     int stack_count;
     uint16_t last_dir_idx;
@@ -436,7 +445,7 @@ UIMode *UIFileViewMode::sequentialSearch(bool repeatFlg)
     return getUIPlayMode();
 }
 
-UIMode *UIFileViewMode::randomSearch(uint16_t depth)
+UIMode* UIFileViewMode::randomSearch(uint16_t depth)
 {
     int i;
     int stack_count;
@@ -542,7 +551,7 @@ void UIFileViewMode::idxFastDec(void)
     }
 }
 
-UIMode *UIFileViewMode::getUIPlayMode()
+UIMode* UIFileViewMode::getUIPlayMode()
 {
     if (vars->idx_play == 0) {
         vars->idx_play = vars->idx_head + vars->idx_column;
@@ -642,7 +651,7 @@ UIMode* UIFileViewMode::update()
     return this;
 }
 
-void UIFileViewMode::entry(UIMode *prevMode)
+void UIFileViewMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     listIdxItems();
@@ -666,7 +675,7 @@ UIPlayMode::UIPlayMode() : UIMode("UIPlayMode", PlayMode), loadImage(true)
 UIMode* UIPlayMode::update()
 {
     vars->resume_ui_mode = ui_mode_enm;
-    PlayAudio *codec = get_audio_codec();
+    PlayAudio* codec = get_audio_codec();
     if (ui_get_btn_evt(&btn_act)) {
         switch (btn_act) {
             case ButtonCenterSingle:
@@ -738,7 +747,7 @@ UIMode* UIPlayMode::update()
 }
 
 #if 0
-audio_codec_enm_t UIPlayMode::getAudioCodec(MutexFsBaseFile *f)
+audio_codec_enm_t UIPlayMode::getAudioCodec(MutexFsBaseFile* f)
 {
     audio_codec_enm_t audio_codec_enm = CodecNone;
     bool flg = false;
@@ -772,8 +781,8 @@ audio_codec_enm_t UIPlayMode::getAudioCodec(MutexFsBaseFile *f)
         ofs++;
     }
     if (flg) {
-        file_menu_get_fname_UTF16(vars->idx_play + ofs, (char16_t *) str, sizeof(str)/2);
-        Serial.println(utf16_to_utf8((const char16_t *) str).c_str());
+        file_menu_get_fname_UTF16(vars->idx_play + ofs, (char16_t*) str, sizeof(str)/2);
+        Serial.println(utf16_to_utf8((const char16_t*) str).c_str());
         vars->idx_play += ofs;
     } else {
         vars->idx_play = 0;
@@ -811,8 +820,8 @@ void UIPlayMode::readTag()
         file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
         lcd.setTitle(str);
         /*
-        file_menu_get_fname_UTF16(vars->idx_play, (char16_t *) str, sizeof(str)/2);
-        lcd.setTitle(utf16_to_utf8((const char16_t *) str).c_str(), utf8);
+        file_menu_get_fname_UTF16(vars->idx_play, (char16_t*) str, sizeof(str)/2);
+        lcd.setTitle(utf16_to_utf8((const char16_t*) str).c_str(), utf8);
         */
     }
     if (tag.getUTF8Album(str, sizeof(str) - 1)) lcd.setAlbum(str); else lcd.setAlbum("");
@@ -868,7 +877,7 @@ void UIPlayMode::play()
     memset(str, 0, sizeof(str));
     file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
     printf("%s\n", str);
-    PlayAudio *playAudio = get_audio_codec();
+    PlayAudio* playAudio = get_audio_codec();
     readTag();
     loadImage = false;
     playAudio->play(str, vars->fpos, vars->samples_played);
@@ -876,7 +885,7 @@ void UIPlayMode::play()
     vars->samples_played = 0;
 }
 
-void UIPlayMode::entry(UIMode *prevMode)
+void UIPlayMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     if (prevMode->getUIModeEnm() != ConfigMode) {
@@ -907,7 +916,7 @@ uint16_t UIConfigMode::getNum()
     return (uint16_t) configMenu.getNum() + 1;
 }
 
-const char *UIConfigMode::getStr(uint16_t idx)
+const char* UIConfigMode::getStr(uint16_t idx)
 {
     if (idx == 0) { return "[Back]"; }
     return configMenu.getStr((int) idx-1);
@@ -994,7 +1003,7 @@ int UIConfigMode::select()
 
 UIMode* UIConfigMode::update()
 {
-    PlayAudio *codec = get_audio_codec();
+    PlayAudio* codec = get_audio_codec();
     if (ui_get_btn_evt(&btn_act)) {
         vars->do_next_play = None;
         switch (btn_act) {
@@ -1040,7 +1049,7 @@ UIMode* UIConfigMode::update()
     return this;
 }
 
-void UIConfigMode::entry(UIMode *prevMode)
+void UIConfigMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     listIdxItems();
@@ -1104,7 +1113,7 @@ UIMode* UIPowerOffMode::update()
     return this;
 }
 
-void UIPowerOffMode::entry(UIMode *prevMode)
+void UIPowerOffMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     pm_set_audio_dac_enable(false); // I2S DAC Mute On
