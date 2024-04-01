@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include "pico/stdlib.h"
+#include "audio_codec.h"
 #include "ReadBuffer.h"
 
 //#define DEBUG_PLAYAUDIO
@@ -78,10 +79,6 @@ void PlayAudio::setBufPos(size_t fpos)
     if (fpos > 0) {
         rdbuf->seek(fpos);
     }
-    if (reinitI2s) {
-        i2s_setup(sampFreq, ap);
-        reinitI2s = false;
-    }
 }
 
 void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
@@ -91,6 +88,14 @@ void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
     rdbuf->reqBind(&fil);
     setBufPos(fpos);
     setSamplesPlayed(samplesPlayed);
+
+    if (reinitI2s) {
+        audio_codec_dac_enable(false);
+        i2s_setup(sampFreq, ap);
+        reinitI2s = false;
+        sleep_ms(100);
+        audio_codec_dac_enable(true);
+    }
 
     // Don't manipulate rdbuf after playing = true because decode callback handles it
     playing = true;

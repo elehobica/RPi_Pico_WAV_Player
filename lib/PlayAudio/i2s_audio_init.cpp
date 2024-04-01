@@ -4,9 +4,10 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include "i2s_audio_init.h"
+
 #include <cstdio>
 #include "pico/stdlib.h"
-#include "i2s_audio_init.h"
 
 static audio_buffer_pool_t* _producer_pool = nullptr;
 

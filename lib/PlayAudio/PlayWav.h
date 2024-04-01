@@ -4,8 +4,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef __PLAY_WAV_H_INCLUDED__
-#define __PLAY_WAV_H_INCLUDED__
+#pragma once
 
 #include "PlayAudio.h"
 
@@ -32,5 +31,3 @@ protected:
     void setBufPos(size_t fpos);
     void decode();
 };
-
-#endif // __PLAY_WAV_H_INCLUDED__

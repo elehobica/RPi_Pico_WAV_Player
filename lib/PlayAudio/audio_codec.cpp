@@ -4,15 +4,17 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include "audio_codec.h"
+
 #include <cstdio>
 #include "pico/stdlib.h"
 #include "PlayNone.h"
 #include "PlayWav.h"
-#include "audio_codec.h"
 
 static PlayAudio* playAudio_ary[2] = {};
 static void (*decode_func_ary[2])() = {};
 static PlayAudio::audio_codec_t cur_audio_codec = PlayAudio::AUDIO_CODEC_NONE;
+static void (*set_dac_enable_func)(bool flag) = nullptr;
 
 void audio_codec_init()
 {
@@ -29,6 +31,18 @@ void audio_codec_deinit()
     PlayAudio::finalize();
     delete playAudio_ary[PlayAudio::AUDIO_CODEC_NONE];
     delete playAudio_ary[PlayAudio::AUDIO_CODEC_WAV];
+}
+
+void audio_codec_set_dac_enable_func(void (*func)(bool flag))
+{
+    set_dac_enable_func = func;
+}
+
+void audio_codec_dac_enable(bool flag)
+{
+    if (set_dac_enable_func != nullptr) {
+        (*set_dac_enable_func)(flag);
+    }
 }
 
 PlayAudio* get_audio_codec()

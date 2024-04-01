@@ -4,12 +4,10 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef __PLAY_AUDIO_H_INCLUDED__
-#define __PLAY_AUDIO_H_INCLUDED__
+#pragma once
 
 #include "hardware/sync.h"
 #include "ff.h"
-//#include "ReadBuffer.h"
 #include "i2s_audio_init.h"
 
 class ReadBuffer; // to avoid inter-lock
@@ -74,5 +72,3 @@ protected:
 private:
     float convLevelCurve(uint32_t levelInt);
 };
-
-#endif // __PLAY_AUDIO_H_INCLUDED__

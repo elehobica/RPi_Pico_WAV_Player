@@ -267,6 +267,7 @@ void UIOpeningMode::entry(UIMode* prevMode)
     restoreFromFlash();
 
     audio_codec_init();
+    audio_codec_set_dac_enable_func(pm_set_audio_dac_enable);
 
     lcd.switchToOpening();
     pm_set_audio_dac_enable(true); // I2S DAC Mute Off

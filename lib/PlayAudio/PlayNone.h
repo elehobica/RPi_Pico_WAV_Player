@@ -4,8 +4,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef __PLAY_NONE_H_INCLUDED__
-#define __PLAY_NONE_H_INCLUDED__
+#pragma once
 
 #include "PlayAudio.h"
 
@@ -23,5 +22,3 @@ public:
 protected:
     static PlayNone *g_inst;
 };
-
-#endif // __PLAY_NONE_H_INCLUDED__
