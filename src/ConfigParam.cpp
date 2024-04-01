@@ -192,17 +192,24 @@ void ConfigParamClass::incBootCount()
     this->write(CFG_BOOT_COUNT, &bootCount);
 }
 
-void ConfigParamClass::initialize(LoadDefaultBehavior_t loadDefaultBehavior)
+void ConfigParamClass::initialize()
 {
     // load default
     loadDefault();
     // switch to step to load from Flash
-    if (loadDefaultBehavior == FORCE_LOAD_DEFAULT) { return; }
-    if (loadDefaultBehavior == LOAD_DEFAULT_IF_FLASH_IS_BLANK && getBootCountFromFlash() == 0xffffffffUL) { return; }
+    if (getBootCountFromFlash() == 0xffffffffUL) { return; }
+
+    uint32_t formatRev = GET_CFG_FORMAT_REV;
     // load from Flash
     for (int i = 0; i < NUM_CFG_PARAMS; i++) {
         ParamItem_t *item = &configParamItems[i];
         userFlash.read(item->flashAddr, item->size, item->ptr);
+    }
+    uint32_t formatRevStored = GET_CFG_FORMAT_REV;
+
+    // Force to reset to default due to format revision changed (parameter/address) to avoid mulfunction
+    if (formatRev != formatRevStored) {
+        loadDefault();
     }
 }
 

@@ -153,7 +153,7 @@ private:
     };
     config_menu_item_t items_display[5] = {
     //  Name                        ConfigParam::paramID_t                                      selection               num_selections                  hook_func
-        {"Lcd Config",              ConfigParam::CFG_MENU_IDX_DISPLAY_LCD_CONFIG,               sel_lcd_config,         sz_sel(sel_lcd_config),         hook_disp_lcd_config},
+        {"LCD Config",              ConfigParam::CFG_MENU_IDX_DISPLAY_LCD_CONFIG,               sel_lcd_config,         sz_sel(sel_lcd_config),         hook_disp_lcd_config},
         {"Rotation",                ConfigParam::CFG_MENU_IDX_DISPLAY_ROTATION,                 sel_rotation,           sz_sel(sel_rotation),           hook_disp_rotation},
         {"Backlight Low Level",     ConfigParam::CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,      sel_backlight_level,    sz_sel(sel_backlight_level),    nullptr},
         {"Backlight High Level",    ConfigParam::CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,     sel_backlight_level,    sz_sel(sel_backlight_level),    nullptr},

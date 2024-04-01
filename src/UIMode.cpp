@@ -114,15 +114,10 @@ void UIInitialMode::draw()
     ui_clear_btn_evt();
 }
 
-//#define INITIALIZE_CONFIG_PARAM
 void UIInitialMode::loadFromFlash()
 {
     // Load Configuration parameters from Flash
-    #ifdef INITIALIZE_CONFIG_PARAM
-    configParam.initialize(ConfigParam::FORCE_LOAD_DEFAULT);
-    #else // INITIALIZE_CONFIG_PARAM
-    configParam.initialize(ConfigParam::LOAD_DEFAULT_IF_FLASH_IS_BLANK);
-    #endif // INITIALIZE_CONFIG_PARAM
+    configParam.initialize();
     configMenu.scanHookFunc();
 }
 
@@ -177,7 +172,6 @@ UIOpeningMode::UIOpeningMode() : UIMode("UIOpeningMode", OpeningMode)
 {
 }
 
-//#define INITIALIZE_CONFIG_PARAM
 void UIOpeningMode::restoreFromFlash()
 {
     // Load Configuration parameters from Flash

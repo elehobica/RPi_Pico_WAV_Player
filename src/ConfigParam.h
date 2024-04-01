@@ -29,6 +29,7 @@
 #define GETSTR(identifier)      (configParam.getStr(identifier))
 
 #define GET_CFG_BOOT_COUNT      GETU32(ConfigParam::CFG_BOOT_COUNT)
+#define GET_CFG_FORMAT_REV      GETU32(ConfigParam::CFG_FORMAT_REV)
 #define GET_CFG_SEED            GETU32(ConfigParam::CFG_BOOT_COUNT)
 #define GET_CFG_VOLUME          GETU8(ConfigParam::CFG_VOLUME)
 #define GET_CFG_STACK_COUNT     GETU8(ConfigParam::CFG_STACK_COUNT)
@@ -47,13 +48,8 @@
 namespace ConfigParam
 {
     typedef enum {
-        LOAD_DEFAULT_IF_FLASH_IS_BLANK = 0,
-        FORCE_LOAD_DEFAULT,
-        ALWAYS_LOAD_FROM_FLASH
-    } LoadDefaultBehavior_t;
-
-    typedef enum {
         CFG_BOOT_COUNT = 0,
+        CFG_FORMAT_REV,
         CFG_SEED,
         CFG_VOLUME,
         CFG_STACK_COUNT,
@@ -115,7 +111,7 @@ namespace ConfigParam
     public:
         static ConfigParamClass& instance(); // Singleton
         void printInfo();
-        void initialize(LoadDefaultBehavior_t loadDefaultBehavior = LOAD_DEFAULT_IF_FLASH_IS_BLANK);
+        void initialize();
         void finalize();
         void incBootCount();
         void read(ParamID_t id, void *ptr);
@@ -143,9 +139,10 @@ namespace ConfigParam
         ParamItem_t configParamItems[NUM_CFG_PARAMS] = {
         //  id                      name                    type            size    default     ofs     ptr
             {CFG_BOOT_COUNT,        "CFG_BOOT_COUNT",       CFG_UINT32_T,   4,      "0",        0x000,  nullptr},
-            {CFG_SEED,              "CFG_SEED",             CFG_UINT32_T,   4,      "0",        0x004,  nullptr},
-            {CFG_VOLUME,            "CFG_VOLUME",           CFG_UINT8_T,    1,      "65",       0x008,  nullptr},
-            {CFG_STACK_COUNT,       "CFG_STACK_COUNT",      CFG_UINT8_T,    1,      "0",        0x009,  nullptr},
+            {CFG_FORMAT_REV,        "CFG_FORMAT_REV",       CFG_UINT32_T,   4,      "20240401", 0x004,  nullptr},  // update value when updated to reset user flash
+            {CFG_SEED,              "CFG_SEED",             CFG_UINT32_T,   4,      "0",        0x008,  nullptr},
+            {CFG_VOLUME,            "CFG_VOLUME",           CFG_UINT8_T,    1,      "65",       0x00c,  nullptr},
+            {CFG_STACK_COUNT,       "CFG_STACK_COUNT",      CFG_UINT8_T,    1,      "0",        0x00d,  nullptr},
             {CFG_STACK_HEAD0,       "CFG_STACK_HEAD0",      CFG_UINT16_T,   2,      "0",        0x010,  nullptr},
             {CFG_STACK_COLUMN0,     "CFG_STACK_COLUMN0",    CFG_UINT16_T,   2,      "0",        0x012,  nullptr},
             {CFG_STACK_HEAD1,       "CFG_STACK_HEAD1",      CFG_UINT16_T,   2,      "0",        0x014,  nullptr},
