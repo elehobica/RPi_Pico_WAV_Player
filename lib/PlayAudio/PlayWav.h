@@ -28,6 +28,6 @@ protected:
     uint32_t accum[2] = {};
     uint32_t accumCount;
     void skipToDataChunk();
-    void setBufPos(size_t fpos);
+    bool setBufPos(size_t fpos);
     void decode();
 };

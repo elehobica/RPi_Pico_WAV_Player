@@ -62,13 +62,17 @@ void PlayWav::skipToDataChunk()
     }
 }
 
-void PlayWav::setBufPos(size_t fpos)
+bool PlayWav::setBufPos(size_t fpos)
 {
-    skipToDataChunk();
-    PlayAudio::setBufPos(fpos);
     accum[0] = 0;
     accum[1] = 0;
     accumCount = 0;
+    skipToDataChunk();
+    // keep position if fpos == 0
+    if (fpos > 0) {
+        return PlayAudio::setBufPos(fpos);
+    }
+    return true;
 }
 
 void PlayWav::decode()

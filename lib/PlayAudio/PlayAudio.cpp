@@ -74,10 +74,12 @@ PlayAudio::~PlayAudio()
 {
 }
 
-void PlayAudio::setBufPos(size_t fpos)
+bool PlayAudio::setBufPos(size_t fpos)
 {
-    if (fpos > 0) {
-        rdbuf->seek(fpos);
+    if (fpos >= 0) {
+        return rdbuf->seek(fpos);
+    } else {
+        return false;
     }
 }
 

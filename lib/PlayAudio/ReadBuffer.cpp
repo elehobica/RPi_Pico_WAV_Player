@@ -106,6 +106,7 @@ bool ReadBuffer::shiftAll()
 
 bool ReadBuffer::seek(size_t fpos)
 {
+    if (fpos >= f_size(_fp)) { return false; }
     reqBind(_fp, false);  // disconnect secondaryBuffer (dispose current secondaryBuffer)
     f_lseek(_fp, fpos);   // seek (move reading point)
     reqBind(_fp);         // reconnect
