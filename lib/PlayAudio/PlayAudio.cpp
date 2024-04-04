@@ -74,13 +74,9 @@ PlayAudio::~PlayAudio()
 {
 }
 
-bool PlayAudio::setBufPos(size_t fpos)
+bool PlayAudio::parseSetPos(size_t fpos)
 {
-    if (fpos >= 0) {
-        return rdbuf->seek(fpos);
-    } else {
-        return false;
-    }
+    return rdbuf->seek(fpos);
 }
 
 void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
@@ -88,7 +84,7 @@ void PlayAudio::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
     FRESULT fr;
     fr = f_open(&fil, (TCHAR *) filename, FA_READ);
     rdbuf->reqBind(&fil);
-    setBufPos(fpos);
+    parseSetPos(fpos);
     setSamplesPlayed(samplesPlayed);
 
     if (reinitI2s) {

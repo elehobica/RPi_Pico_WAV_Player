@@ -17,6 +17,7 @@ public:
     static void decode_func();
     PlayWav();
     ~PlayWav();
+    void play(const char* filename, size_t fpos = 0, uint32_t samplesPlayed = 0);
     uint32_t totalMillis();
 protected:
     static constexpr uint16_t FMT_PCM   = 1;
@@ -28,6 +29,6 @@ protected:
     uint32_t accum[2] = {};
     uint32_t accumCount;
     void skipToDataChunk();
-    bool setBufPos(size_t fpos);
+    bool parseSetPos(size_t fpos);
     void decode();
 };

@@ -31,6 +31,14 @@ PlayWav::~PlayWav()
 {
 }
 
+void PlayWav::play(const char* filename, size_t fpos, uint32_t samplesPlayed)
+{
+    accum[0] = 0;
+    accum[1] = 0;
+    accumCount = 0;
+    PlayAudio::play(filename, fpos, samplesPlayed);
+}
+
 void PlayWav::skipToDataChunk()
 {
     const char* buf = reinterpret_cast<const char*>(rdbuf->buf());
@@ -62,17 +70,11 @@ void PlayWav::skipToDataChunk()
     }
 }
 
-bool PlayWav::setBufPos(size_t fpos)
+bool PlayWav::parseSetPos(size_t fpos)
 {
-    accum[0] = 0;
-    accum[1] = 0;
-    accumCount = 0;
     skipToDataChunk();
-    // keep position if fpos == 0
-    if (fpos > 0) {
-        return PlayAudio::setBufPos(fpos);
-    }
-    return true;
+    if (fpos == 0) { return true; } // stay its position
+    return PlayAudio::parseSetPos(fpos);
 }
 
 void PlayWav::decode()
