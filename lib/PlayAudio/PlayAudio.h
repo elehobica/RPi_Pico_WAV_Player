@@ -41,6 +41,8 @@ public:
     virtual uint32_t totalMillis() = 0;
     virtual void getCurrentPosition(size_t* fpos, uint32_t* samplesPlayed);
     void getLevel(float* levelL, float* levelR);
+    uint32_t getSampFreq();
+    uint16_t getBitsPerSample();
 protected:
     static spin_lock_t* spin_lock;
     static audio_buffer_pool_t* ap;

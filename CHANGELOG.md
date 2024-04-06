@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 * Support Hi-Res WAV up to 24bit / 192KHz
+* Display bit resolution and sampling frequency
 * Support Mono WAV
 * Add LCD Config in Config Menu
 * Force to reset ConfigParam when format revision changed to avoid mulfunction

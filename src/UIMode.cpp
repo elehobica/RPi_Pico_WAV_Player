@@ -301,8 +301,8 @@ void UIFileViewMode::listIdxItems()
             continue;
         }
         file_menu_get_fname(vars->idx_head+i, str, sizeof(str) - 1);
-        uint8_t icon = file_menu_is_dir(vars->idx_head+i) ? ICON16x16_FOLDER : ICON16x16_FILE;
-        lcd.setListItem(i, str, icon, (i == vars->idx_column));
+        IconIndex_t iconIndex = file_menu_is_dir(vars->idx_head+i) ? IconIndex_t::FOLDER : IconIndex_t::FILE;
+        lcd.setListItem(i, str, iconIndex, (i == vars->idx_column));
     }
 }
 
@@ -731,7 +731,6 @@ UIMode* UIPlayMode::update()
         return getUIMode(FileViewMode);
     }
     lcd.setVolume(PlayAudio::getVolume());
-    //lcd.setBitRate(codec->bitRate());
     lcd.setPlayTime(codec->elapsedMillis()/1000, codec->totalMillis()/1000, codec->isPaused());
     float levelL, levelR;
     codec->getLevel(&levelL, &levelR);
@@ -803,10 +802,12 @@ void UIPlayMode::play()
     memset(str, 0, sizeof(str));
     file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
     printf("%s\n", str);
-    PlayAudio* playAudio = get_audio_codec();
+    PlayAudio* codec = get_audio_codec();
     readTag();
     loadImage = false;
-    playAudio->play(str, vars->fpos, vars->samples_played);
+    codec->play(str, vars->fpos, vars->samples_played);
+    lcd.setBitRes(codec->getBitsPerSample());
+    lcd.setSampleFreq(codec->getSampFreq());
     vars->fpos = 0;
     vars->samples_played = 0;
 }
@@ -848,17 +849,17 @@ const char* UIConfigMode::getStr(uint16_t idx)
     return configMenu.getStr((int) idx-1);
 }
 
-uint8_t UIConfigMode::getIcon(uint16_t idx)
+IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
 {
-    uint8_t icon = ICON16x16_UNDEF;
+    IconIndex_t iconIndex = IconIndex_t::UNDEF;
     if (idx == 0) {
-        icon = ICON16x16_LEFTARROW;
+        iconIndex = IconIndex_t::LEFTARROW;
     } else if (!configMenu.isSelection()) {
-        icon = ICON16x16_GEAR;
+        iconIndex = IconIndex_t::GEAR;
     } else if (configMenu.selIdxMatched(idx-1)) {
-        icon = ICON16x16_CHECKED;
+        iconIndex = IconIndex_t::CHECKED;
     }
-    return icon;
+    return iconIndex;
 }
 
 void UIConfigMode::listIdxItems()
@@ -868,7 +869,7 @@ void UIConfigMode::listIdxItems()
             lcd.setListItem(i, ""); // delete
             continue;
         }
-        lcd.setListItem(i, getStr(idx_head+i), getIcon(idx_head+i), (i == idx_column));
+        lcd.setListItem(i, getStr(idx_head+i), getIconIndex(idx_head+i), (i == idx_column));
     }
 }
 

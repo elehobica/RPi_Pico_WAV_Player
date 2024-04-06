@@ -19,7 +19,7 @@ ImageBox::ImageBox(int16_t pos_x, int16_t pos_y, uint16_t width, uint16_t height
     : isUpdated(true), _hasImage(false), pos_x(pos_x), pos_y(pos_y), width(width), height(height), bgColor(bgColor),
         image(NULL), img_w(width), img_h(height), align(center)
 {
-    image = (uint16_t *) calloc(width * height, sizeof(uint16_t));
+    image = (uint16_t*) calloc(width * height, sizeof(uint16_t));
 }
 
 void ImageBox::setBgColor(uint16_t bgColor)
@@ -48,7 +48,7 @@ void ImageBox::draw()
     LCD_ShowPicture(
         pos_x+ofs_x, pos_y+ofs_y,
         pos_x+ofs_x+img_w-1, pos_y+ofs_y+img_h-1,
-        (u8 *) image
+        (u8*) image
     );
 }
 
@@ -57,7 +57,7 @@ void ImageBox::clear()
     LCD_Fill(pos_x, pos_y, pos_x+width-1, pos_y+height-1, bgColor);
 }
 
-void ImageBox::getImagePtr(uint16_t **img_ptr, uint16_t *width, uint16_t *height)
+void ImageBox::getImagePtr(uint16_t** img_ptr, uint16_t* width, uint16_t* height)
 {
     *img_ptr = this->image;
     *width = this->width;
@@ -110,10 +110,7 @@ bool ImageBox::hasImage()
 //=================================
 // Implementation of IconBox class
 //=================================
-IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
-    : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor), icon(0), bgOpaque(bgOpaque) {}
-
-IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+IconBox::IconBox(int16_t pos_x, int16_t pos_y, uint8_t* icon, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor), icon(icon), bgOpaque(bgOpaque) {}
 
 void IconBox::setFgColor(uint16_t fgColor)
@@ -155,7 +152,7 @@ void IconBox::clear()
     LCD_FillBackground(pos_x, pos_y, pos_x+iconWidth-1, pos_y+iconHeight-1, !bgOpaque, bgColor);
 }
 
-void IconBox::setIcon(uint8_t icon)
+void IconBox::setIcon(uint8_t* icon)
 {
     if (this->icon == icon) { return; }
     this->icon = icon;
@@ -173,7 +170,7 @@ TextBox::TextBox(int16_t pos_x, int16_t pos_y, align_enm align, uint16_t fgColor
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
       x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), bgOpaque(bgOpaque), drawCount(0), blink(false), str("") {}
 
-TextBox::TextBox(int16_t pos_x, int16_t pos_y, const char *str, align_enm align, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+TextBox::TextBox(int16_t pos_x, int16_t pos_y, const char* str, align_enm align, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : isUpdated(true), pos_x(pos_x), pos_y(pos_y), fgColor(fgColor), bgColor(bgColor),
       x0(pos_x), y0(pos_y), w0(0), h0(0), align(align), bgOpaque(bgOpaque), drawCount(0), blink(false)
 {
@@ -227,7 +224,7 @@ void TextBox::draw()
     if (blink && (drawCount % BlinkInterval >= (BlinkInterval/2))) { // Blink (Disappear) case
         LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1, !bgOpaque, bgColor);
     } else {
-        LCD_ShowStringLn(x0, y0, x0, x0+w0-1, (u8 *) str, !bgOpaque, fgColor);
+        LCD_ShowStringLn(x0, y0, x0, x0+w0-1, (u8*) str, !bgOpaque, fgColor);
     }
     drawCount++;
 }
@@ -237,14 +234,14 @@ void TextBox::clear()
     LCD_FillBackground(x0, y0, x0+w0-1, y0+h0-1, !bgOpaque, bgColor); // clear previous rectangle
 }
 
-void TextBox::setText(const char *str)
+void TextBox::setText(const char* str)
 {
     if (strncmp(this->str, str, charSize) == 0) { return; }
     memcpy(this->str, str, charSize);
     update();
 }
 
-void TextBox::setFormatText(const char *fmt, ...)
+void TextBox::setFormatText(const char* fmt, ...)
 {
     char str_temp[charSize];
     va_list va;
@@ -269,7 +266,7 @@ void TextBox::setBlink(bool blink)
 //=================================
 // Implementation of IconTextBox class
 //=================================
-IconTextBox::IconTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+IconTextBox::IconTextBox(int16_t pos_x, int16_t pos_y, uint8_t* icon, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : TextBox(pos_x+16, pos_y, fgColor, bgColor, bgOpaque), iconBox(pos_x, pos_y, icon, fgColor, bgColor, bgOpaque) {}
 
 void IconTextBox::setFgColor(uint16_t fgColor)
@@ -308,7 +305,7 @@ void IconTextBox::clear()
     TextBox::clear();
 }
 
-void IconTextBox::setIcon(uint8_t icon)
+void IconTextBox::setIcon(uint8_t* icon)
 {
     iconBox.setIcon(icon);
 }
@@ -352,7 +349,7 @@ void ScrollTextBox::draw()
     if (!isUpdated && !scr_en) { return; }
     if (isUpdated) { ScrollTextBox::clear(); }// call clear() of this class
     isUpdated = false;
-    LCD_Scroll_ShowString(pos_x, pos_y, pos_x, pos_x+width-1, (u8 *) str, !bgOpaque, fgColor, (u16 *) &sft_val, count);
+    LCD_Scroll_ShowString(pos_x, pos_y, pos_x, pos_x+width-1, (u8*) str, !bgOpaque, fgColor, (u16*) &sft_val, count);
     count++;
 }
 
@@ -368,7 +365,7 @@ void ScrollTextBox::setScroll(bool scr_en)
     update();
 }
 
-void ScrollTextBox::setText(const char *str)
+void ScrollTextBox::setText(const char* str)
 {
     if (strncmp(this->str, str, charSize) == 0) { return; }
     update();
@@ -378,7 +375,7 @@ void ScrollTextBox::setText(const char *str)
 //=================================
 // Implementation of IconScrollTextBox class < ScrollTextBox
 //=================================
-IconScrollTextBox::IconScrollTextBox(int16_t pos_x, int16_t pos_y, uint8_t icon, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
+IconScrollTextBox::IconScrollTextBox(int16_t pos_x, int16_t pos_y, uint8_t* icon, uint16_t width, uint16_t height, uint16_t fgColor, uint16_t bgColor, bool bgOpaque)
     : ScrollTextBox(pos_x+16, pos_y, width-16, height, fgColor, bgColor, bgOpaque), iconBox(pos_x, pos_y, icon, fgColor, bgColor, bgOpaque) {}
 
 void IconScrollTextBox::setFgColor(uint16_t fgColor)
@@ -417,7 +414,7 @@ void IconScrollTextBox::clear()
     ScrollTextBox::clear();
 }
 
-void IconScrollTextBox::setIcon(uint8_t icon)
+void IconScrollTextBox::setIcon(uint8_t* icon)
 {
     iconBox.setIcon(icon);
 }

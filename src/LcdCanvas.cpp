@@ -11,12 +11,18 @@
 #include <cstdio>
 #include <cstring>
 #include "ImageFitter.h"
+#include "LcdCanvasIcon.h"
+
+uint8_t* ICON2PTR(IconIndex_t index)
+{
+    return (index == IconIndex_t::UNDEF) ? nullptr : &Icon16[32*static_cast<int>(index)];
+}
 
 //=================================
 // Implementation of BatteryIconBox class
 //=================================
 BatteryIconBox::BatteryIconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor, uint16_t bgColor)
-    : IconBox(pos_x, pos_y, ICON16x16_BATTERY, fgColor, bgColor), level(0) {}
+    : IconBox(pos_x, pos_y, ICON2PTR(IconIndex_t::BATTERY), fgColor, bgColor), level(0) {}
 
 void BatteryIconBox::draw()
 {
@@ -225,9 +231,9 @@ void LcdCanvas::drawPowerOff()
     }
 }
 
-void LcdCanvas::setImageJpeg(const char *filename)
+void LcdCanvas::setImageJpeg(const char* filename)
 {
-    uint16_t *img_ptr;
+    uint16_t* img_ptr;
     uint16_t w, h;
     image.getImagePtr(&img_ptr, &w, &h);
     imgFit.config(img_ptr, w, h);
@@ -242,16 +248,16 @@ void LcdCanvas::resetImage()
     image.resetImage();
 }
 
-void LcdCanvas::setMsg(const char *str, bool blink)
+void LcdCanvas::setMsg(const char* str, bool blink)
 {
     msg.setText(str);
     msg.setBlink(blink);
 }
 
-void LcdCanvas::setListItem(int column, const char *str, uint8_t icon, bool isFocused)
+void LcdCanvas::setListItem(int column, const char* str, const IconIndex_t index, bool isFocused)
 {
     uint16_t color[2] = {LCD_GRAY, LCD_GBLUE};
-    listItem[column].setIcon(icon);
+    listItem[column].setIcon(ICON2PTR(index));
     listItem[column].setFgColor(color[isFocused]);
     listItem[column].setText(str);
     listItem[column].setScroll(isFocused); // Scroll for focused item only
@@ -268,6 +274,33 @@ void LcdCanvas::setAudioLevel(float levelL, float levelR)
     levelMeterR.setLevel(levelR);
 }
 
+void LcdCanvas::setBitRes(uint16_t value)
+{
+    // compose Icon for bit resolution part (upper half)
+    switch(value) {
+        case 16: memcpy(&bitSampIcon[0], ICON2PTR(IconIndex_t::_16BIT), 16); break;
+        case 24: memcpy(&bitSampIcon[0], ICON2PTR(IconIndex_t::_24BIT), 16); break;
+        case 32: memcpy(&bitSampIcon[0], ICON2PTR(IconIndex_t::_32BIT), 16); break;
+        default: memset(&bitSampIcon[0], 0, 16); break;
+    }
+    bitSamp.setIcon(bitSampIcon);
+}
+
+void LcdCanvas::setSampleFreq(uint32_t sampFreq)
+{
+    // compose Icon for sampling frequency part (lower half)
+    switch(sampFreq) {
+        case 44100:  memcpy(&bitSampIcon[16], ICON2PTR(IconIndex_t::_44_1KHZ)  + 16, 16); break;
+        case 48000:  memcpy(&bitSampIcon[16], ICON2PTR(IconIndex_t::_48_0KHZ)  + 16, 16); break;
+        case 88200:  memcpy(&bitSampIcon[16], ICON2PTR(IconIndex_t::_88_2KHZ)  + 16, 16); break;
+        case 96000:  memcpy(&bitSampIcon[16], ICON2PTR(IconIndex_t::_96_0KHZ)  + 16, 16); break;
+        case 176400: memcpy(&bitSampIcon[16], ICON2PTR(IconIndex_t::_176_4KHZ) + 16, 16); break;
+        case 192000: memcpy(&bitSampIcon[16], ICON2PTR(IconIndex_t::_192_0KHZ) + 16, 16); break;
+        default: memset(&bitSampIcon[16], 0, 16); break;
+    }
+    bitSamp.setIcon(bitSampIcon);
+}
+
 void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink)
 {
     //playTime.setFormatText("%lu:%02lu / %lu:%02lu", positionSec/60, positionSec%60, lengthSec/60, lengthSec%60);
@@ -276,22 +309,22 @@ void LcdCanvas::setPlayTime(uint32_t positionSec, uint32_t lengthSec, bool blink
     timeProgress.setLevel((float) positionSec/lengthSec);
 }
 
-void LcdCanvas::setTrack(const char *str)
+void LcdCanvas::setTrack(const char* str)
 {
     track.setText(str);
 }
 
-void LcdCanvas::setTitle(const char *str)
+void LcdCanvas::setTitle(const char* str)
 {
     title.setText(str);
 }
 
-void LcdCanvas::setAlbum(const char *str)
+void LcdCanvas::setAlbum(const char* str)
 {
     album.setText(str);
 }
 
-void LcdCanvas::setArtist(const char *str)
+void LcdCanvas::setArtist(const char* str)
 {
     artist.setText(str);
 }
@@ -302,7 +335,7 @@ uint16_t LcdCanvas::getTiledImage(uint16_t x, uint16_t y)
 }
 
 /*
-void LcdCanvas::setYear(const char *str)
+void LcdCanvas::setYear(const char*str)
 {
     year.setText(str);
 }

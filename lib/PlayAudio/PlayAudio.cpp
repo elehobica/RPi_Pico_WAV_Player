@@ -265,3 +265,13 @@ void PlayAudio::getLevel(float* levelL, float* levelR)
     *levelR = this->levelR;
     spin_unlock(spin_lock, save);
 }
+
+uint32_t PlayAudio::getSampFreq()
+{
+    return sampFreq;
+}
+
+uint16_t PlayAudio::getBitsPerSample()
+{
+    return bitsPerSample;
+}

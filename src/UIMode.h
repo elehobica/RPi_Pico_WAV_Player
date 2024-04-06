@@ -10,6 +10,7 @@
 
 #include "stack.h"
 #include "file_menu_FatFs.h"
+#include "LcdCanvasIconDef.h"
 
 typedef enum {
     InitialMode = 0,
@@ -197,7 +198,7 @@ protected:
     uint16_t idx_column;
     uint16_t getNum();
     const char* getStr(uint16_t idx);
-    uint8_t getIcon(uint16_t idx);
+    IconIndex_t getIconIndex(uint16_t idx);
     void listIdxItems();
     void idxInc();
     void idxDec();
