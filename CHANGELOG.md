@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 * Use submodule for pico_audio_i2s_32b library
+* Change pullup register for buttons into conditional pullup for power on by any HP buttons
 
 ### Fixed
 * Correct track number display when no TAG information in WAV file

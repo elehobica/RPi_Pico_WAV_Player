@@ -71,7 +71,7 @@ struct UIVars
 class UIMode
 {
 public:
-    static const int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
+    static constexpr int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
     static void initialize(UIVars* vars);
     UIMode(const char* name, ui_mode_enm_t ui_mode_enm);
     virtual UIMode* update() = 0;
@@ -86,8 +86,8 @@ protected:
         FatFsError,
         LowBatteryVoltage
     } ExitType;
-    static const int OneSec = 1000 / UpdateCycleMs; // 1 Sec
-    static const int OneMin = 60 * OneSec; // 1 Min
+    static constexpr int OneSec = 1000 / UpdateCycleMs; // 1 Sec
+    static constexpr int OneMin = 60 * OneSec; // 1 Min
     static button_action_t btn_act;
     static UIVars* vars;
     static stack_t* dir_stack;

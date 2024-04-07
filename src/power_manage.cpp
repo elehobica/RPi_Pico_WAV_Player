@@ -31,23 +31,25 @@
 
 // === Pin Settings for power management ===
 // DC/DC mode selection Pin
-static const uint32_t PIN_DCDC_PSM_CTRL = 23;
+static constexpr uint32_t PIN_DCDC_PSM_CTRL = 23;
 // USB Charge detect Pin
-static const uint32_t PIN_USB_POWER_DETECT = 24;
+static constexpr uint32_t PIN_USB_POWER_DETECT = 24;
+// Conditional pullup for PIN_HP_BUTTON
+static constexpr uint32_t PIN_COND_PU_BUTTONS = 21;
 // Power Keep Pin
-static const uint32_t PIN_POWER_KEEP = 19;
+static constexpr uint32_t PIN_POWER_KEEP = 19;
 // Audio DAC Enable Pin
-static const uint32_t PIN_AUDIO_DAC_ENABLE = 27;
+static constexpr uint32_t PIN_AUDIO_DAC_ENABLE = 27;
 #ifdef USE_ACTIVE_BATTERY_CHECK
 // Battery Check Pin
-static const uint32_t PIN_BATT_CHECK = 8;
+static constexpr uint32_t PIN_BATT_CHECK = 8;
 // Battery Voltage Pin (GPIO28: ADC2)
-static const uint32_t PIN_BATT_LVL = 28;
-static const uint32_t ADC_PIN_BATT_LVL = 2;
+static constexpr uint32_t PIN_BATT_LVL = 28;
+static constexpr uint32_t ADC_PIN_BATT_LVL = 2;
 #else // USE_ACTIVE_BATTERY_CHECK
 // Battery Voltage Pin (GPIO29: ADC3) (Raspberry Pi Pico built-in circuit)
-static const uint32_t PIN_BATT_LVL = 29;
-static const uint32_t ADC_PIN_BATT_LVL = 3;
+static constexpr uint32_t PIN_BATT_LVL = 29;
+static constexpr uint32_t ADC_PIN_BATT_LVL = 3;
 #endif // USE_ACTIVE_BATTERY_CHECK
 
 // ADC Timer & frequency
@@ -100,6 +102,10 @@ void pm_init()
     gpio_init(PIN_POWER_KEEP);
     gpio_set_dir(PIN_POWER_KEEP, GPIO_OUT);
 
+    // Conditional pullup for HP buttons Pin (Output)
+    gpio_init(PIN_COND_PU_BUTTONS);
+    gpio_set_dir(PIN_COND_PU_BUTTONS, GPIO_OUT);
+
     // Audio DAC Disable (Mute On)
     gpio_init(PIN_AUDIO_DAC_ENABLE);
     gpio_set_dir(PIN_AUDIO_DAC_ENABLE, GPIO_OUT);
@@ -129,9 +135,9 @@ void pm_init()
     timer_init_battery_check();
 }
 
-void pm_set_audio_dac_enable(bool value)
+void pm_set_audio_dac_enable(bool flag)
 {
-    gpio_put(PIN_AUDIO_DAC_ENABLE, value);
+    gpio_put(PIN_AUDIO_DAC_ENABLE, flag);
 }
 
 void pm_monitor_battery_voltage()
@@ -171,9 +177,14 @@ bool pm_usb_power_detected()
     return gpio_get(PIN_USB_POWER_DETECT);
 }
 
-void pm_set_power_keep(bool value)
+void pm_set_power_keep(bool flag)
 {
-    gpio_put(PIN_POWER_KEEP, value);
+    gpio_put(PIN_POWER_KEEP, flag);
+}
+
+void pm_enable_button_control(bool flag)
+{
+    gpio_put(PIN_COND_PU_BUTTONS, flag);
 }
 
 bool pm_get_low_battery()

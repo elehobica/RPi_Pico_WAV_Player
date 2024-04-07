@@ -82,12 +82,13 @@ At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to
 | Pico Pin # | GPIO | Function | Connection |
 ----|----|----|----
 | 26 | GP20 | GPIO | Push Button (Minus) |
+| 27 | GP21 | GPIO | Conditional Pullup for Buttons |
 | 29 | GP22 | GPIO | Push Button (Plus) |
 | 31 | GP26 | ADC0 | Headphone Remote Control (MIC pin) and/or Push Button (Center)|
 
-* 2.2Kohm pullup resister is mandatory for both cases.
-
 ![buttons_schematic](doc/RPi_Pico_WAV_Player_buttons_Schematic.png)
+
+* 2.2Kohm pullup resister is mandatory for both cases.
 
 ## Breadboard implementation
 <img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard0.jpg" />
@@ -155,7 +156,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * Long push to Power Off (Optional: additional circuit needed)
 
 ### Power On (Optional: additional circuit needed)
-* Long push Center button of Headphone Remote Control
+* Long push Center button or any buttons of Headphone Remote Control
 
 ## Image File Format
 ### Opening Logo File

@@ -92,8 +92,8 @@ public:
 	void draw();
 	void clear();
 	void setIcon(uint8_t* icon);
-	static const int iconWidth = 16;
-	static const int iconHeight = 16;
+	static constexpr int iconWidth = 16;
+	static constexpr int iconHeight = 16;
 protected:
 	bool isUpdated;
 	int16_t pos_x, pos_y;
@@ -121,9 +121,9 @@ public:
 	void setFormatText(const char* fmt, ...);
 	void setInt(int value);
 	void setBlink(bool blink);
-	static const int charSize = 256;
+	static constexpr int charSize = 256;
 protected:
-	static const int BlinkInterval = 20;
+	static constexpr int BlinkInterval = 20;
 	bool isUpdated;
 	int16_t pos_x, pos_y;
 	uint16_t fgColor;
@@ -169,7 +169,7 @@ public:
 	void clear();
 	void setScroll(bool scr_en);
 	virtual void setText(const char* str);
-	static const int charSize = 256;
+	static constexpr int charSize = 256;
 protected:
 	bool isUpdated;
 	int16_t pos_x, pos_y;

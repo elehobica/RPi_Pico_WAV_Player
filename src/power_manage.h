@@ -14,10 +14,11 @@ extern "C" {
 
 void pm_backlight_update();
 void pm_init();
-void pm_set_audio_dac_enable(bool value);
+void pm_set_audio_dac_enable(bool flag);
 void pm_monitor_battery_voltage();
 bool pm_usb_power_detected();
-void pm_set_power_keep(bool value);
+void pm_set_power_keep(bool flag);
+void pm_enable_button_control(bool flag);
 bool pm_get_low_battery();
 uint16_t pm_get_battery_voltage();
 void pm_enter_dormant_and_wake();

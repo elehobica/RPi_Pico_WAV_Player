@@ -22,8 +22,8 @@ public:
         AUDIO_CODEC_NONE = 0,
         AUDIO_CODEC_WAV
     } audio_codec_t;
-    static const int RDBUF_SIZE = SAMPLES_PER_BUFFER * 8;  // 4 (16bit), 6 (24bit), 8 (32bit)
-    static const int RDBUF_THRESHOLD = RDBUF_SIZE / 4;
+    static constexpr int RDBUF_SIZE = SAMPLES_PER_BUFFER * 8;  // 4 (16bit), 6 (24bit), 8 (32bit)
+    static constexpr int RDBUF_THRESHOLD = RDBUF_SIZE / 4;
     static void initialize();
     static void finalize();
     static void volumeUp();

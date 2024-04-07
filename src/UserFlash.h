@@ -23,11 +23,11 @@ public:
     void writeReserve(uint32_t flash_ofs, size_t size, const void *buf);
     bool program();
 protected:
-    static const size_t FlashSize = 0x200000; // 2MB
-    static const size_t UserReqSize = 1024; // Byte
-    static const size_t EraseSize = ((UserReqSize + (FLASH_SECTOR_SIZE - 1)) / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
-    static const size_t PagePgrSize = ((UserReqSize + (FLASH_PAGE_SIZE - 1)) / FLASH_PAGE_SIZE) * FLASH_PAGE_SIZE;
-    static const uint32_t UserFlashOfs = FlashSize - EraseSize;
+    static constexpr size_t FlashSize = 0x200000; // 2MB
+    static constexpr size_t UserReqSize = 1024; // Byte
+    static constexpr size_t EraseSize = ((UserReqSize + (FLASH_SECTOR_SIZE - 1)) / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
+    static constexpr size_t PagePgrSize = ((UserReqSize + (FLASH_PAGE_SIZE - 1)) / FLASH_PAGE_SIZE) * FLASH_PAGE_SIZE;
+    static constexpr uint32_t UserFlashOfs = FlashSize - EraseSize;
     const uint8_t *flashContents = (const uint8_t *) (XIP_BASE + UserFlashOfs);
 	static UserFlash _instance; // Singleton
     uint8_t data[PagePgrSize];

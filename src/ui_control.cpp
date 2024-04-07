@@ -18,8 +18,8 @@
 #include "ConfigMenu.h"
 
 // SW PIN setting
-static const uint32_t PIN_SW_PLUS = 22;
-static const uint32_t PIN_SW_MINUS = 20;
+static constexpr uint32_t PIN_SW_PLUS = 22;
+static constexpr uint32_t PIN_SW_MINUS = 20;
 
 // ADC Timer
 static repeating_timer_t timer;
@@ -27,20 +27,20 @@ static repeating_timer_t timer;
 const int TIMER_UI_BUTTON_HZ = 20;
 
 // Android Headphone Remote Control Pin (GPIO26: ADC0)
-static const uint32_t PIN_HP_BUTTON = 26;
-static const uint32_t ADC_PIN_HP_BUTTON = 0;
+static constexpr uint32_t PIN_HP_BUTTON = 26;
+static constexpr uint32_t ADC_PIN_HP_BUTTON = 0;
 
 // Configuration for button recognition
-static const uint32_t RELEASE_IGNORE_COUNT = 8;
-static const uint32_t LONG_PUSH_COUNT = 10;
-static const uint32_t LONG_LONG_PUSH_COUNT = 30;
+static constexpr uint32_t RELEASE_IGNORE_COUNT = 8;
+static constexpr uint32_t LONG_PUSH_COUNT = 10;
+static constexpr uint32_t LONG_LONG_PUSH_COUNT = 30;
 
-static const uint32_t NUM_BTN_HISTORY = 30;
+static constexpr uint32_t NUM_BTN_HISTORY = 30;
 static button_status_t button_prv[NUM_BTN_HISTORY] = {}; // initialized as HP_BUTTON_OPEN
 static uint32_t button_repeat_count = LONG_LONG_PUSH_COUNT; // to ignore first buttton press when power-on
 
 static queue_t btn_evt_queue;
-static const int QueueLength = 1;
+static constexpr int QueueLength = 1;
 
 UIVars vars;
 UIMode* ui_mode = nullptr;

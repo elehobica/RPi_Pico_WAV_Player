@@ -156,6 +156,7 @@ void UIChargeMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     lcd.setMsg("Charging", true);
+    pm_enable_button_control(true);  // for wake up
     pm_set_power_keep(false);
 }
 
@@ -236,6 +237,8 @@ void UIOpeningMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     pm_set_power_keep(true);
+    sleep_ms(10);
+    pm_enable_button_control(true);
 
     // Mount FAT
     int count = 0;
