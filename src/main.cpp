@@ -14,7 +14,7 @@
 #include "ui_control.h"
 #include "lcd.h"
 
-const char *VersionStr = "0.9.3";
+const char *VersionStr = "0.9.4";
 
 static inline uint32_t _millis(void)
 {
