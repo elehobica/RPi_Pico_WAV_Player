@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+* Add support of Waveshare RP2040-LCD-0.96 board
 
 ## [v0.9.4] - 2024-04-09
 ### Added

@@ -18,8 +18,9 @@ This project features:
 * Volume Control Function by fully utilizing 32bit DAC range
 
 ## Supported Board and Peripheral Devices
-* Raspberry Pi Pico
-* ST7735S 0.96" 160x80 LCD
+* Raspberry Pi Pico board
+* Waveshare RP2040-LCD-0.96 board
+* ST7735S 0.96" 160x80 LCD (for Raspberry Pi Pico board only)
 * PCM5102 32bit I2S Audio DAC
 
 ## Pin Assignment & Connection

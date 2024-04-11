@@ -39,6 +39,8 @@ static constexpr uint32_t NUM_BTN_HISTORY = 30;
 static button_status_t button_prv[NUM_BTN_HISTORY] = {}; // initialized as HP_BUTTON_OPEN
 static uint32_t button_repeat_count = LONG_LONG_PUSH_COUNT; // to ignore first buttton press when power-on
 
+static board_type_t _board_type;
+
 static queue_t btn_evt_queue;
 static constexpr int QueueLength = 1;
 
@@ -256,9 +258,10 @@ UIMode* getUIMode(ui_mode_enm_t ui_mode_enm)
     return ui_mode_ary[ui_mode_enm];
 }
 
-void ui_init()
+void ui_init(board_type_t board_type)
 {
-    LcdCanvas::configureLcd(GET_CFG_MENU_DISPLAY_LCD_CONFIG);
+    _board_type = board_type;
+    LcdCanvas::configureLcd(_board_type, GET_CFG_MENU_DISPLAY_LCD_CONFIG);
     lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
     vars.num_list_lines = LCD_H()/16;
 
@@ -317,4 +320,9 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
 uint16_t ui_get_idle_count()
 {
     return ui_mode->getIdleCount();
+}
+
+board_type_t ui_get_board_type()
+{
+    return _board_type;
 }

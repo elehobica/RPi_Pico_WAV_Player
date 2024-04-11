@@ -10,6 +10,7 @@
 
 #include "LcdElementBox.h"
 #include "LcdCanvasIconDef.h"
+#include "ui_control.h"
 
 // Select LCD device
 #define USE_ST7735S_160x80
@@ -44,7 +45,7 @@ protected:
 class LcdCanvas
 {
 public:
-    static void configureLcd(uint cfg_id);
+    static void configureLcd(board_type_t board_type, uint cfg_id);
     static LcdCanvas& instance(); // Singleton
     void clear(bool bgOpaque = false);
     void setRotation(uint8_t rot);

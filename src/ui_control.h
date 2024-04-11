@@ -12,6 +12,11 @@ extern "C" {
 
 #include "UIMode.h"
 
+typedef enum _board_type_t {
+    RASPBERRY_PI_PICO = 0,
+    WAVESHARE_RP2040_LCD_096
+} board_type_t;
+
 typedef enum _button_status_t {
     ButtonOpen = 0,
     ButtonCenter,
@@ -30,11 +35,13 @@ void ui_clear_btn_evt();
 
 UIMode* getUIMode(ui_mode_enm_t ui_mode_enm);
 
-void ui_init();
+void ui_init(board_type_t board_type);
 ui_mode_enm_t ui_update();
 ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm);
 uint16_t ui_get_idle_count();
 uint32_t ui_set_center_switch_for_wakeup(bool flg);
+
+board_type_t ui_get_board_type();
 
 #ifdef __cplusplus
 }

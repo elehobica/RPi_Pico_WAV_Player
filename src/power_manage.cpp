@@ -239,7 +239,6 @@ void pm_enter_dormant_and_wake()
     // === [1] Preparation for dormant ===
     OLED_BLK_Set_PWM(0);
 
-    gpio_put(PICO_DEFAULT_LED_PIN, 0);
     gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
     stdio_usb_deinit(); // terminate usb cdc
 
@@ -266,9 +265,7 @@ void pm_enter_dormant_and_wake()
     pm_backlight_update();
 
     // wake up alert
-    gpio_put(PICO_DEFAULT_LED_PIN, 1);
     sleep_ms(500);
-    gpio_put(PICO_DEFAULT_LED_PIN, 0);
 }
 
 void pw_set_pll_usb_96MHz()
