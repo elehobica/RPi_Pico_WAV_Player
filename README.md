@@ -138,7 +138,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * Plus/Minus button to go up/down for file selection
 * Center 1 click to get into the folder
 * Center 1 click to play WAV file (go to Play Mode)
-* Center 2 click to go parent folder
+* Center 2 clicks to go parent folder
 * Center 3 clicks to Random album play (go to Play Mode)
 * Long push Center button to go to Config Mode
 * 1 min passed without any button after play finished: Sequential/SequentialRepeat/Repeat/Random album play (go to Play Mode)
@@ -146,7 +146,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 ### Play Mode
 * Plus/Minus button for volume up/down
 * Center 1 click to pause/play
-* Center 2 click to stop (go back to FileView Mode)
+* Center 2 clicks to stop (go back to FileView Mode)
 * Center 3 clicks to Random album play
 * Long push Center button to go to Config Mode
 

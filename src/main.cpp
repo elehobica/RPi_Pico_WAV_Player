@@ -6,10 +6,13 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include "pico/stdlib.h"
 #include "pico/stdio_usb.h"
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
+
+#include "common.h"
 #include "power_manage.h"
 #include "ui_control.h"
 #include "lcd.h"
@@ -25,12 +28,6 @@ int main() {
     // Call stdio_usb_init() in pw_set_pll_usb_96MHz() for modified code rather than stdio_init_all()
     //stdio_init_all();
 
-    // Set PLL_USB 96MHz and use it for PIO clock for I2S
-    pw_set_pll_usb_96MHz();
-
-    // Power Manage Init
-    pm_init();
-
     // Judge whether board is Pico or Waveshare RP2040-LCD-0.96
     // PICO_DEFAULT_LED_PIN: GPIO25
     //    Raspberry Pi Pico: board LED (connected to LCD only)
@@ -40,6 +37,12 @@ int main() {
     board_type_t board_type = gpio_get(PICO_DEFAULT_LED_PIN) ? WAVESHARE_RP2040_LCD_096 : RASPBERRY_PI_PICO;
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
+
+    // Set PLL_USB 96MHz and use it for PIO clock for I2S
+    pw_set_pll_usb_96MHz();
+
+    // Power Manage Init
+    pm_init(board_type);
 
     // Wait before stable power-on for 750ms
     // to avoid unintended power-on when Headphone plug in

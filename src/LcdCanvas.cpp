@@ -367,9 +367,9 @@ void LcdCanvas::setYear(const char*str)
 }
 */
 
-void LcdCanvas::setBatteryVoltage(uint16_t voltage_x1000)
+void LcdCanvas::setBatteryVoltage(float voltage)
 {
-    const uint16_t lvl100 = 4100;
-    const uint16_t lvl0 = 2900;
-    battery.setLevel(((voltage_x1000 - lvl0) * 100) / (lvl100 - lvl0));
+    const float lvl100 = 4.1;
+    const float lvl0 = 2.9;
+    battery.setLevel(static_cast<uint8_t>(((voltage - lvl0) * 100) / (lvl100 - lvl0)));
 }

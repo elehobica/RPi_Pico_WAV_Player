@@ -10,12 +10,8 @@
 extern "C" {
 #endif
 
+#include "common.h"
 #include "UIMode.h"
-
-typedef enum _board_type_t {
-    RASPBERRY_PI_PICO = 0,
-    WAVESHARE_RP2040_LCD_096
-} board_type_t;
 
 typedef enum _button_status_t {
     ButtonOpen = 0,
