@@ -60,6 +60,8 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 | 20 | GP15 | GPIO | RES |
 | 36 | 3V3(OUT) | 3.3V | VCC |
 
+* Raspberry Pi Pico board only
+
 ![st7735s_schematic](doc/RPi_Pico_WAV_Player_ST7735S_Schematic.png)
 
 ### SD Card interface
@@ -78,7 +80,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 ![microsd_schematic](doc/RPi_Pico_WAV_Player_microsd_Schematic.png)
 
 ### Control Switches
-At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to be implemented.
+Either of GPIO Push Buttons or Headphone Remote Control Buttons need to be implemented at least.
 
 | Pico Pin # | GPIO | Function | Connection |
 ----|----|----|----
@@ -92,12 +94,17 @@ At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to
 * 2.2Kohm pullup resister is mandatory for both cases.
 
 ## Breadboard implementation
-<img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard0.jpg" />
+### Raspberry Pi Pico board / Waveshare RP2040-LCD-0.96 board
+<img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard0.jpg" /> <img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard1.jpg" />
 
 ## Schematic
 For complete portable player with Li-Po battery operation, refer to the following schematic which describes additional power control circuit and battery voltage monitoring circuit.
 
+### Raspberry Pi Pico board
 [RPi_Pico_WAV_Player_schematic.pdf](doc/RPi_Pico_WAV_Player_schematic.pdf)
+
+### Waveshare RP2040-LCD-0.96 board
+[RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf](doc/RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf)
 
 ## How to build
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
