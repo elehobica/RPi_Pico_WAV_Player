@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 * Add support of Waveshare RP2040-LCD-0.96 board
+### Changed
+* Replace transistor with MOS-FET in battery operation circuit (Q2) thanks to conditional pullup
 
 ## [v0.9.4] - 2024-04-09
 ### Added
@@ -17,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Force to reset ConfigParam when format revision changed to avoid mulfunction
 ### Changed
 * Use submodule for pico_audio_i2s_32b library
-* Change pullup register for buttons into conditional pullup for power on by any HP buttons
+* Change pullup register for buttons into conditional pullup for power-on by any HP buttons
 ### Fixed
 * Correct track number display when no TAG information in WAV file
 * Don't display empty album art when no JPEG
