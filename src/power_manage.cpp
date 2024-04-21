@@ -29,6 +29,8 @@
 //#define USE_ACTIVE_BATTERY_CHECK // Additional circuit needed
 //#define NO_BATTERY_VOLTAGE_CHECK
 
+static board_type_t _board_type;
+
 // === Pin Settings for power management ===
 // DC/DC mode selection Pin
 static constexpr uint32_t PIN_DCDC_PSM_CTRL = 23;
@@ -58,7 +60,7 @@ const int TIMER_BATTERY_CHECK_HZ = 20;
 
 // Battery monitor interval
 const int BATT_CHECK_INTERVAL_SEC = 5;
-static uint16_t _bat_mv = 4200;
+static float _battery_voltage = 4.2;
 
 // for preserving clock configuration
 static uint32_t _scr;
@@ -93,8 +95,11 @@ void pm_backlight_update()
     OLED_BLK_Set_PWM(bl_val);
 }
 
-void pm_init()
+void pm_init(board_type_t board_type)
 {
+    // Board type
+    _board_type = board_type;
+
     // USB Power detect Pin = Charge detect (Input)
     gpio_set_dir(PIN_USB_POWER_DETECT, GPIO_IN);
 
@@ -153,21 +158,24 @@ void pm_monitor_battery_voltage()
         // ADC Calibration Coefficients
 #ifdef USE_ACTIVE_BATTERY_CHECK
         // ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm
-        const int16_t coef_a = 4280;
-        const int16_t coef_b = -20;
+        const float coef_a = 4.2;
+        const float coef_b = -0.02;
 #else // USE_ACTIVE_BATTERY_CHECK
         // ADC3 pin is connected to middle point of voltage divider 200Kohm + 100Kohm
-        const int16_t coef_a = 9875;
-        const int16_t coef_b = -20;
+        const float coef_a = 9.875;
+        const float coef_b = -0.02;
 #endif // USE_ACTIVE_BATTERY_CHECK
         adc_select_input(ADC_PIN_BATT_LVL);
         uint16_t result = adc_read();
 #ifdef USE_ACTIVE_BATTERY_CHECK
         gpio_put(PIN_BATT_CHECK, 0);
 #endif // USE_ACTIVE_BATTERY_CHECK
-        int16_t voltage = result * coef_a / (1<<12) + coef_b;
-        //printf("Battery Voltage = %d (mV)\n", voltage);
-        _bat_mv = voltage;
+        float voltage = result * coef_a / 4095 + coef_b;
+        if (_board_type == WAVESHARE_RP2040_LCD_096) {
+            voltage += 0.33;  // Forward voltage of D2 (MBR230LSFT1G)
+        }
+        //printf("Battery Voltage = %7.4f (V)\n", voltage);
+        _battery_voltage = voltage;
     }
     count++;
 }
@@ -192,13 +200,13 @@ bool pm_get_low_battery()
 #ifdef NO_BATTERY_VOLTAGE_CHECK
     return false;
 #else
-    return (_bat_mv < 2900);
+    return (_battery_voltage < 2.9);
 #endif
 }
 
-uint16_t pm_get_battery_voltage()
+float pm_get_battery_voltage()
 {
-    return _bat_mv;
+    return _battery_voltage;
 }
 
 // === 'recover_from_sleep' part (start) ===================================
@@ -239,7 +247,6 @@ void pm_enter_dormant_and_wake()
     // === [1] Preparation for dormant ===
     OLED_BLK_Set_PWM(0);
 
-    gpio_put(PICO_DEFAULT_LED_PIN, 0);
     gpio_put(PIN_DCDC_PSM_CTRL, 0); // PFM mode for better efficiency
     stdio_usb_deinit(); // terminate usb cdc
 
@@ -266,9 +273,7 @@ void pm_enter_dormant_and_wake()
     pm_backlight_update();
 
     // wake up alert
-    gpio_put(PICO_DEFAULT_LED_PIN, 1);
     sleep_ms(500);
-    gpio_put(PICO_DEFAULT_LED_PIN, 0);
 }
 
 void pw_set_pll_usb_96MHz()

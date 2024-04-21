@@ -18,8 +18,9 @@ This project features:
 * Volume Control Function by fully utilizing 32bit DAC range
 
 ## Supported Board and Peripheral Devices
-* Raspberry Pi Pico
-* ST7735S 0.96" 160x80 LCD
+* Raspberry Pi Pico board
+* Waveshare RP2040-LCD-0.96 board
+* ST7735S 0.96" 160x80 LCD (for Raspberry Pi Pico board only)
 * PCM5102 32bit I2S Audio DAC
 
 ## Pin Assignment & Connection
@@ -59,6 +60,8 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 | 20 | GP15 | GPIO | RES |
 | 36 | 3V3(OUT) | 3.3V | VCC |
 
+* Raspberry Pi Pico board only
+
 ![st7735s_schematic](doc/RPi_Pico_WAV_Player_ST7735S_Schematic.png)
 
 ### SD Card interface
@@ -77,7 +80,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 ![microsd_schematic](doc/RPi_Pico_WAV_Player_microsd_Schematic.png)
 
 ### Control Switches
-At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to be implemented.
+Either of GPIO Push Buttons or Headphone Remote Control Buttons need to be implemented at least.
 
 | Pico Pin # | GPIO | Function | Connection |
 ----|----|----|----
@@ -91,12 +94,17 @@ At least either of GPIO Push Buttons or Headphone Remote Control Buttons need to
 * 2.2Kohm pullup resister is mandatory for both cases.
 
 ## Breadboard implementation
-<img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard0.jpg" />
+### Raspberry Pi Pico board / Waveshare RP2040-LCD-0.96 board
+<img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard0.jpg" /> <img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard1.jpg" />
 
 ## Schematic
 For complete portable player with Li-Po battery operation, refer to the following schematic which describes additional power control circuit and battery voltage monitoring circuit.
 
+### Raspberry Pi Pico board
 [RPi_Pico_WAV_Player_schematic.pdf](doc/RPi_Pico_WAV_Player_schematic.pdf)
+
+### Waveshare RP2040-LCD-0.96 board
+[RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf](doc/RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf)
 
 ## How to build
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
@@ -137,7 +145,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 * Plus/Minus button to go up/down for file selection
 * Center 1 click to get into the folder
 * Center 1 click to play WAV file (go to Play Mode)
-* Center 2 click to go parent folder
+* Center 2 clicks to go parent folder
 * Center 3 clicks to Random album play (go to Play Mode)
 * Long push Center button to go to Config Mode
 * 1 min passed without any button after play finished: Sequential/SequentialRepeat/Repeat/Random album play (go to Play Mode)
@@ -145,7 +153,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 ### Play Mode
 * Plus/Minus button for volume up/down
 * Center 1 click to pause/play
-* Center 2 click to stop (go back to FileView Mode)
+* Center 2 clicks to stop (go back to FileView Mode)
 * Center 3 clicks to Random album play
 * Long push Center button to go to Config Mode
 

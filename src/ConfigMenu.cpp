@@ -6,15 +6,17 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#include "LcdCanvas.h"
 #include "ConfigMenu.h"
+
+#include "LcdCanvas.h"
+#include "ui_control.h"
 
 //=================================
 // Implementation of Hook Functions
 //=================================
 void hook_disp_lcd_config()
 {
-    LcdCanvas::configureLcd(GET_CFG_MENU_DISPLAY_LCD_CONFIG);
+    LcdCanvas::configureLcd(ui_get_board_type(), GET_CFG_MENU_DISPLAY_LCD_CONFIG);
     lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
     lcd.switchToListView();
 }

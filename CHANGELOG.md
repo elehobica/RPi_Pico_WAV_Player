@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+* Add support of Waveshare RP2040-LCD-0.96 board
 
 ## [v0.9.4] - 2024-04-09
 ### Added
@@ -19,7 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 * Correct track number display when no TAG information in WAV file
 * Don't display empty album art when no JPEG
-* Fix resume play freeze when card contents have beeen changed
+* Fix resume play freeze when card contents have been changed
 
 ## [v0.9.3] - 2024-03-06
 ### Fixed

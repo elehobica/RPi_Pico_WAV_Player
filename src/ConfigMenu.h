@@ -6,8 +6,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#ifndef __CONFIG_MENU_H_INCLUDED__
-#define __CONFIG_MENU_H_INCLUDED__
+#pragma once
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -179,5 +178,3 @@ private:
     config_category_t *cur_category;
     config_menu_item_t *cur_item;
 };
-
-#endif // __CONFIG_MENU_H_INCLUDED__

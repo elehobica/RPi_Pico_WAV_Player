@@ -48,18 +48,44 @@ void BatteryIconBox::setLevel(uint8_t value)
 //=================================
 // Implementation of LcdCanvas class
 //=================================
-void LcdCanvas::configureLcd(uint cfg_id)
+void LcdCanvas::configureLcd(board_type_t board_type, uint cfg_id)
 {
+    uint pin_spi_cs;
+    uint pin_spi_sck;
+    uint pin_spi_mosi;
+    uint pin_dc;
+    uint pin_rst;
+    uint pin_blk;
+
+    switch (board_type) {
+        case WAVESHARE_RP2040_LCD_096:
+            pin_spi_cs   = PIN_LCD_SPI1_CS_WAVESHARE;
+            pin_spi_sck  = PIN_LCD_SPI1_SCK_WAVESHARE;
+            pin_spi_mosi = PIN_LCD_SPI1_MOSI_WAVESHARE;
+            pin_dc       = PIN_LCD_DC_WAVESHARE;
+            pin_rst      = PIN_LCD_RST_WAVESHARE;
+            pin_blk      = PIN_LCD_BLK_WAVESHARE;
+            break;
+        case RASPBERRY_PI_PICO: // fallthrough
+        default:
+            pin_spi_cs   = PIN_LCD_SPI1_CS_DEFAULT;
+            pin_spi_sck  = PIN_LCD_SPI1_SCK_DEFAULT;
+            pin_spi_mosi = PIN_LCD_SPI1_MOSI_DEFAULT;
+            pin_dc       = PIN_LCD_DC_DEFAULT;
+            pin_rst      = PIN_LCD_RST_DEFAULT;
+            pin_blk      = PIN_LCD_BLK_DEFAULT;
+            break;
+    }
     pico_st7735_80x160_config_t lcd_cfg[3] = {
         {
             SPI_CLK_FREQ_DEFAULT,
             spi1,
-            PIN_LCD_SPI1_CS_DEFAULT,
-            PIN_LCD_SPI1_SCK_DEFAULT,
-            PIN_LCD_SPI1_MOSI_DEFAULT,
-            PIN_LCD_DC_DEFAULT,
-            PIN_LCD_RST_DEFAULT,
-            PIN_LCD_BLK_DEFAULT,
+            pin_spi_cs,
+            pin_spi_sck,
+            pin_spi_mosi,
+            pin_dc,
+            pin_rst,
+            pin_blk,
             PWM_BLK_DEFAULT,
             INVERSION_DEFAULT,  // 0: non-color-inversion, 1: color-inversion
             RGB_ORDER_DEFAULT,  // 0: RGB, 1: BGR
@@ -71,12 +97,12 @@ void LcdCanvas::configureLcd(uint cfg_id)
         {
             SPI_CLK_FREQ_DEFAULT,
             spi1,
-            PIN_LCD_SPI1_CS_DEFAULT,
-            PIN_LCD_SPI1_SCK_DEFAULT,
-            PIN_LCD_SPI1_MOSI_DEFAULT,
-            PIN_LCD_DC_DEFAULT,
-            PIN_LCD_RST_DEFAULT,
-            PIN_LCD_BLK_DEFAULT,
+            pin_spi_cs,
+            pin_spi_sck,
+            pin_spi_mosi,
+            pin_dc,
+            pin_rst,
+            pin_blk,
             PWM_BLK_DEFAULT,
             0,  //INVERSION_DEFAULT,  // 0: non-color-inversion, 1: color-inversion
             RGB_ORDER_DEFAULT,  // 0: RGB, 1: BGR
@@ -88,12 +114,12 @@ void LcdCanvas::configureLcd(uint cfg_id)
         {
             SPI_CLK_FREQ_DEFAULT,
             spi1,
-            PIN_LCD_SPI1_CS_DEFAULT,
-            PIN_LCD_SPI1_SCK_DEFAULT,
-            PIN_LCD_SPI1_MOSI_DEFAULT,
-            PIN_LCD_DC_DEFAULT,
-            PIN_LCD_RST_DEFAULT,
-            PIN_LCD_BLK_DEFAULT,
+            pin_spi_cs,
+            pin_spi_sck,
+            pin_spi_mosi,
+            pin_dc,
+            pin_rst,
+            pin_blk,
             PWM_BLK_DEFAULT,
             INVERSION_DEFAULT,  // 0: non-color-inversion, 1: color-inversion
             0,  //RGB_ORDER_DEFAULT,  // 0: RGB, 1: BGR
@@ -341,9 +367,9 @@ void LcdCanvas::setYear(const char*str)
 }
 */
 
-void LcdCanvas::setBatteryVoltage(uint16_t voltage_x1000)
+void LcdCanvas::setBatteryVoltage(float voltage)
 {
-    const uint16_t lvl100 = 4100;
-    const uint16_t lvl0 = 2900;
-    battery.setLevel(((voltage_x1000 - lvl0) * 100) / (lvl100 - lvl0));
+    const float lvl100 = 4.1;
+    const float lvl0 = 2.9;
+    battery.setLevel(static_cast<uint8_t>(((voltage - lvl0) * 100) / (lvl100 - lvl0)));
 }
