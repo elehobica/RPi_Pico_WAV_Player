@@ -1,6 +1,6 @@
 # Hi-Res WAV player for Raspberry Pi Pico
-![Scene3_5](doc/RPi_Pico_WAV_Player_Scene3_5.jpg)
-![Scene2](doc/RPi_Pico_WAV_Player_Scene2.jpg)
+![Scene3_5](doc/implementation/compact/RPi_Pico_WAV_Player_Scene3_5.jpg)
+![Scene2](doc/implementation/compact/RPi_Pico_WAV_Player_Scene2.jpg)
 
 ## Overview
 RPi_Pico_WAV_Player is Hi-Res WAV player for Raspberry Pi Pico.
@@ -37,7 +37,7 @@ This project features:
 From DAC noise's point of view, it is recommended to provide the power of PCM5102 from VBUS (5V).
 For battery operation, use 3V3(OUT) pin as described in schematic.
 
-![PCM5102_schematic](doc/RPi_Pico_WAV_Player_PCM5102_Schematic.png)
+![PCM5102_schematic](doc/schematic/RPi_Pico_WAV_Player_PCM5102_Schematic.png)
 
 #### PCM5102 Board Setting
 * tie PCM5102 SCK (12) to low (bridge short land)
@@ -46,7 +46,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 * H3L (XSMT): Remove the bridge to H and connect GP27
 * H4L (FMT) = L
 
-![PCM5102_Board_setting](doc/PCM5102A_Board_setting.png)
+![PCM5102_Board_setting](doc/schematic/PCM5102A_Board_setting.png)
 
 ### ST7735S LCD driver
 | Pico Pin # | GPIO | Function | Connection |
@@ -62,7 +62,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 
 * Raspberry Pi Pico board only
 
-![st7735s_schematic](doc/RPi_Pico_WAV_Player_ST7735S_Schematic.png)
+![st7735s_schematic](doc/schematic/RPi_Pico_WAV_Player_ST7735S_Schematic.png)
 
 ### SD Card interface
 | Pico Pin # | GPIO | Function | Connection |
@@ -77,7 +77,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 #### Caution
 * Wire length between Pico and SD card is very sensitive. Short wiring as possible is desired, otherwise access errors  will occur.
 
-![microsd_schematic](doc/RPi_Pico_WAV_Player_microsd_Schematic.png)
+![microsd_schematic](doc/schematic/RPi_Pico_WAV_Player_microsd_Schematic.png)
 
 ### Control Switches
 Either of GPIO Push Buttons or Headphone Remote Control Buttons need to be implemented at least.
@@ -89,22 +89,22 @@ Either of GPIO Push Buttons or Headphone Remote Control Buttons need to be imple
 | 29 | GP22 | GPIO | Push Button (Plus) |
 | 31 | GP26 | ADC0 | Headphone Remote Control (MIC pin) and/or Push Button (Center)|
 
-![buttons_schematic](doc/RPi_Pico_WAV_Player_buttons_Schematic.png)
+![buttons_schematic](doc/schematic/RPi_Pico_WAV_Player_buttons_Schematic.png)
 
 * 2.2Kohm pullup resister is mandatory for both cases.
 
 ## Breadboard implementation
 ### Raspberry Pi Pico board / Waveshare RP2040-LCD-0.96 board
-<img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard0.jpg" /> <img width="240" src="doc/RPi_Pico_WAV_Player_Breadboard1.jpg" />
+<img width="240" src="doc/implementation/breadboard/RPi_Pico_WAV_Player_Breadboard0.jpg" /> <img width="240" src="doc/implementation/breadboard/RPi_Pico_WAV_Player_Breadboard1.jpg" />
 
 ## Schematic
 For complete portable player with Li-Po battery operation, refer to the following schematic which describes additional power control circuit and battery voltage monitoring circuit.
 
 ### Raspberry Pi Pico board
-[RPi_Pico_WAV_Player_schematic.pdf](doc/RPi_Pico_WAV_Player_schematic.pdf)
+[RPi_Pico_WAV_Player_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_schematic.pdf)
 
 ### Waveshare RP2040-LCD-0.96 board
-[RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf](doc/RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf)
+[RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf)
 
 ## How to build
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
@@ -203,7 +203,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
 | 4 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Fine with 24bit 192KHz playing |
 | 4 | SanDisk | Ultra 256GB | SDSQUAC-256G-GN6MN | Fine with 24bit 192KHz playing |
 
-<img src="doc/Samsung-MB-MD256SA.jpg" width="80" />  <img src="doc/Kioxia-LMEX2L256GG2.jpg" width="80" />  <img src="doc/Samsung-MB-MC256KA.jpg" width="80" />  <img src="doc/Sandisk-SDSQXCD-256G-GN6MA.jpg" width="80" />  <img src="doc/Sandisk-SDSQUAC-256G-GN6MN.jpg" width="80" />
+<img src="doc/microsd/Samsung-MB-MD256SA.jpg" width="80" />  <img src="doc/microsd/Kioxia-LMEX2L256GG2.jpg" width="80" />  <img src="doc/microsd/Samsung-MB-MC256KA.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQXCD-256G-GN6MA.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQUAC-256G-GN6MN.jpg" width="80" />
 
 ### Card trouble shooting
 * In case of card mount error or fundamental access errors, please confirm with FatFs test [lib/pico_fatfs/test](https://github.com/elehobica/pico_fatfs/tree/main/test).
