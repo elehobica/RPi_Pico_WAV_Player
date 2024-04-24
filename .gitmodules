@@ -1,9 +1,9 @@
 [submodule "lib/pico_fatfs"]
 	path = lib/pico_fatfs
-	url = git@github.com:elehobica/pico_fatfs.git
+	url = https://github.com/elehobica/pico_fatfs.git
 [submodule "lib/pico_st7735_80x160"]
 	path = lib/pico_st7735_80x160
-	url = git@github.com:elehobica/pico_st7735_80x160.git
+	url = https://github.com/elehobica/pico_st7735_80x160.git
 [submodule "lib/pico_audio_i2s_32b"]
 	path = lib/pico_audio_i2s_32b
-	url = git@github.com:elehobica/pico_audio_i2s_32b.git
+	url = https://github.com/elehobica/pico_audio_i2s_32b.git
