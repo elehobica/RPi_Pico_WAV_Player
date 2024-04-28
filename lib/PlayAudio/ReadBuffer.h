@@ -23,7 +23,8 @@ public:
     const uint8_t* buf();
     bool shift(size_t bytes);
     bool shiftAll();
-    bool seek(size_t fpos);
+    void setEodPos(size_t pos);
+    bool seek(size_t pos);
     size_t getLeft();
     size_t tell();
     bool isFull();
@@ -50,6 +51,8 @@ private:
     size_t _size;
     size_t _pos;
     size_t _left;
+    size_t _eodPos;
+    bool _isEod;
     uint8_t* _head;
     uint8_t* _ptr;
     size_t _fillThreshold;
