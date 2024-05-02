@@ -98,7 +98,7 @@ Either of GPIO Push Buttons or Headphone Remote Control Buttons need to be imple
 <img width="240" src="doc/implementation/breadboard/RPi_Pico_WAV_Player_Breadboard0.jpg" /> <img width="240" src="doc/implementation/breadboard/RPi_Pico_WAV_Player_Breadboard1.jpg" />
 
 ## Schematic
-For complete portable player with Li-Po battery operation, refer to the following schematic which describes additional power control circuit and battery voltage monitoring circuit.
+For complete portable player with Li-Po battery operation, refer to the following schematics which describe additional power control circuit.
 
 ### Raspberry Pi Pico board
 [RPi_Pico_WAV_Player_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_schematic.pdf)
@@ -139,7 +139,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 ## Button Control Guide
 UI Control is available with GPIO 3 push switches or 3 button Headphone Remote Control.
 For Headphone Remote Control, Connect MIC pin to GP26 of Raspberry Pi Pico.
-GP26 also needs to be pulled-up by 2.2Kohm from 3.3V. See schematic for detail.
+GP26 also needs to be pulled-up by 2.2Kohm from GP21. See schematic for detail.
 
 ### FileView Mode
 * Plus/Minus button to go up/down for file selection
