@@ -193,17 +193,16 @@ GP26 also needs to be pulled-up by 2.2Kohm from GP21. See schematic for detail.
 * In case of lack of card reading speed for playing, instant mute will be inserted while playing and the warning message will be displayed on serial terminal.
 * The read speed stability in this project is not always propotional to the maximum performance of the card, therefore, it is worth trying other grade/vendor's card if facing at read speed stability problem.
 * Format micorSD card in exFAT with [official SD Card Formatter](https://www.sdcard.org/downloads/formatter/) before usage. 
-* Following table is the reference of recommendation order. Comments are about the buffer margin for playing.
+* Following table is, just for reference, recommend of microSD cards. Comments are about the buffer margin for playing under the condition with more than half of the card storage capacity used. (It could get worse if near-full storage capacity is used.)
 
 | # | Vendor | Product Name | Part Number | Comment |
 ----|----|----|----|----
-| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Fine with 32bit(int) 192KHz playing. Pretty fine with 24bit 192KHz playing |
-| 1 | Kioxia | Exceria G2 256GB | LMEX2L256GG2 | Fine with 32bit(int) 192KHz playing. Pretty fine with 24bit 192KHz playing |
-| 3 | Samsung | EVO Plus 256GB | MB-MC256KA | Pretty fine with 24bit 192KHz playing |
-| 4 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Fine with 24bit 192KHz playing |
-| 4 | SanDisk | Ultra 256GB | SDSQUAC-256G-GN6MN | Fine with 24bit 192KHz playing |
+| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Pretty fine with 24bit 192KHz playing |
+| 1 | Kioxia | Exceria G2 256GB | LMEX2L256GG2 | Pretty fine with 24bit 192KHz playing |
+| 3 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Fine with 24bit 192KHz playing |
+| 4 | SanDisk | Ultra 256GB | SDSQUAC-256G-GN6MN | Pretty fine with 24bit 96KHz playing |
 
-<img src="doc/microsd/Samsung-MB-MD256SA.jpg" width="80" />  <img src="doc/microsd/Kioxia-LMEX2L256GG2.jpg" width="80" />  <img src="doc/microsd/Samsung-MB-MC256KA.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQXCD-256G-GN6MA.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQUAC-256G-GN6MN.jpg" width="80" />
+<img src="doc/microsd/Samsung-MB-MD256SA.jpg" width="80" />  <img src="doc/microsd/Kioxia-LMEX2L256GG2.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQXCD-256G-GN6MA.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQUAC-256G-GN6MN.jpg" width="80" />
 
 ### Card trouble shooting
 * In case of card mount error or fundamental access errors, please confirm with FatFs test [lib/pico_fatfs/test](https://github.com/elehobica/pico_fatfs/tree/main/test).
