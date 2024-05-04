@@ -754,7 +754,13 @@ void UIPlayMode::readTag()
 
     // copy TAG text
     if (tag.getUTF8Track(str, sizeof(str) - 1)) {
-        uint16_t track = atoi(str);
+        std::string s(str);
+        uint16_t track;
+        if (s.size() > 0 && std::isdigit(s.at(0))) {  // accept both "12" and  "12/20" as 12
+            track = static_cast<uint8_t>(std::stoi(s));  // stoi stops conversion if non-number appeared
+        } else {
+            track = 0;
+        }
         sprintf(str, "%d/%d", track, vars->num_tracks);
     } else {
         uint16_t track = file_menu_get_ext_num_from_max("wav", 3, vars->idx_play + 1) + file_menu_get_ext_num_from_max("WAV", 3, vars->idx_play +1);

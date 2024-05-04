@@ -13,8 +13,9 @@
 
 #include "ff.h"
 #include <cstddef>
-#include <vector>
+#include <map>
 #include <string>
+#include <vector>
 
 typedef struct _id31 {
     char header[3];
@@ -116,11 +117,22 @@ typedef enum _ptype_t {
     pub_logo = 0x14
 } ptype_t;
 
-typedef struct _wav_chunk_t {
+typedef struct _riff_t {
+    std::string riff_id;
+    std::string fmt_id;
+    size_t pos;
+    size_t size;
+    size_t chunk_pos() { return pos + 12; }
+    size_t end_pos() { return pos + size + 8; }
+} riff_t;
+
+typedef struct _riff_chunk_t {
     std::string id;
     size_t      pos;
     size_t      size;
-} wav_chunk_t;
+    size_t body_pos() { return pos + 8; }
+    size_t end_pos() { return pos + size + 8; }
+} riff_chunk_t;
 
 const size_t frame_size_limit = 1024;
 const size_t frame_start_bytes = 16;
@@ -140,6 +152,8 @@ public:
     int getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
 
 private:
+    using chunk_map_t = std::map<std::string, riff_chunk_t>;
+
     FIL fil;
 
     id31* id3v1;
@@ -152,7 +166,7 @@ private:
 
     FRESULT f_read_unsync(FIL* fp, void* buff, UINT btr, UINT* br, bool unsync);
 
-    int GetID3HeadersFull(FIL* infile, int testfail, id31** id31save, id32** id32save);
+    int GetID3HeadersFull(FIL& infile, int testfail, id31*& id31save, id32*& id32save);
     id32* ID32Detect(FIL* infile, const size_t pos = 0);
     int GetID32UTF8(const char* id3v22, const char* id3v23, char* str, size_t size);
     int GetID3IDCount(const char* id3v22, const char* id3v23);
@@ -164,10 +178,19 @@ private:
     void ID31Print(id31* id31header);
     void ID31Free(id31* id31header);
 
-    bool getChunk(FIL& file, wav_chunk_t& chunk);
-    int getListChunk(FIL* fil);
-    int findNextChunk(FIL* fil, uint32_t end_pos, char chunk_id[4], uint32_t* pos, uint32_t* size);
-    bool findNextChunk(FIL& file, const size_t end_pos, size_t& pos, wav_chunk_t& chunk);
+    bool GetID3v2FromRiffChunk(FIL& file, chunk_map_t& riff, id32*& id32save);
+    bool GetListFromRiffChunk(FIL& file, chunk_map_t& riff, id31*& id31save);
+    chunk_map_t findRiff(FIL& file, const size_t& pos, const std::string riff_id, riff_t& riff);
+
+    /**
+     * Find next chunk
+     *
+     * @param file is FIL file
+     * @param end_pos is chunk search stop position
+     * @param pos is in: chunk search start position, out: next chunk search start position
+     * @param chunk is  out: riff chunk
+     */
+    bool findNextChunk(FIL& file, const size_t& end_pos, size_t& pos, riff_chunk_t& chunk);
 
     MP4_ilst mp4_ilst;
     void clearMP4_ilst();
@@ -176,4 +199,7 @@ private:
     int GetMP4BoxUTF8(const char* mp4_type, char* str, size_t size);
     int GetMP4TypeCount(const char* mp4_type);
     int getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size);
+
+    template <typename T>
+    T read(FIL& file, const uint64_t pos, const size_t size);
 };

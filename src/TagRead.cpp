@@ -13,6 +13,7 @@
 
 #include "utf_conv.h"
 #include <cstring>
+#include <tuple>
 
 TagRead::TagRead()
 {
@@ -87,26 +88,23 @@ int TagRead::loadFile(const char* filename)
     getMP4Box(&fil);
 
     // try ID3v1 or ID3v2
-    if (GetID3HeadersFull(&fil, 1 /* 1: no-debug display, 0: debug display */, &id3v1, &id3v2) == 0) {
+    if (GetID3HeadersFull(fil, 1 /* 1: no-debug display, 0: debug display */, id3v1, id3v2) == 0) {
         f_close(&fil);
         return 1;
     }
 
+    // try parsing RIFF WAV
+    riff_t riff;
+    auto chunk_list = findRiff(fil, 0, "RIFF", riff);
+
     // try ID3v2 in WAV chunk format
-    {
-        wav_chunk_t chunk;
-        chunk.id = "id3 ";
-        if (getChunk(fil, chunk)) {
-            //printf("id3 found %s %08x %08x\n", chunk.id.c_str(), (int) chunk.pos, (int) chunk.size);
-            id32* id32header = ID32Detect(&fil, chunk.pos+8); // For ID3v2.x only
-            if (id32header) { id3v2 = id32header; }
-            f_close(&fil);
-            return 1;
-        }
+    if (GetID3v2FromRiffChunk(fil, chunk_list, id3v2)) {
+        f_close(&fil);
+        return 1;
     }
 
-    // If all failed, try to read LIST chunk (for WAV file)
-    if (getListChunk(&fil)) {
+    // If all failed, try to read LIST chunk
+    if (GetListFromRiffChunk(fil, chunk_list, id3v1)) {
         f_close(&fil);
         return 1;
     }
@@ -116,7 +114,7 @@ int TagRead::loadFile(const char* filename)
     return 0;
 }
 
-int TagRead::GetID3HeadersFull(FIL* infile, int testfail, id31** id31save, id32** id32save)
+int TagRead::GetID3HeadersFull(FIL& infile, int testfail, id31*& id31save, id32*& id32save)
 {
     int result;
     char* input;
@@ -131,7 +129,7 @@ int TagRead::GetID3HeadersFull(FIL* infile, int testfail, id31** id31save, id32*
     // For ID3(v1)
     //=============
     // seek to start of header
-    f_lseek(infile, f_size(infile) - sizeof(id31));
+    f_lseek(&infile, f_size(&infile) - sizeof(id31));
     /*
     if (result) {
         printf("Error seeking to header\n");
@@ -141,7 +139,7 @@ int TagRead::GetID3HeadersFull(FIL* infile, int testfail, id31** id31save, id32*
   
     // read in to buffer
     input = (char*) malloc(sizeof(id31));
-    fr = f_read(infile, input, sizeof(id31), &br);
+    fr = f_read(&infile, input, sizeof(id31), &br);
     result = br;
     if (result != sizeof(id31)) {
         printf("Read fail: expected %d bytes but got %d\n", sizeof(id31), result);
@@ -165,11 +163,12 @@ int TagRead::GetID3HeadersFull(FIL* infile, int testfail, id31** id31save, id32*
         }
     }
     free(input);
+    id31save = id31header;
 
     //=============
     // For ID3v2.x
     //=============
-    id32header=ID32Detect(infile);
+    id32header=ID32Detect(&infile);
     if (id32header) {
         if (!testfail) {
             //printf("Valid ID3v2 header detected\n");
@@ -182,8 +181,7 @@ int TagRead::GetID3HeadersFull(FIL* infile, int testfail, id31** id31save, id32*
             fail+=2;
         }
     }
-    *id31save=id31header;
-    *id32save=id32header;
+    id32save = id32header;
     return fail;
 }
 
@@ -947,122 +945,103 @@ void TagRead::ID31Free(id31* id31header)
 }
 
 // ========================
-// LIST parsing Start
+// RIFF parsing Start
 // ========================
-// int TagRead::findNextChunk(FIL* file, uint32_t end_pos, char chunk_id[4], uint32_t* pos, uint32_t* size)
-// end_pos: chunk search stop position
-// chunk_id: out: chunk id deteced`
-// pos: in: chunk search start position, out: next chunk search start position
-// size: out: chunk size detected
-int TagRead::findNextChunk(FIL* file, uint32_t end_pos, char chunk_id[4], uint32_t* pos, uint32_t* size)
+bool TagRead::GetID3v2FromRiffChunk(FIL& file, chunk_map_t& chunk_list, id32*& id32save)
 {
-    FRESULT fr;
-    UINT br;
-    if (end_pos <= *pos + 8) { return 0; }
-    f_lseek(file, *pos);
-    f_read(file, chunk_id, 4, &br);
-    f_read(file, size, sizeof(uint32_t), &br);
-    *size = (*size + 1)/2*2; // next offset must be even number
-    *pos += *size + 8;
-    if (end_pos < *pos) { return 0; }
-    return 1;
-}
-
-bool TagRead::findNextChunk(FIL& file, const size_t end_pos, size_t& pos, wav_chunk_t& chunk)
-{
-    FRESULT fr;
-    UINT br;
-    if (end_pos <= pos + 8) { return 0; }
-    std::vector<uint8_t> v(8);
-    f_lseek(&file, pos);
-    f_read(&file, reinterpret_cast<char*>(v.data()), v.size(), &br);
-    chunk.id.clear();
-    std::copy(v.begin(), v.begin()+4, std::back_inserter(chunk.id));
-    chunk.pos = pos;
-    chunk.size = getLESize4(std::vector(v.begin()+4, v.begin()+8));
-    pos += chunk.size + 8;
-    if (end_pos < pos) { return false; }
-    return true;
-}
-
-bool TagRead::getChunk(FIL& file, wav_chunk_t& chunk)
-{
-    FRESULT fr;
-    UINT br;
-    std::vector<uint8_t> v(256, 0);
-    f_lseek(&file, 0);
-    f_read(&file, v.data(), 12, &br);
-    std::string str(reinterpret_cast<char*>(v.data()));
-    if (str.find("RIFF") == 0 && str.find("WAVE") == 8) {
-        size_t pos = 12;
-        size_t wav_end_pos = getLESize4(std::vector(v.begin()+4, v.begin()+8));
-        wav_end_pos += 8;
-        wav_chunk_t chunk_to_check;
-        while (findNextChunk(file, wav_end_pos, pos, chunk_to_check)) { // search from 'RIFF' + size + 'WAVE' for every chunk
-            //printf("chunk %s pos: %08x chunk.pos %08x chunk.size %08x\n", chunk_to_check.id.c_str(), pos, (int) chunk_to_check.pos, (int) chunk_to_check.size);
-            if (chunk.id == chunk_to_check.id) {
-                chunk = chunk_to_check;
-                return true;
-            }
+    const auto it = chunk_list.find("id3 ");
+    if (it != chunk_list.end()) {
+        riff_chunk_t& id3_chunk = it->second;
+        id32* id32header = ID32Detect(&fil, id3_chunk.body_pos()); // For ID3v2.x only
+        if (id32header) {
+            id32save = id32header;
+            return true;
         }
     }
     return false;
 }
 
-int TagRead::getListChunk(FIL* file)
+bool TagRead::GetListFromRiffChunk(FIL& file, chunk_map_t& chunk_list, id31*& id31save)
+{
+    const auto it = chunk_list.find("LIST");
+    if (it != chunk_list.end()) {
+        riff_chunk_t& list_chunk = it->second;
+        riff_t riff;
+        auto sub_chunk_list = findRiff(fil, list_chunk.pos, "LIST", riff);
+        if (riff.fmt_id == "INFO") {
+            // copy LIST INFO data to ID3v1 member (note that ID3v1 members don't finish with '\0')
+            std::vector<std::tuple<const char*, char*, size_t>> list_text_table = {
+                {"IART", id31save->artist, 128},
+                {"INAM", id31save->title, 128},
+                {"IPRD", id31save->album, 128},
+                {"ICRD", id31save->year, 4},
+            };
+            for (auto& item : list_text_table) {
+                auto& id = std::get<0>(item);
+                auto& id3_ptr = std::get<1>(item);
+                auto& id3_size = std::get<2>(item);
+                const auto it1 = sub_chunk_list.find(id);
+                if (it1 != sub_chunk_list.end()) {
+                    riff_chunk_t& chunk = it1->second;
+                    std::string s = read<std::string>(fil, chunk.body_pos(), chunk.size);
+                    memset(id3_ptr, 0, id3_size);
+                    strncpy(id3_ptr, s.c_str(), id3_size - 1);
+                }
+            }
+            std::vector<std::pair<const char*, uint8_t*>> list_u8_table = {
+                {"IPRT", &id31save->tracknum},
+                {"IGNR", &id31save->genre},
+            };
+            for (auto& [id, id3_ptr] : list_u8_table) {
+                const auto it1 = sub_chunk_list.find(id);
+                if (it1 != sub_chunk_list.end()) {
+                    riff_chunk_t& chunk = it1->second;
+                    std::string s = read<std::string>(fil, chunk.body_pos(), chunk.size);
+                    if (s.size() > 0 && std::isdigit(s.at(0))) {  // accept both "12" and  "12/20" as 12
+                        *id3_ptr = static_cast<uint8_t>(std::stoi(s));  // stoi stops conversion if non-number appeared
+                    } else {
+                        *id3_ptr = 0;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TagRead::findNextChunk(FIL& file, const size_t& end_pos, size_t& pos, riff_chunk_t& chunk)
 {
     FRESULT fr;
     UINT br;
-    char str[256];
-    f_lseek(file, 0);
-    f_read(file, str, 12, &br);
-	if (str[ 0]=='R' && str[ 1]=='I' && str[ 2]=='F' && str[ 3]=='F' &&
-	    str[ 8]=='W' && str[ 9]=='A' && str[10]=='V' && str[11]=='E')
-	{
-        uint32_t wav_end_pos;
-        memcpy(&wav_end_pos, &str[4], 4);
-        wav_end_pos += 8;
-        char chunk_id[4];
-        uint32_t pos = 12;
-        uint32_t size;
-        while (findNextChunk(file, wav_end_pos, chunk_id, &pos, &size)) { // search from 'RIFF' + size + 'WAVE' for every chunk
-			if (memcmp(chunk_id, "LIST", 4) == 0) {
-                f_lseek(file, pos-size);
-                char info_id[4];
-                f_read(file, info_id, sizeof(info_id), &br);
-                if (memcmp(info_id, "INFO", 4) == 0) { // info is not chunk element
-                    uint32_t list_end_pos = pos;
-                    pos = pos - size + 4;
-                    while (findNextChunk(file, list_end_pos, chunk_id, &pos, &size)) { // search from 'LIST' + size + 'INFO' for every chunk
-                        f_lseek(file, pos-size);
-                        f_read(file, str, size, &br);
-                        // copy LIST INFO data to ID3v1 member (note that ID3v1 members don't finish with '\0')
-                        if (memcmp(chunk_id, "IART", 4) == 0) { // Artist
-                            memset(id3v1->artist, 0, sizeof(id3v1->artist));
-                            strncpy(id3v1->artist, str, sizeof(id3v1->artist) - 1);
-                        } else if (memcmp(chunk_id, "INAM", 4) == 0) { // Title
-                            memset(id3v1->title, 0, sizeof(id3v1->title));
-                            strncpy(id3v1->title, str, sizeof(id3v1->title) - 1);
-                        } else if (memcmp(chunk_id, "IPRD", 4) == 0) { // Album
-                            memset(id3v1->album, 0, sizeof(id3v1->album));
-                            strncpy(id3v1->album, str, sizeof(id3v1->album) - 1);
-                        } else if (memcmp(chunk_id, "ICRD", 4) == 0) { // Year
-                            memset(id3v1->year, 0, sizeof(id3v1->year));
-                            strncpy(id3v1->year, str, sizeof(id3v1->year) - 1);
-                        } else if (memcmp(chunk_id, "IPRT", 4) == 0) { // Track  ==> type not matched
-                            id3v1->tracknum = (uint8_t) atoi(str); // atoi stops conversion if non-number appeared
-                        //} else if (memcmp(chunk_id, "IGNR", 4) == 0) { // Genre  ==> type not matched
-                        }
-                    }
-                    return 1;
-                }
-            }
+    chunk.id = read<std::string>(file, pos, 4);
+    chunk.pos = pos;
+    chunk.size = getLESize4(read<std::vector<uint8_t>>(file, pos + 4, 4));
+    pos += (chunk.size + 8 + 1) / 2 * 2;  // keep even byte alighment
+    if (end_pos < pos) { return false; }
+    return true;
+}
+
+TagRead::chunk_map_t TagRead::findRiff(FIL& file, const size_t& pos, const std::string riff_id, riff_t& riff)
+{
+    std::map<std::string, riff_chunk_t> riff_chunk_list;
+    std::string s = read<std::string>(file, pos, 12);
+    if (s.find(riff_id) == 0) {
+        riff.riff_id = riff_id;
+        riff.fmt_id = read<std::string>(file, pos+8, 4);
+        riff.pos = pos;
+        riff.size = getLESize4(read<std::vector<uint8_t>>(file, pos+4, 4));
+        riff_chunk_t riff_chunk;
+        size_t pos = riff.chunk_pos();
+        while (findNextChunk(file, riff.end_pos(), pos, riff_chunk)) {
+            riff_chunk_list[riff_chunk.id] = riff_chunk;
         }
     }
-    return 0;
+    return riff_chunk_list;
 }
+
 // ========================
-// LIST parsing End
+// RIFF parsing End
 // ========================
 
 // ========================
@@ -1243,3 +1222,15 @@ int TagRead::getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos,
 // ========================
 // MP4 parsing End
 // ========================
+
+template <typename T>
+T TagRead::read(FIL& file, const uint64_t pos, const size_t size)
+{
+    T s;
+    UINT br;
+    std::vector<uint8_t> v(size, 0);
+    f_lseek(&file, pos);
+    f_read(&file, v.data(), v.size(), &br);
+    std::copy(v.begin(), v.end(), std::back_inserter(s));
+    return s;
+}
