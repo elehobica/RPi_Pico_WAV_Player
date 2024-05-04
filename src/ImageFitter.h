@@ -36,7 +36,7 @@ private:
 public:
     static ImageFitter& instance(); // Singleton
     void config(uint16_t *img_rgb565, uint16_t width, uint16_t height, bool resizeFit = true, bool keepAspectRatio = true, bool packHBlank = false);
-    bool loadJpegFile(const char *filename, uint64_t pos = 0, size_t size = 0);
+    bool loadJpegFile(const char *filename, const uint64_t pos = 0, const size_t size = 0);
     void getSizeAfterFit(uint16_t *img_w, uint16_t *img_h);
 };
 

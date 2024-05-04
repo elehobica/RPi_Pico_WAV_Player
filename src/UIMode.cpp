@@ -666,7 +666,7 @@ void UIFileViewMode::draw()
 //====================================
 // Implementation of UIPlayMode class
 //====================================
-UIPlayMode::UIPlayMode() : UIMode("UIPlayMode", PlayMode), loadImage(true)
+UIPlayMode::UIPlayMode() : UIMode("UIPlayMode", PlayMode)
 {
 }
 
@@ -746,12 +746,6 @@ UIMode* UIPlayMode::update()
 void UIPlayMode::readTag()
 {
     char str[256];
-    mime_t mime;
-    ptype_t ptype;
-    uint64_t img_pos;
-    size_t size;
-    bool is_unsync;
-    int img_cnt = 0;
     
     // Read TAG
     memset(str, 0, sizeof(str));
@@ -781,7 +775,24 @@ void UIPlayMode::readTag()
     if (tag.getUTF8Artist(str, sizeof(str) - 1)) lcd.setArtist(str); else lcd.setArtist("");
     //if (tag.getUTF8Year(str, sizeof(str) - 1)) lcd.setYear(str); else lcd.setYear("");
 
-    if (loadImage) {
+    {  // load image from TAG
+        mime_t mime;
+        ptype_t ptype;
+        uint64_t pos;
+        size_t size;
+        bool isUnsynced;
+        if (tag.getPicturePos(0, mime, ptype, pos, size, isUnsynced)) {
+            //printf("found coverart mime: %d, ptype: %d, pos: %d, size: %d, isUnsynced: %d\n", mime, ptype, (int) pos, size, (int) isUnsynced);
+            if (!isUnsynced && mime == jpeg && size != tagImageSize) {  // Note: judge by size to check if the image is identical to previous
+                file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
+                lcd.setImageJpeg(str, pos, size);
+                tagImageSize = size;
+                loadImageFromDir = false;
+            }
+        }
+    }
+
+    if (loadImageFromDir) {  // load image from local directory
         uint16_t idx = 0;
         bool loaded = false;
         while (idx < file_menu_get_num()) {
@@ -807,7 +818,7 @@ void UIPlayMode::play()
     printf("%s\n", str);
     PlayAudio* codec = get_audio_codec();
     readTag();
-    loadImage = false;
+    loadImageFromDir = false;
     codec->play(str, vars->fpos, vars->samples_played);
     lcd.setBitRes(codec->getBitsPerSample());
     lcd.setSampleFreq(codec->getSampFreq());
@@ -819,7 +830,8 @@ void UIPlayMode::entry(UIMode* prevMode)
 {
     UIMode::entry(prevMode);
     if (prevMode->getUIModeEnm() != ConfigMode) {
-        loadImage = true;
+        tagImageSize = 0;
+        loadImageFromDir = true;
         play();
     }
     lcd.switchToPlay();

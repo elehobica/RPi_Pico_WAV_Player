@@ -137,7 +137,7 @@ public:
     int getUTF8Artist(char* str, size_t size);
     int getUTF8Year(char* str, size_t size);
     int getPictureCount();
-    int getPicturePos(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos, size_t* size, bool* isUnsynced);
+    int getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
 
 private:
     FIL fil;
@@ -158,7 +158,7 @@ private:
     int GetID3IDCount(const char* id3v22, const char* id3v23);
     void ID32Print(id32* id32header);
     void ID32Free(id32* id32header);
-    int getID32Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos, size_t* size, bool* isUnsynced);
+    int getID32Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
 
     int ID31Detect(char* header, id31** id31header);
     void ID31Print(id31* id31header);
@@ -175,5 +175,5 @@ private:
     int findNextMP4Box(FIL* fil, uint32_t end_pos, char chunk_id[4], uint32_t* pos, uint32_t* size);
     int GetMP4BoxUTF8(const char* mp4_type, char* str, size_t size);
     int GetMP4TypeCount(const char* mp4_type);
-    int getMP4Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos, size_t* size);
+    int getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size);
 };

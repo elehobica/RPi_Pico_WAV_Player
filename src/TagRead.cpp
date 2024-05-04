@@ -93,18 +93,19 @@ int TagRead::loadFile(const char* filename)
     }
 
     // try ID3v2 in WAV chunk format
-    wav_chunk_t chunk;
-    chunk.id = "id3 ";
-    if (getChunk(fil, chunk)) {
-        printf("id3 found %s %08x %08x\n", chunk.id.c_str(), (int) chunk.pos, (int) chunk.size);
-        id32* id32header = ID32Detect(&fil, chunk.pos+8); // For ID3v2.x only
-        if (id32header) { id3v2 = id32header; }
-        f_close(&fil);
-        return 1;
+    {
+        wav_chunk_t chunk;
+        chunk.id = "id3 ";
+        if (getChunk(fil, chunk)) {
+            //printf("id3 found %s %08x %08x\n", chunk.id.c_str(), (int) chunk.pos, (int) chunk.size);
+            id32* id32header = ID32Detect(&fil, chunk.pos+8); // For ID3v2.x only
+            if (id32header) { id3v2 = id32header; }
+            f_close(&fil);
+            return 1;
+        }
     }
 
     // If all failed, try to read LIST chunk (for WAV file)
-    chunk.id = "LIST";
     if (getListChunk(&fil)) {
         f_close(&fil);
         return 1;
@@ -575,34 +576,34 @@ int TagRead::getPictureCount()
     return GetMP4TypeCount("covr") + GetID3IDCount("PIC", "APIC");
 }
 
-int TagRead::getPicturePos(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos, size_t* size, bool* isUnsynced)
+int TagRead::getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced)
 {
     int i = idx;
 
     // for MP4 Picture
     if (i < GetMP4TypeCount("covr")) {
         getMP4Picture(i, mime, ptype, pos, size);
-        *isUnsynced = false;
-        return (*size != 0);
+        isUnsynced = false;
+        return (size != 0);
     }
     i -= GetMP4TypeCount("covr");
 
     // for ID3 Picture
     if (i >= 0 && i < GetID3IDCount("PIC", "APIC")) {
         getID32Picture(i, mime, ptype, pos, size, isUnsynced);
-        return (*size != 0);
+        return (size != 0);
     }
     i -= GetID3IDCount("PIC", "APIC");
 
     return 0;
 }
 
-int TagRead::getID32Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos, size_t* size, bool* isUnsynced)
+int TagRead::getID32Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced)
 {
     int count = 0;
-    *mime = non;
-    *ptype = other;
-    *size = 0;
+    mime = non;
+    ptype = other;
+    size = 0;
     bool hasFullData = false;
     if (!id3v2) { return 0; }
     id32frame* thisframe;
@@ -617,24 +618,22 @@ int TagRead::getID32Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos
                     // encoding(1) + mime(3) + ptype(1) + desc(1) + binary
                     if (tframe->data[0] == 0) { // ISO-8859-1
                         if (!strncmp("JPG", &tframe->data[1], 3)) {
-                            *mime = jpeg;
-                            *ptype = static_cast<ptype_t>(tframe->data[1+3]);
+                            mime = jpeg;
+                            ptype = static_cast<ptype_t>(tframe->data[1+3]);
                             if (tframe->data[1+3+1] == 0) {
-                                //*ptr = &tframe->data[1+3+1+1];
-                                *size = tframe->size - (1+3+1+1);
-                                *pos = tframe->pos + (1+3+1+1);
+                                size = tframe->size - (1+3+1+1);
+                                pos = tframe->pos + (1+3+1+1);
                             }
-                            *isUnsynced = tframe->isUnsynced;
+                            isUnsynced = tframe->isUnsynced;
                             hasFullData = tframe->hasFullData;
                         } else if (!strncmp("PNG", &tframe->data[1], 3)) {
-                            *mime = png;
-                            *ptype = static_cast<ptype_t>(tframe->data[1+3]);
+                            mime = png;
+                            ptype = static_cast<ptype_t>(tframe->data[1+3]);
                             if (tframe->data[1+3+1] == 0) {
-                                //*ptr = &tframe->data[1+3+1+1];
-                                *size = tframe->size - (1+3+1+1);
-                                *pos = tframe->pos + (1+3+1+1);
+                                size = tframe->size - (1+3+1+1);
+                                pos = tframe->pos + (1+3+1+1);
                             }
-                            *isUnsynced = tframe->isUnsynced;
+                            isUnsynced = tframe->isUnsynced;
                             hasFullData = tframe->hasFullData;
                         }
                     }
@@ -649,46 +648,40 @@ int TagRead::getID32Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos
                     //if (thisframe->data[0] == 0) {
                     if (thisframe->data[0] == 0 || thisframe->data[0] == 1) { // normally 'encoding' must be ISO-8859-1 (00h), but found some (01h) examples
                         if (!strncmp("image/jpeg", &thisframe->data[1], 10)) {
-                            *mime = jpeg;
-                            *ptype = static_cast<ptype_t>(thisframe->data[1+11]);
+                            mime = jpeg;
+                            ptype = static_cast<ptype_t>(thisframe->data[1+11]);
                             if (thisframe->data[1+11+1] == 0) { // normally 'desc' is needed, but ... (see below case)
-                                // *ptr = &thisframe->data[1+11+1+1];
-                                *size = thisframe->size - (1+11+1+1);
-                                *pos = thisframe->pos + (1+11+1+1);
+                                size = thisframe->size - (1+11+1+1);
+                                pos = thisframe->pos + (1+11+1+1);
                             } else if (thisframe->data[1+11+1+0] == 0xFF && thisframe->data[1+11+1+1] == 0xFE) { // found some illegal files have no 'desc'
-                                // *ptr = &thisframe->data[1+11+1];
-                                *size = thisframe->size - (1+11+1);
-                                *pos = thisframe->pos + (1+11+1);
+                                size = thisframe->size - (1+11+1);
+                                pos = thisframe->pos + (1+11+1);
                             }
-                            *isUnsynced = thisframe->isUnsynced;
+                            isUnsynced = thisframe->isUnsynced;
                             hasFullData = thisframe->hasFullData;
                         } else if (!strncmp("image/jpg", &thisframe->data[1], 9)) {
-                            *mime = jpeg;
-                            *ptype = static_cast<ptype_t>(thisframe->data[1+10]);
+                            mime = jpeg;
+                            ptype = static_cast<ptype_t>(thisframe->data[1+10]);
                             if (thisframe->data[1+10+1] == 0) { // normally 'desc' is needed, but ... (see below case)
-                                // *ptr = &thisframe->data[1+10+1+1];
-                                *size = thisframe->size - (1+10+1+1);
-                                *pos = thisframe->pos + (1+10+1+1);
+                                size = thisframe->size - (1+10+1+1);
+                                pos = thisframe->pos + (1+10+1+1);
                             } else if (thisframe->data[1+10+1+0] == 0xFF && thisframe->data[1+10+1+1] == 0xFE) { // found some illegal files have no 'desc'
-                                // *ptr = &thisframe->data[1+10+1];
-                                *size = thisframe->size - (1+10+1);
-                                *pos = thisframe->pos + (1+10+1);
+                                size = thisframe->size - (1+10+1);
+                                pos = thisframe->pos + (1+10+1);
                             }
-                            *isUnsynced = thisframe->isUnsynced;
+                            isUnsynced = thisframe->isUnsynced;
                             hasFullData = thisframe->hasFullData;
                         } else if (!strncmp("image/png", &thisframe->data[1], 9)) {
-                            *mime = png;
-                            *ptype = static_cast<ptype_t>(thisframe->data[1+10]);
+                            mime = png;
+                            ptype = static_cast<ptype_t>(thisframe->data[1+10]);
                             if (thisframe->data[1+10+1] == 0) { // normally 'desc' is needed, but ... (see below case)
-                                // *ptr = &thisframe->data[1+10+1+1];
-                                *size = thisframe->size - (1+10+1+1);
-                                *pos = thisframe->pos + (1+10+1+1);
+                                size = thisframe->size - (1+10+1+1);
+                                pos = thisframe->pos + (1+10+1+1);
                             } else if (thisframe->data[1+10+1+0] == 0x89 && thisframe->data[1+10+1+1] == 0x50) { // found some illegal files have no 'desc'
-                                //*ptr = &thisframe->data[1+10+1];
-                                *size = thisframe->size - (1+10+1);
-                                *pos = thisframe->pos + (1+10+1);
+                                size = thisframe->size - (1+10+1);
+                                pos = thisframe->pos + (1+10+1);
                             }
-                            *isUnsynced = thisframe->isUnsynced;
+                            isUnsynced = thisframe->isUnsynced;
                             hasFullData = thisframe->hasFullData;
                         }
                     }
@@ -712,46 +705,40 @@ int TagRead::getID32Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos
                     //if (thisframe->data[0] == 0) {
                     if (thisframe->data[ofs+0] == 0 || thisframe->data[ofs+0] == 1) { // normally 'encoding' must be ISO-8859-1 (00h), but found some (01h) examples
                         if (!strncmp("image/jpeg", &thisframe->data[ofs+1], 10)) {
-                            *mime = jpeg;
-                            *ptype = static_cast<ptype_t>(thisframe->data[ofs+1+11]);
+                            mime = jpeg;
+                            ptype = static_cast<ptype_t>(thisframe->data[ofs+1+11]);
                             if (thisframe->data[ofs+1+11+1] == 0) { // normally 'desc' is needed, but ... (see below case)
-                                // *ptr = &thisframe->data[ofs+1+11+1+1];
-                                *size = frame_size - (1+11+1+1);
-                                *pos = thisframe->pos + (ofs+1+11+1+1);
+                                size = frame_size - (1+11+1+1);
+                                pos = thisframe->pos + (ofs+1+11+1+1);
                             } else if (thisframe->data[ofs+1+11+1+0] == 0xFF && thisframe->data[ofs+1+11+1+1] == 0xFE) { // found some illegal files have no 'desc'
-                                // *ptr = &thisframe->data[ofs+1+11+1];
-                                *size = frame_size - (1+11+1);
-                                *pos = thisframe->pos + (ofs+1+11+1);
+                                size = frame_size - (1+11+1);
+                                pos = thisframe->pos + (ofs+1+11+1);
                             }
-                            *isUnsynced = thisframe->isUnsynced;
+                            isUnsynced = thisframe->isUnsynced;
                             hasFullData = thisframe->hasFullData;
                         } else if (!strncmp("image/jpg", &thisframe->data[ofs+1], 9)) {
-                            *mime = jpeg;
-                            *ptype = static_cast<ptype_t>(thisframe->data[ofs+1+10]);
+                            mime = jpeg;
+                            ptype = static_cast<ptype_t>(thisframe->data[ofs+1+10]);
                             if (thisframe->data[ofs+1+10+1] == 0) { // normally 'desc' is needed, but ... (see below case)
-                                // *ptr = &thisframe->data[ofs+1+10+1+1];
-                                *size = frame_size - (1+10+1+1);
-                                *pos = thisframe->pos + (ofs+1+10+1+1);
+                                size = frame_size - (1+10+1+1);
+                                pos = thisframe->pos + (ofs+1+10+1+1);
                             } else if (thisframe->data[ofs+1+10+1+0] == 0xFF && thisframe->data[ofs+1+10+1+1] == 0xFE) { // found some illegal files have no 'desc'
-                                // *ptr = &thisframe->data[ofs+1+10+1];
-                                *size = frame_size - (1+10+1);
-                                *pos = thisframe->pos + (ofs+1+10+1);
+                                size = frame_size - (1+10+1);
+                                pos = thisframe->pos + (ofs+1+10+1);
                             }
-                            *isUnsynced = thisframe->isUnsynced;
+                            isUnsynced = thisframe->isUnsynced;
                             hasFullData = thisframe->hasFullData;
                         } else if (!strncmp("image/png", &thisframe->data[ofs+1], 9)) {
-                            *mime = png;
-                            *ptype = static_cast<ptype_t>(thisframe->data[ofs+1+10]);
+                            mime = png;
+                            ptype = static_cast<ptype_t>(thisframe->data[ofs+1+10]);
                             if (thisframe->data[ofs+1+10+1] == 0) { // normally 'desc' is needed, but ... (see below case)
-                                // *ptr = &thisframe->data[ofs+1+10+1+1];
-                                *size = frame_size - (1+10+1+1);
-                                *pos = thisframe->pos + (ofs+1+10+1+1);
+                                size = frame_size - (1+10+1+1);
+                                pos = thisframe->pos + (ofs+1+10+1+1);
                             } else if (thisframe->data[ofs+1+10+1+0] == 0x89 && thisframe->data[ofs+1+10+1+1] == 0x50) { // found some illegal files have no 'desc'
-                                //*ptr = &thisframe->data[ofs+1+10+1];
-                                *size = frame_size - (1+10+1);
-                                *pos = thisframe->pos + (ofs+1+10+1);
+                                size = frame_size - (1+10+1);
+                                pos = thisframe->pos + (ofs+1+10+1);
                             }
-                            *isUnsynced = thisframe->isUnsynced;
+                            isUnsynced = thisframe->isUnsynced;
                             hasFullData = thisframe->hasFullData;
                         }
                     }
@@ -1012,7 +999,7 @@ bool TagRead::getChunk(FIL& file, wav_chunk_t& chunk)
         wav_end_pos += 8;
         wav_chunk_t chunk_to_check;
         while (findNextChunk(file, wav_end_pos, pos, chunk_to_check)) { // search from 'RIFF' + size + 'WAVE' for every chunk
-            printf("chunk %s pos: %08x chunk.pos %08x chunk.size %08x\n", chunk_to_check.id.c_str(), pos, (int) chunk_to_check.pos, (int) chunk_to_check.size);
+            //printf("chunk %s pos: %08x chunk.pos %08x chunk.size %08x\n", chunk_to_check.id.c_str(), pos, (int) chunk_to_check.pos, (int) chunk_to_check.size);
             if (chunk.id == chunk_to_check.id) {
                 chunk = chunk_to_check;
                 return true;
@@ -1234,17 +1221,17 @@ int TagRead::GetMP4TypeCount(const char* mp4_type)
     return count;
 }
 
-int TagRead::getMP4Picture(int idx, mime_t* mime, ptype_t* ptype, uint64_t* pos, size_t* size)
+int TagRead::getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size)
 {
     int count = 0;
     MP4_ilst_item* mp4_ilst_item = mp4_ilst.first;
     while (mp4_ilst_item) {
         if (memcmp(mp4_ilst_item->type, "covr", 4) == 0) {
             if (idx == count++) {
-                *mime = (mp4_ilst_item->data_type == JPEG) ? jpeg : (mp4_ilst_item->data_type == PNG) ? png : non;
-                *ptype = front_cover; // no info in MP4 'covr'
-                *pos = mp4_ilst_item->pos;
-                *size = (size_t) mp4_ilst_item->data_size;
+                mime = (mp4_ilst_item->data_type == JPEG) ? jpeg : (mp4_ilst_item->data_type == PNG) ? png : non;
+                ptype = front_cover; // no info in MP4 'covr'
+                pos = mp4_ilst_item->pos;
+                size = (size_t) mp4_ilst_item->data_size;
                 return 1;
             }
         }
