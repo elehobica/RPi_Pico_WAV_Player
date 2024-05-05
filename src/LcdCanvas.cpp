@@ -257,13 +257,13 @@ void LcdCanvas::drawPowerOff()
     }
 }
 
-void LcdCanvas::setImageJpeg(const char* filename)
+void LcdCanvas::setImageJpeg(const char* filename, const uint64_t pos, const size_t size)
 {
     uint16_t* img_ptr;
     uint16_t w, h;
     image.getImagePtr(&img_ptr, &w, &h);
     imgFit.config(img_ptr, w, h);
-    imgFit.loadJpegFile(filename);
+    imgFit.loadJpegFile(filename, pos, size);
     imgFit.getSizeAfterFit(&w, &h);
     image.setImageSize(w, h);
     image.update();

@@ -206,7 +206,7 @@ int JPEGDecoder::read(void) {
 	return 1;
 }
 
-int JPEGDecoder::decodeSdFile(const char *jpgFile, uint64_t pos, size_t size, uint8_t reduce){
+int JPEGDecoder::decodeSdFile(const char *jpgFile, const uint64_t pos, const size_t size, const uint8_t reduce){
 	FRESULT fr;
 
 	fr = f_open(&g_fil, (TCHAR *) jpgFile, FA_READ);

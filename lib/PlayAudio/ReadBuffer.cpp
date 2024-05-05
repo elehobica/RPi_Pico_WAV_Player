@@ -59,6 +59,8 @@ void ReadBuffer::bind(FIL* fp)
     _ptr = _head;
     _left = 0;
     _isEof = false;
+    _eodPos = f_size(_fp);
+    _isEod = false;
 }
 
 bool ReadBuffer::fill()
@@ -104,12 +106,21 @@ bool ReadBuffer::shiftAll()
     return shift(_left);
 }
 
-bool ReadBuffer::seek(size_t fpos)
+void ReadBuffer::setEodPos(size_t pos)
 {
-    if (fpos >= f_size(_fp)) { return false; }
+    if (pos >= f_size(_fp)) { return; }
+    _eodPos = pos;
+}
+
+bool ReadBuffer::seek(size_t pos)
+{
+    if (pos >= f_size(_fp)) { return false; }
+    if (pos >= _eodPos) { return false; }
+    size_t eodPos = _eodPos;
     reqBind(_fp, false);  // disconnect secondaryBuffer (dispose current secondaryBuffer)
-    f_lseek(_fp, fpos);   // seek (move reading point)
+    f_lseek(_fp, pos);   // seek (move reading point)
     reqBind(_fp);         // reconnect
+    _eodPos = eodPos;
     return true;
 }
 
@@ -130,7 +141,7 @@ bool ReadBuffer::isFull()
 
 bool ReadBuffer::isNearEmpty()
 {
-    return (!static_cast<bool>(f_eof(_fp)) && queue_get_level(&secondaryBufferQueue) <= NUM_SECONDARY_BUFFERS / 4);
+    return (!_isEod && queue_get_level(&secondaryBufferQueue) <= NUM_SECONDARY_BUFFERS / 4);
 }
 
 void ReadBuffer::reqBind(FIL* fp, bool flag)
@@ -164,7 +175,7 @@ void ReadBuffer::fillLoop()
             fp = req.fp;
             bind(fp);
             item.pos = f_tell(fp);
-            item.reachedEof = static_cast<bool>(f_eof(fp));
+            item.reachedEof = _isEod || static_cast<bool>(f_eof(fp));
         }
         queue_try_add(&bindRespQueue, &req);  // response regardless of flag
         if (!req.flag) { continue; }  // retry if reqBind(false)
@@ -175,8 +186,16 @@ void ReadBuffer::fillLoop()
                 // read at once for max efficiency as min of either till the end of buffer or spare number of queue
                 int level = static_cast<int>(queue_get_level(&secondaryBufferQueue));
                 int reqN = NUM_SECONDARY_BUFFERS - ((id > level) ? id : level);
+                UINT reqBr;
+                if (item.pos + SECONDARY_BUFFER_SIZE * reqN >= _eodPos) {
+                    reqBr = _eodPos - item.pos;
+                    _isEod = true;
+                } else {
+                    reqBr = SECONDARY_BUFFER_SIZE * reqN;
+                }
                 UINT br;
-                FRESULT fr = f_read(fp, &secondaryBuffer[SECONDARY_BUFFER_SIZE * id], SECONDARY_BUFFER_SIZE * reqN, &br);
+                FRESULT fr = f_read(fp, &secondaryBuffer[SECONDARY_BUFFER_SIZE * id], reqBr, &br);
+                _isEod |= static_cast<bool>(f_eof(fp));
                 if (fr != FR_OK || br == 0) { return; }
                 // put on queue divided by SECONDARY_BUFFER_SIZE
                 int readN = (br + SECONDARY_BUFFER_SIZE - 1) / SECONDARY_BUFFER_SIZE;
@@ -186,7 +205,7 @@ void ReadBuffer::fillLoop()
                         item.reachedEof = false;
                     } else {
                         item.length = br - SECONDARY_BUFFER_SIZE * i;
-                        item.reachedEof = static_cast<bool>(f_eof(fp));
+                        item.reachedEof = _isEod;
                     }
                     item.ptr = &secondaryBuffer[SECONDARY_BUFFER_SIZE * id];
                     item.pos += item.length;

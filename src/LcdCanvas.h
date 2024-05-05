@@ -49,7 +49,7 @@ public:
     static LcdCanvas& instance(); // Singleton
     void clear(bool bgOpaque = false);
     void setRotation(uint8_t rot);
-    void setImageJpeg(const char* filename);
+    void setImageJpeg(const char* filename, const uint64_t pos = 0, const size_t size = 0);
     void resetImage();
     void setMsg(const char* str, bool blink = false);
     void setListItem(int column, const char* str, const IconIndex_t index = IconIndex_t::UNDEF, bool isFocused = false);

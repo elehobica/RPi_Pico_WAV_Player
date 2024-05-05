@@ -85,7 +85,7 @@ public:
 // reduce:
 //  0: normal MCU size
 //  1: 1/8 MCU size for x, y
-  int decodeSdFile(const char *jpgFile, uint64_t pos = 0, size_t size = 0, uint8_t reduce = 0);
+  int decodeSdFile(const char *jpgFile, const uint64_t pos = 0, const size_t size = 0, const uint8_t reduce = 0);
   int decodeArray(const uint8_t array[], uint32_t  array_size, uint8_t reduce = 0);
   void abort(void);
 

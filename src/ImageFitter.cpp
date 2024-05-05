@@ -296,7 +296,7 @@ void ImageFitter::loadJpeg(bool reduce)
 }
 
 // load from JPEG File
-bool ImageFitter::loadJpegFile(const char *filename, uint64_t pos, size_t size)
+bool ImageFitter::loadJpegFile(const char *filename, const uint64_t pos, const size_t size)
 {
     int decoded;
     bool reduce = false;

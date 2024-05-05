@@ -13,8 +13,8 @@ This project features:
 * SD Card interface (exFAT supported)
 * 160x80 LCD display
 * UI Control by 3 GPIO buttons or Headphone Remote Control Buttons
-* Display Tag information by LIST chunk in WAV file
-* Display Coverart image by JPEG file
+* Display Tag information by ID3v2 tag (RIFF ID3v2), otherwise by LIST chunk in WAV file
+* Display Coverart image from JPEG in ID3v2 tag, otherwise from JPEG file in the folder
 * Volume Control Function by fully utilizing 32bit DAC range
 
 ## Supported Board and Peripheral Devices
@@ -173,8 +173,9 @@ GP26 also needs to be pulled-up by 2.2Kohm from GP21. See schematic for detail.
 * [logo.jpg example](tools/logo.jpg)
 
 ### Cover Art File
-* Put JPEG file on same folder where WAV files are located
-* File Format: JPEG format (Progressive JPEG not supported)
+* Put JPEG bitstream in ID3v2 tag of WAV file
+* Otherwise, put JPEG file on same folder where WAV files are located
+* JPEG format: Progressive JPEG not supported
 
 ## LCD Config
 * ST7735S 0.96" 160x80 LCD could require different configuration for its position offset, rotation, mirror and color order. It is hard to distinguish which type of configuration is needed from the module outlook.

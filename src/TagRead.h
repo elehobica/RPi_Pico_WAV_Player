@@ -9,10 +9,13 @@
 // ID3 Part was started from id3read:
 // http://www.rohitab.com/discuss/topic/34514-id3-tag-checkerupdater/
 
-#ifndef _TAGREAD_H_
-#define _TAGREAD_H_
+#pragma once
 
 #include "ff.h"
+#include <cstddef>
+#include <map>
+#include <string>
+#include <vector>
 
 typedef struct _id31 {
     char header[3];
@@ -22,13 +25,13 @@ typedef struct _id31 {
     char year[4];     // 4 for ID3v1
     char comment[28]; // 28 for ID3v1
     char zero;
-    unsigned char tracknum;
-    unsigned char genre;
+    uint8_t tracknum;
+    uint8_t genre;
 } id31;
 
 typedef struct _id32frame {
     char ID[4];
-    unsigned char sizebytes[4];
+    uint8_t sizebytes[4];
     char flags[2];
     uint64_t pos; // position in the file
     size_t size;
@@ -40,7 +43,7 @@ typedef struct _id32frame {
 
 typedef struct _id322frame {
     char ID[3];
-    unsigned char sizebytes[3];
+    uint8_t sizebytes[3];
     uint64_t pos; // position in the file
     size_t size;
     char* data;
@@ -74,14 +77,14 @@ typedef struct _MP4_ilst_item {
     mp4_data_t data_type;
     uint32_t data_size;
     uint64_t pos; // position in the file
-    char *data_buf;
+    char* data_buf;
     bool hasFullData;
     struct _MP4_ilst_item* next;
 } MP4_ilst_item;
 
 typedef struct _MP4_ilst {
-    MP4_ilst_item *first;
-    MP4_ilst_item *last;
+    MP4_ilst_item* first;
+    MP4_ilst_item* last;
 } MP4_ilst;
 
 typedef enum _mime_t {
@@ -114,6 +117,23 @@ typedef enum _ptype_t {
     pub_logo = 0x14
 } ptype_t;
 
+typedef struct _riff_t {
+    std::string riff_id;
+    std::string fmt_id;
+    size_t pos;
+    size_t size;
+    size_t chunk_pos() { return pos + 12; }
+    size_t end_pos() { return pos + size + 8; }
+} riff_t;
+
+typedef struct _riff_chunk_t {
+    std::string id;
+    size_t      pos;
+    size_t      size;
+    size_t body_pos() { return pos + 8; }
+    size_t end_pos() { return pos + size + 8; }
+} riff_chunk_t;
+
 const size_t frame_size_limit = 1024;
 const size_t frame_start_bytes = 16;
 
@@ -122,49 +142,64 @@ class TagRead
 public:
     TagRead();
     ~TagRead();
-    int loadFile(const char *filename);
-    int getUTF8Track(char *str, size_t size);
-    int getUTF8Title(char *str, size_t size);
-    int getUTF8Album(char *str, size_t size);
-    int getUTF8Artist(char *str, size_t size);
-    int getUTF8Year(char *str, size_t size);
+    int loadFile(const char* filename);
+    int getUTF8Track(char* str, size_t size);
+    int getUTF8Title(char* str, size_t size);
+    int getUTF8Album(char* str, size_t size);
+    int getUTF8Artist(char* str, size_t size);
+    int getUTF8Year(char* str, size_t size);
     int getPictureCount();
-    int getPicturePos(int idx, mime_t *mime, ptype_t *ptype, uint64_t *pos, size_t *size, bool *isUnsynced);
+    int getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
 
 private:
+    using chunk_map_t = std::map<std::string, riff_chunk_t>;
+
     FIL fil;
 
-    id31 *id3v1;
-    id32 *id3v2;
+    id31* id3v1;
+    id32* id3v2;
 
-    size_t getBESize3(unsigned char *buf);
-    size_t getBESize4(unsigned char *buf);
-    size_t getBESize4SyncSafe(unsigned char *buf);
+    size_t getBESize3(const uint8_t* buf);
+    size_t getLESize4(const std::vector<uint8_t>& v);
+    size_t getBESize4(const uint8_t* buf);
+    size_t getBESize4SyncSafe(const uint8_t* buf);
 
     FRESULT f_read_unsync(FIL* fp, void* buff, UINT btr, UINT* br, bool unsync);
 
-    int GetID3HeadersFull(FIL *infile, int testfail, id31** id31save, id32** id32save);
-    id32* ID32Detect(FIL *infile);
-    int GetID32UTF8(const char *id3v22, const char *id3v23, char *str, size_t size);
-    int GetID3IDCount(const char *id3v22, const char *id3v23);
+    int GetID3HeadersFull(FIL& infile, int testfail, id31*& id31save, id32*& id32save);
+    id32* ID32Detect(FIL* infile, const size_t pos = 0);
+    int GetID32UTF8(const char* id3v22, const char* id3v23, char* str, size_t size);
+    int GetID3IDCount(const char* id3v22, const char* id3v23);
     void ID32Print(id32* id32header);
     void ID32Free(id32* id32header);
-    int getID32Picture(int idx, mime_t *mime, ptype_t *ptype, uint64_t *pos, size_t *size, bool *isUnsynced);
+    int getID32Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
 
-    int ID31Detect(char* header, id31 **id31header);
+    int ID31Detect(char* header, id31** id31header);
     void ID31Print(id31* id31header);
     void ID31Free(id31* id31header);
 
-    int getListChunk(FIL *fil);
-    int findNextChunk(FIL *fil, uint32_t end_pos, char chunk_id[4], uint32_t *pos, uint32_t *size);
+    bool GetID3v2FromRiffChunk(FIL& file, chunk_map_t& riff, id32*& id32save);
+    bool GetListFromRiffChunk(FIL& file, chunk_map_t& riff, id31*& id31save);
+    chunk_map_t findRiff(FIL& file, const size_t& pos, const std::string riff_id, riff_t& riff);
+
+    /**
+     * Find next chunk
+     *
+     * @param file is FIL file
+     * @param end_pos is chunk search stop position
+     * @param pos is in: chunk search start position, out: next chunk search start position
+     * @param chunk is  out: riff chunk
+     */
+    bool findNextChunk(FIL& file, const size_t& end_pos, size_t& pos, riff_chunk_t& chunk);
 
     MP4_ilst mp4_ilst;
     void clearMP4_ilst();
-    int getMP4Box(FIL *fil);
-    int findNextMP4Box(FIL *fil, uint32_t end_pos, char chunk_id[4], uint32_t *pos, uint32_t *size);
-    int GetMP4BoxUTF8(const char *mp4_type, char *str, size_t size);
-    int GetMP4TypeCount(const char *mp4_type);
-    int getMP4Picture(int idx, mime_t *mime, ptype_t *ptype, uint64_t *pos, size_t *size);
-};
+    int getMP4Box(FIL* fil);
+    int findNextMP4Box(FIL* fil, uint32_t end_pos, char chunk_id[4], uint32_t* pos, uint32_t* size);
+    int GetMP4BoxUTF8(const char* mp4_type, char* str, size_t size);
+    int GetMP4TypeCount(const char* mp4_type);
+    int getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size);
 
-#endif //_TAGREAD_H_
+    template <typename T>
+    T read(FIL& file, const uint64_t pos, const size_t size);
+};

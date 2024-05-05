@@ -61,12 +61,13 @@ void PlayWav::skipToDataChunk()
                 sampFreq = sf;
             } else if (memcmp(chunk_id, "data", 4) == 0) {
                 dataSize = size;
-                break;
+                rdbuf->setEodPos(ofs + 8 + dataSize);
+                rdbuf->shift(ofs + 8);
+                return;
             }
             ofs += 8 + size;
             if (ofs + 8 > rdbuf->getLeft()) { return; }
         }
-        rdbuf->shift(ofs + 8);
     }
 }
 
