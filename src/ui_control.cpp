@@ -261,8 +261,9 @@ UIMode* getUIMode(ui_mode_enm_t ui_mode_enm)
 void ui_init(board_type_t board_type)
 {
     _board_type = board_type;
-    LcdCanvas::configureLcd(_board_type, GET_CFG_MENU_DISPLAY_LCD_CONFIG);
-    lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
+    ConfigMenu& cfg = ConfigMenu::instance();
+    LcdCanvas::configureLcd(_board_type, cfg.get(ConfigMenuId::DISPLAY_LCD_CONFIG));
+    lcd.setRotation(cfg.get(ConfigMenuId::DISPLAY_ROTATION));
     vars.num_list_lines = LCD_H()/16;
 
     // button event queue

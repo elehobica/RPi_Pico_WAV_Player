@@ -15,7 +15,6 @@
 #include "power_manage.h"
 #include "UserFlash.h"
 #include "ConfigParam.h"
-#include "ConfigMenu.h"
 #include "audio_codec.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvas.h"
@@ -33,6 +32,7 @@ button_action_t UIMode::btn_act;
 UIVars* UIMode::vars;
 stack_t* UIMode::dir_stack;
 UIMode::ExitType UIMode::exitType = UIMode::NoError;
+ConfigMenu& UIMode::cfg = ConfigMenu::instance();
 
 //================================
 // Implementation of UIMode class
@@ -118,7 +118,7 @@ void UIInitialMode::loadFromFlash()
 {
     // Load Configuration parameters from Flash
     configParam.initialize();
-    configMenu.scanHookFunc();
+    cfg.scanHookFunc();
 }
 
 //=======================================
@@ -139,7 +139,7 @@ UIMode* UIChargeMode::update()
         }
         idle_count = 0;
     }
-    if (idle_count >= 2*OneSec) {
+    if (idle_count >= 2  *OneSec) {
         lcd.setMsg("");
         lcd.clear(true);
         pm_enter_dormant_and_wake();
@@ -227,7 +227,7 @@ UIMode* UIOpeningMode::update()
     ui_get_btn_evt(&btn_act); // Ignore button event
     if (exitType == FatFsError) {
         return getUIMode(PowerOffMode);
-    } else if (idle_count++ > 1*OneSec) { // Always transfer to FileViewMode after 1 sec when no error
+    } else if (idle_count++ > 1 * OneSec) { // Always transfer to FileViewMode after 1 sec when no error
         return getUIMode(FileViewMode);
     }
     return this;
@@ -366,22 +366,22 @@ void UIFileViewMode::chdir()
 
 UIMode* UIFileViewMode::nextPlay()
 {
-    switch (GET_CFG_MENU_PLAY_NEXT_PLAY_ALBUM) {
-        case ConfigMenu::next_play_action_t::Sequential:
+    switch (cfg.get(ConfigMenuId::PLAY_NEXT_PLAY_ALBUM)) {
+        case ConfigMenu::NextPlayAction_t::Sequential:
             return sequentialSearch(false);
             break;
-        case ConfigMenu::next_play_action_t::SequentialRepeat:
+        case ConfigMenu::NextPlayAction_t::SequentialRepeat:
             return sequentialSearch(true);
             break;
-        case ConfigMenu::next_play_action_t::Repeat:
+        case ConfigMenu::NextPlayAction_t::Repeat:
             vars->idx_head = 0;
             vars->idx_column = 0;
             findFirstAudioTrack();
             return getUIPlayMode();
-        case ConfigMenu::next_play_action_t::Random:
-            return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
+        case ConfigMenu::NextPlayAction_t::Random:
+            return randomSearch(cfg.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
             break;
-        case ConfigMenu::next_play_action_t::Stop:
+        case ConfigMenu::NextPlayAction_t::Stop:
         default:
             return this;
             break;
@@ -592,7 +592,7 @@ UIMode* UIFileViewMode::update()
                 listIdxItems();
                 break;
             case ButtonCenterTriple:
-                return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
+                return randomSearch(cfg.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
                 break;
             case ButtonCenterLong:
                 return getUIMode(ConfigMode);
@@ -623,10 +623,10 @@ UIMode* UIFileViewMode::update()
     switch (vars->do_next_play) {
         case ImmediatePlay:
             vars->do_next_play = None;
-            return randomSearch(GET_CFG_MENU_PLAY_RANDOM_DIR_DEPTH);
+            return randomSearch(cfg.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
             break;
         case TimeoutPlay:
-            if (idle_count > GET_CFG_MENU_PLAY_TIME_TO_NEXT_PLAY*OneSec) {
+            if (idle_count > cfg.get(ConfigMenuId::PLAY_TIME_TO_NEXT_PLAY) * OneSec) {
                 vars->do_next_play = None;
                 return nextPlay();
             }
@@ -638,10 +638,10 @@ UIMode* UIFileViewMode::update()
         lcd.setMsg("Low Battery!", true);
         exitType = LowBatteryVoltage;
         return getUIMode(PowerOffMode);
-    } else if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+    } else if (idle_count > cfg.get(ConfigMenuId::GENERAL_TIME_TO_POWER_OFF) * OneSec) {
         lcd.setMsg("Bye");
         return getUIMode(PowerOffMode);
-    } else if (idle_count > 5*OneSec) {
+    } else if (idle_count > 5 * OneSec) {
         file_menu_idle(); // for background sort
     }
     lcd.setBatteryVoltage(pm_get_battery_voltage());
@@ -715,7 +715,7 @@ UIMode* UIPlayMode::update()
         lcd.setMsg("Low Battery!", true);
         exitType = LowBatteryVoltage;
         return getUIMode(PowerOffMode);
-    } else if (codec->isPaused() && idle_count > GET_CFG_MENU_GENERAL_TIME_TO_POWER_OFF*OneSec) {
+    } else if (codec->isPaused() && idle_count > cfg.get(ConfigMenuId::GENERAL_TIME_TO_POWER_OFF) * OneSec) {
         codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
         codec->stop();
         lcd.setMsg("Bye");
@@ -861,13 +861,13 @@ UIConfigMode::UIConfigMode() : UIMode("UIConfigMode", ConfigMode),
 
 uint16_t UIConfigMode::getNum()
 {
-    return (uint16_t) configMenu.getNum() + 1;
+    return (uint16_t) cfg.getNum() + 1;
 }
 
 const char* UIConfigMode::getStr(uint16_t idx)
 {
     if (idx == 0) { return "[Back]"; }
-    return configMenu.getStr((int) idx-1);
+    return cfg.getStr((int) idx-1);
 }
 
 IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
@@ -875,9 +875,9 @@ IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
     IconIndex_t iconIndex = IconIndex_t::UNDEF;
     if (idx == 0) {
         iconIndex = IconIndex_t::LEFTARROW;
-    } else if (!configMenu.isSelection()) {
+    } else if (!cfg.isSelection()) {
         iconIndex = IconIndex_t::GEAR;
-    } else if (configMenu.selIdxMatched(idx-1)) {
+    } else if (cfg.selIdxMatched(idx-1)) {
         iconIndex = IconIndex_t::CHECKED;
     }
     return iconIndex;
@@ -930,7 +930,7 @@ int UIConfigMode::select()
 {
     stack_data_t stack_data;
     if (idx_head + idx_column == 0) {
-        if (configMenu.leave()) {
+        if (cfg.leave()) {
             stack_pop(path_stack, &stack_data);
             idx_head = stack_data.head;
             idx_column = stack_data.column;
@@ -938,7 +938,7 @@ int UIConfigMode::select()
             return 0; // exit from Config
         }
     } else {
-        if (configMenu.enter(idx_head + idx_column - 1)) {
+        if (cfg.enter(idx_head + idx_column - 1)) {
             stack_data.head = idx_head;
             stack_data.column = idx_column;
             stack_push(path_stack, &stack_data);
@@ -990,7 +990,7 @@ UIMode* UIConfigMode::update()
         }
         idle_count = 0;
     }
-    if (idle_count > GET_CFG_MENU_GENERAL_TIME_TO_LEAVE_CONFIG*OneSec) {
+    if (idle_count > cfg.get(ConfigMenuId::GENERAL_TIME_TO_LEAVE_CONFIG) * OneSec) {
         return prevMode;
     }
     idle_count++;
@@ -1051,7 +1051,7 @@ void UIPowerOffMode::storeToFlash()
 UIMode* UIPowerOffMode::update()
 {
     ui_get_btn_evt(&btn_act); // Ignore button event
-    if ((idle_count > 1*OneSec && exitType == NoError) || idle_count > 4*OneSec) {
+    if ((idle_count > 1 * OneSec && exitType == NoError) || idle_count > 4 * OneSec) {
         pm_set_power_keep(false); // Power Off unless being charged
         if (pm_usb_power_detected()) {
             return getUIMode(ChargeMode);

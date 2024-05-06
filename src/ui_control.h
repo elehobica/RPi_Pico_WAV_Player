@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include "common.h"
+#include "UIMode.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "common.h"
-#include "UIMode.h"
 
 typedef enum _button_status_t {
     ButtonOpen = 0,

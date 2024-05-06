@@ -14,16 +14,18 @@
 //=================================
 // Implementation of Hook Functions
 //=================================
-void hook_disp_lcd_config()
+void hookDispLcdConfig()
 {
-    LcdCanvas::configureLcd(ui_get_board_type(), GET_CFG_MENU_DISPLAY_LCD_CONFIG);
-    lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
+    ConfigMenu& cfg = ConfigMenu::instance();
+    LcdCanvas::configureLcd(ui_get_board_type(), cfg.get(ConfigMenuId::DISPLAY_LCD_CONFIG));
+    lcd.setRotation(cfg.get(ConfigMenuId::DISPLAY_ROTATION));
     lcd.switchToListView();
 }
 
-void hook_disp_rotation()
+void hookDispRotation()
 {
-    lcd.setRotation(GET_CFG_MENU_DISPLAY_ROTATION);
+    ConfigMenu& cfg = ConfigMenu::instance();
+    lcd.setRotation(cfg.get(ConfigMenuId::DISPLAY_ROTATION));
     lcd.switchToListView();
 }
 
@@ -37,83 +39,46 @@ ConfigMenu& ConfigMenu::instance()
     return _instance;
 }
 
-ConfigMenu::ConfigMenu() : level(0)
+ConfigMenu::ConfigMenu()
 {
+    // generate menuMap by category
+    for (auto& [id, item] : menuMap) {
+        menuMapByCategory[item.category_id][id] = &item;
+    }
 }
 
-ConfigMenu::~ConfigMenu()
+uint32_t ConfigMenu::get(Item_t& item)
 {
-
-}
-
-uint32_t ConfigMenu::getValue(int category_idx, int item_idx)
-{
-    if (category_idx >= sz_category) { return 0; }
-    if (item_idx >= category[category_idx].num_items) { return 0; }
-    config_menu_item_t *item = &category[category_idx].items[item_idx];
     uint32_t sel_idx;
-    configParam.read(item->paramID, &sel_idx);
-    return item->selection[sel_idx].value;
+    configParam.read(item.paramID, &sel_idx);
+    return item.selection->at(sel_idx).value;
+}
+
+uint32_t ConfigMenu::get(const ConfigMenuId& id)
+{
+    return get(menuMap.at(id));
 }
 
 void ConfigMenu::scanHookFunc()
 {
-    int adrs = 0;
-    for (int i = 0; i < sz_category; i++) {
-        for (int j = 0; j < category[i].num_items; j++) {
-            config_menu_item_t *item = &category[i].items[j];
-            if (item->hook_func != nullptr) {
-                item->hook_func();
-            }
+    for (const auto& [id, item] : menuMap) {
+        if (item.hook_func != nullptr) {
+            item.hook_func();
         }
     }
 }
-
-/*
-int ConfigMenu::getSelIdx(int category_idx, int item_idx)
-{
-    if (category_idx >= sz_category) { return 0; }
-    if (item_idx >= category[category_idx].num_items) { return 0; }
-    config_menu_item_t *item = &category[category_idx].items[item_idx];
-    return item->sel_idx;
-}
-
-void ConfigMenu::setSelIdx(int category_idx, int item_idx, int sel_idx)
-{
-    if (category_idx >= sz_category) { return; }
-    if (item_idx >= category[category_idx].num_items) { return; }
-    if (sel_idx >= category[category_idx].items[item_idx].num_selections) { return; }
-    config_menu_item_t *item = &category[category_idx].items[item_idx];
-    item->sel_idx = sel_idx;
-}
-
-void ConfigMenu::scanSelIdx(void (*yield_func)(ConfigParam::ParamID_t paramID, uint32_t *val), bool do_hook_func)
-{
-    int adrs = 0;
-    for (int i = 0; i < sz_category; i++) {
-        for (int j = 0; j < category[i].num_items; j++) {
-            config_menu_item_t *item = &category[i].items[j];
-            yield_func(item->paramID, &item->sel_idx);
-            if (do_hook_func && item->hook_func != nullptr) {
-                item->hook_func();
-            }
-        }
-    }
-
-}
-*/
 
 int ConfigMenu::getNum()
 {
     switch (level) {
         case 0: // Top
-            return sz_category;
+            return static_cast<int>(CategoryId_t::__NUM_CATEGORY_ID__);
             break;
         case 1: // Category
-            return cur_category->num_items;
+            return menuMapByCategory[curCategoryId].size();
             break;
         case 2: // Item
-            return cur_item->num_selections;
+            return curItem->selection->size();
             break;
         default:
             break;
@@ -121,18 +86,22 @@ int ConfigMenu::getNum()
     return 0;
 }
 
-const char *ConfigMenu::getStr(int idx)
+const char* ConfigMenu::getStr(int idx)
 {
-    if (idx >= getNum()) { return ""; }
     switch (level) {
-        case 0: // Top
-            return category[idx].name;
+        case 0: {  // Top
+            return categoryMap.at(static_cast<CategoryId_t>(idx));
             break;
-        case 1: // Category
-            return cur_category->items[idx].name;
+        }
+        case 1: {  // Category
+            auto it = menuMapByCategory[curCategoryId].begin();
+            if (idx < menuMapByCategory[curCategoryId].size()) {
+                return std::next(it, idx)->second->name;
+            }
             break;
+        }
         case 2: // Item
-            return cur_item->selection[idx].name;
+            return curItem->selection->at(idx).name;
             break;
         default:
             break;
@@ -145,21 +114,25 @@ bool ConfigMenu::enter(int idx)
     bool flag = false;
     switch (level) {
         case 0: // Top
-            cur_category = &category[idx];
+            curCategoryId = static_cast<CategoryId_t>(idx);
             level++;
             flag = true;
             break;
-        case 1: // Category
-            cur_item = &cur_category->items[idx];
-            level++;
-            flag = true;
-            break;
+        case 1: { // Category
+            auto it = menuMapByCategory[curCategoryId].begin();
+            if (idx < menuMapByCategory[curCategoryId].size()) {
+                curItem = std::next(it, idx)->second;
+                level++;
+                flag = true;
+            }
+	    break;
+        }
         case 2: { // Item
                 uint32_t sel_idx = idx;
-                configParam.write(cur_item->paramID, &sel_idx);
+                configParam.write(curItem->paramID, &sel_idx);
                 // Do hook_func() when value is set
-                if (cur_item->hook_func != nullptr) {
-                    cur_item->hook_func();
+                if (curItem->hook_func != nullptr) {
+                    curItem->hook_func();
                 }
             }
             break;
@@ -198,6 +171,6 @@ bool ConfigMenu::selIdxMatched(int idx)
 {
     if (!isSelection()) { return false; }
     uint32_t sel_idx;
-    configParam.read(cur_item->paramID, &sel_idx);
+    configParam.read(curItem->paramID, &sel_idx);
     return ((int) sel_idx == idx);
 }

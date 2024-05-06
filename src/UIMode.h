@@ -11,6 +11,7 @@
 #include "stack.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvasIconDef.h"
+#include "ConfigMenu.h"
 
 typedef enum {
     InitialMode = 0,
@@ -92,6 +93,7 @@ protected:
     static UIVars* vars;
     static stack_t* dir_stack;
     static ExitType exitType;
+    static ConfigMenu& cfg;
     const char* name;
     UIMode* prevMode;
     ui_mode_enm_t ui_mode_enm;
