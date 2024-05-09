@@ -32,7 +32,8 @@ button_action_t UIMode::btn_act;
 UIVars* UIMode::vars;
 stack_t* UIMode::dir_stack;
 UIMode::ExitType UIMode::exitType = UIMode::NoError;
-ConfigMenu& UIMode::cfg = ConfigMenu::instance();
+ConfigMenu& UIMode::cfgMenu = ConfigMenu::instance();
+ConfigParam& UIMode::cfgParam = ConfigParam::instance();
 
 //================================
 // Implementation of UIMode class
@@ -117,8 +118,8 @@ void UIInitialMode::draw()
 void UIInitialMode::loadFromFlash()
 {
     // Load Configuration parameters from Flash
-    configParam.initialize();
-    cfg.scanHookFunc();
+    cfgParam.initialize();
+    cfgMenu.scanHookFunc();
 }
 
 //=======================================
@@ -177,10 +178,10 @@ void UIOpeningMode::restoreFromFlash()
 {
     // Load Configuration parameters from Flash
     userFlash.printInfo();
-    configParam.printInfo();
-    configParam.incBootCount();
+    cfgParam.printInfo();
+    cfgParam.incBootCount();
 
-    // Restore from configParam to user parameters
+    // Restore from cfgParam to user parameters
     srand(GET_CFG_SEED);
     PlayAudio::setVolume(GET_CFG_VOLUME);
     bool err_flg = false;
@@ -366,7 +367,7 @@ void UIFileViewMode::chdir()
 
 UIMode* UIFileViewMode::nextPlay()
 {
-    switch (cfg.get(ConfigMenuId::PLAY_NEXT_PLAY_ALBUM)) {
+    switch (cfgMenu.get(ConfigMenuId::PLAY_NEXT_PLAY_ALBUM)) {
         case ConfigMenu::NextPlayAction_t::Sequential:
             return sequentialSearch(false);
             break;
@@ -379,7 +380,7 @@ UIMode* UIFileViewMode::nextPlay()
             findFirstAudioTrack();
             return getUIPlayMode();
         case ConfigMenu::NextPlayAction_t::Random:
-            return randomSearch(cfg.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
+            return randomSearch(cfgMenu.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
             break;
         case ConfigMenu::NextPlayAction_t::Stop:
         default:
@@ -592,7 +593,7 @@ UIMode* UIFileViewMode::update()
                 listIdxItems();
                 break;
             case ButtonCenterTriple:
-                return randomSearch(cfg.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
+                return randomSearch(cfgMenu.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
                 break;
             case ButtonCenterLong:
                 return getUIMode(ConfigMode);
@@ -623,10 +624,10 @@ UIMode* UIFileViewMode::update()
     switch (vars->do_next_play) {
         case ImmediatePlay:
             vars->do_next_play = None;
-            return randomSearch(cfg.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
+            return randomSearch(cfgMenu.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
             break;
         case TimeoutPlay:
-            if (idle_count > cfg.get(ConfigMenuId::PLAY_TIME_TO_NEXT_PLAY) * OneSec) {
+            if (idle_count > cfgMenu.get(ConfigMenuId::PLAY_TIME_TO_NEXT_PLAY) * OneSec) {
                 vars->do_next_play = None;
                 return nextPlay();
             }
@@ -638,7 +639,7 @@ UIMode* UIFileViewMode::update()
         lcd.setMsg("Low Battery!", true);
         exitType = LowBatteryVoltage;
         return getUIMode(PowerOffMode);
-    } else if (idle_count > cfg.get(ConfigMenuId::GENERAL_TIME_TO_POWER_OFF) * OneSec) {
+    } else if (idle_count > cfgMenu.get(ConfigMenuId::GENERAL_TIME_TO_POWER_OFF) * OneSec) {
         lcd.setMsg("Bye");
         return getUIMode(PowerOffMode);
     } else if (idle_count > 5 * OneSec) {
@@ -715,7 +716,7 @@ UIMode* UIPlayMode::update()
         lcd.setMsg("Low Battery!", true);
         exitType = LowBatteryVoltage;
         return getUIMode(PowerOffMode);
-    } else if (codec->isPaused() && idle_count > cfg.get(ConfigMenuId::GENERAL_TIME_TO_POWER_OFF) * OneSec) {
+    } else if (codec->isPaused() && idle_count > cfgMenu.get(ConfigMenuId::GENERAL_TIME_TO_POWER_OFF) * OneSec) {
         codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
         codec->stop();
         lcd.setMsg("Bye");
@@ -861,13 +862,13 @@ UIConfigMode::UIConfigMode() : UIMode("UIConfigMode", ConfigMode),
 
 uint16_t UIConfigMode::getNum()
 {
-    return (uint16_t) cfg.getNum() + 1;
+    return (uint16_t) cfgMenu.getNum() + 1;
 }
 
 const char* UIConfigMode::getStr(uint16_t idx)
 {
     if (idx == 0) { return "[Back]"; }
-    return cfg.getStr((int) idx-1);
+    return cfgMenu.getStr((int) idx-1);
 }
 
 IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
@@ -875,9 +876,9 @@ IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
     IconIndex_t iconIndex = IconIndex_t::UNDEF;
     if (idx == 0) {
         iconIndex = IconIndex_t::LEFTARROW;
-    } else if (!cfg.isSelection()) {
+    } else if (!cfgMenu.isSelection()) {
         iconIndex = IconIndex_t::GEAR;
-    } else if (cfg.selIdxMatched(idx-1)) {
+    } else if (cfgMenu.selIdxMatched(idx-1)) {
         iconIndex = IconIndex_t::CHECKED;
     }
     return iconIndex;
@@ -930,7 +931,7 @@ int UIConfigMode::select()
 {
     stack_data_t stack_data;
     if (idx_head + idx_column == 0) {
-        if (cfg.leave()) {
+        if (cfgMenu.leave()) {
             stack_pop(path_stack, &stack_data);
             idx_head = stack_data.head;
             idx_column = stack_data.column;
@@ -938,7 +939,7 @@ int UIConfigMode::select()
             return 0; // exit from Config
         }
     } else {
-        if (cfg.enter(idx_head + idx_column - 1)) {
+        if (cfgMenu.enter(idx_head + idx_column - 1)) {
             stack_data.head = idx_head;
             stack_data.column = idx_column;
             stack_push(path_stack, &stack_data);
@@ -990,7 +991,7 @@ UIMode* UIConfigMode::update()
         }
         idle_count = 0;
     }
-    if (idle_count > cfg.get(ConfigMenuId::GENERAL_TIME_TO_LEAVE_CONFIG) * OneSec) {
+    if (idle_count > cfgMenu.get(ConfigMenuId::GENERAL_TIME_TO_LEAVE_CONFIG) * OneSec) {
         return prevMode;
     }
     idle_count++;
@@ -1020,32 +1021,32 @@ UIPowerOffMode::UIPowerOffMode() : UIMode("UIPowerOffMode", PowerOffMode)
 
 void UIPowerOffMode::storeToFlash()
 {
-    // Save user parameters to configParam
+    // Save user parameters to cfgParam
     uint32_t seed = to_ms_since_boot(get_absolute_time());
-    configParam.setU32(ConfigParam::CFG_SEED, seed);
+    cfgParam.setValue<uint32_t>(ConfigParam::CFG_SEED, seed);
     uint8_t volume = PlayAudio::getVolume();
-    configParam.setU8(ConfigParam::CFG_VOLUME, volume);
+    cfgParam.setValue<uint8_t>(ConfigParam::CFG_VOLUME, volume);
     uint8_t stack_count = stack_get_count(dir_stack);
-    configParam.setU8(ConfigParam::CFG_STACK_COUNT, stack_count);
+    cfgParam.setValue<uint8_t>(ConfigParam::CFG_STACK_COUNT, stack_count);
     for (int i = 0; i < stack_count; i++) {
         stack_data_t item;
         stack_pop(dir_stack, &item);
-        configParam.setU16(CFG_STACK_HEAD(i), item.head);
-        configParam.setU16(CFG_STACK_COLUMN(i), item.column);
+        cfgParam.setValue<uint16_t>(CFG_STACK_HEAD(i), item.head);
+        cfgParam.setValue<uint16_t>(CFG_STACK_COLUMN(i), item.column);
     }
 
-    configParam.setU32(ConfigParam::CFG_UIMODE, vars->resume_ui_mode);
+    cfgParam.setValue<uint32_t>(ConfigParam::CFG_UIMODE, vars->resume_ui_mode);
 
-    configParam.setU16(ConfigParam::CFG_IDX_HEAD, vars->idx_head);
-    configParam.setU16(ConfigParam::CFG_IDX_COLUMN, vars->idx_column);
-    configParam.setU16(ConfigParam::CFG_IDX_PLAY, vars->idx_play);
+    cfgParam.setValue<uint16_t>(ConfigParam::CFG_IDX_HEAD, vars->idx_head);
+    cfgParam.setValue<uint16_t>(ConfigParam::CFG_IDX_COLUMN, vars->idx_column);
+    cfgParam.setValue<uint16_t>(ConfigParam::CFG_IDX_PLAY, vars->idx_play);
 
-    configParam.setU64(ConfigParam::CFG_PLAY_POS, (uint64_t) vars->fpos);
-    configParam.setU32(ConfigParam::CFG_SAMPLES_PLAYED, vars->samples_played);
+    cfgParam.setValue<uint64_t>(ConfigParam::CFG_PLAY_POS, (uint64_t) vars->fpos);
+    cfgParam.setValue<uint32_t>(ConfigParam::CFG_SAMPLES_PLAYED, vars->samples_played);
 
 
     // Store Configuration parameters to Flash
-    configParam.finalize();
+    cfgParam.finalize();
 }
 
 UIMode* UIPowerOffMode::update()

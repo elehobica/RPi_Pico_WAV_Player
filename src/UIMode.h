@@ -93,7 +93,8 @@ protected:
     static UIVars* vars;
     static stack_t* dir_stack;
     static ExitType exitType;
-    static ConfigMenu& cfg;
+    static ConfigMenu& cfgMenu;
+    static ConfigParam& cfgParam;
     const char* name;
     UIMode* prevMode;
     ui_mode_enm_t ui_mode_enm;

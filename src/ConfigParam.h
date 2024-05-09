@@ -6,27 +6,27 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#ifndef __CONFIG_PARAM_H_INCLUDED__
-#define __CONFIG_PARAM_H_INCLUDED__
+#pragma once
 
-#include <stdint.h>
-#include <stdlib.h>
-
-#define configParam             (ConfigParam::ConfigParamClass::instance())
+#include <map>
+#include <string>
+#include <cinttypes>  // this must be located at later than <string>
+#include <variant>
+#include <vector>
 
 #define CFG_STACK_HEAD(x)       ((x == 4) ? ConfigParam::CFG_STACK_HEAD4 : (x == 3) ? ConfigParam::CFG_STACK_HEAD3 : (x == 2) ? ConfigParam::CFG_STACK_HEAD2 : (x == 1) ? ConfigParam::CFG_STACK_HEAD1 : ConfigParam::CFG_STACK_HEAD0)
 #define CFG_STACK_COLUMN(x)     ((x == 4) ? ConfigParam::CFG_STACK_COLUMN4 : (x == 3) ? ConfigParam::CFG_STACK_COLUMN3 : (x == 2) ? ConfigParam::CFG_STACK_COLUMN2 : (x == 1) ? ConfigParam::CFG_STACK_COLUMN1 : ConfigParam::CFG_STACK_COLUMN0)
 
-#define GETBOOL(identifier)     (configParam.getBool(identifier))
-#define GETU8(identifier)       (configParam.getU8(identifier))
-#define GETU16(identifier)      (configParam.getU16(identifier))
-#define GETU32(identifier)      (configParam.getU32(identifier))
-#define GETU64(identifier)      (configParam.getU64(identifier))
-#define GETI8(identifier)       (configParam.getI8(identifier))
-#define GETI16(identifier)      (configParam.getI16(identifier))
-#define GETI32(identifier)      (configParam.getI32(identifier))
-#define GETI64(identifier)      (configParam.getI64(identifier))
-#define GETSTR(identifier)      (configParam.getStr(identifier))
+#define GETBOOL(identifier)     (ConfigParam::instance().getValue<bool>(identifier))
+#define GETU8(identifier)       (ConfigParam::instance().getValue<uint8_t>(identifier))
+#define GETU16(identifier)      (ConfigParam::instance().getValue<uint16_t>(identifier))
+#define GETU32(identifier)      (ConfigParam::instance().getValue<uint32_t>(identifier))
+#define GETU64(identifier)      (ConfigParam::instance().getValue<uint64_t>(identifier))
+#define GETI8(identifier)       (ConfigParam::instance().getValue<int8_t>(identifier))
+#define GETI16(identifier)      (ConfigParam::instance().getValue<int16_t>(identifier))
+#define GETI32(identifier)      (ConfigParam::instance().getValue<int32_t>(identifier))
+#define GETI64(identifier)      (ConfigParam::instance().getValue<int64_t>(identifier))
+#define GETSTR(identifier)      (ConfigParam::instance().getValue<std::string>(identifier))
 
 #define GET_CFG_BOOT_COUNT      GETU32(ConfigParam::CFG_BOOT_COUNT)
 #define GET_CFG_FORMAT_REV      GETU32(ConfigParam::CFG_FORMAT_REV)
@@ -43,10 +43,11 @@
 #define GET_CFG_SAMPLES_PLAYED  GETU32(ConfigParam::CFG_SAMPLES_PLAYED)
 
 //=================================
-// Interface of ConfigMenu class
+// Interface of ConfigParam class
 //=================================
-namespace ConfigParam
+class ConfigParam
 {
+public:
     typedef enum {
         CFG_BOOT_COUNT = 0,
         CFG_FORMAT_REV,
@@ -79,106 +80,95 @@ namespace ConfigParam
         CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,
         CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,
         CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,
-        NUM_CFG_PARAMS
-    } ParamID_t;
+    } ParamId_t;
 
-    typedef enum {
-        CFG_NONE_T,
-        CFG_BOOL_T,
-        CFG_STRING_T,
-        CFG_UINT8_T,
-        CFG_UINT16_T,
-        CFG_UINT32_T,
-        CFG_UINT64_T,
-        CFG_INT8_T,
-        CFG_INT16_T,
-        CFG_INT32_T,
-        CFG_INT64_T
-    } ParamType_t;
-
-    typedef struct ParamItem {
-        const ParamID_t id;
-        const char *name;
-        const ParamType_t paramType;
-        const size_t size;
-        const char *defaultValue;
-        const uint32_t flashAddr;
-        void *ptr;
-    } ParamItem_t;
-
-    class ConfigParamClass
-    {
-    public:
-        static ConfigParamClass& instance(); // Singleton
-        void printInfo();
-        void initialize();
-        void finalize();
-        void incBootCount();
-        void read(ParamID_t id, void *ptr);
-        void write(ParamID_t id, const void *ptr);
-        bool getBool(ParamID_t id);
-        uint8_t getU8(ParamID_t id);
-        uint16_t getU16(ParamID_t id);
-        uint32_t getU32(ParamID_t id);
-        uint64_t getU64(ParamID_t id);
-        int8_t getI8(ParamID_t id);
-        int16_t getI16(ParamID_t id);
-        int32_t getI32(ParamID_t id);
-        int64_t getI64(ParamID_t id);
-        char *getStr(ParamID_t id);
-        void setU8(ParamID_t id, uint8_t val);
-        void setU16(ParamID_t id, uint16_t val);
-        void setU32(ParamID_t id, uint32_t val);
-        void setU64(ParamID_t id, uint64_t val);
-        void setI8(ParamID_t id, int8_t val);
-        void setI16(ParamID_t id, int16_t val);
-        void setI32(ParamID_t id, int32_t val);
-        void setI64(ParamID_t id, int64_t val);
-        void setStr(ParamID_t id, char *str);
-    private:
-        ParamItem_t configParamItems[NUM_CFG_PARAMS] = {
-        //  id                      name                    type            size    default     ofs     ptr
-            {CFG_BOOT_COUNT,        "CFG_BOOT_COUNT",       CFG_UINT32_T,   4,      "0",        0x000,  nullptr},
-            {CFG_FORMAT_REV,        "CFG_FORMAT_REV",       CFG_UINT32_T,   4,      "20240401", 0x004,  nullptr},  // update value when updated to reset user flash
-            {CFG_SEED,              "CFG_SEED",             CFG_UINT32_T,   4,      "0",        0x008,  nullptr},
-            {CFG_VOLUME,            "CFG_VOLUME",           CFG_UINT8_T,    1,      "65",       0x00c,  nullptr},
-            {CFG_STACK_COUNT,       "CFG_STACK_COUNT",      CFG_UINT8_T,    1,      "0",        0x00d,  nullptr},
-            {CFG_STACK_HEAD0,       "CFG_STACK_HEAD0",      CFG_UINT16_T,   2,      "0",        0x010,  nullptr},
-            {CFG_STACK_COLUMN0,     "CFG_STACK_COLUMN0",    CFG_UINT16_T,   2,      "0",        0x012,  nullptr},
-            {CFG_STACK_HEAD1,       "CFG_STACK_HEAD1",      CFG_UINT16_T,   2,      "0",        0x014,  nullptr},
-            {CFG_STACK_COLUMN1,     "CFG_STACK_COLUMN1",    CFG_UINT16_T,   2,      "0",        0x016,  nullptr},
-            {CFG_STACK_HEAD2,       "CFG_STACK_HEAD2",      CFG_UINT16_T,   2,      "0",        0x018,  nullptr},
-            {CFG_STACK_COLUMN2,     "CFG_STACK_COLUMN2",    CFG_UINT16_T,   2,      "0",        0x01a,  nullptr},
-            {CFG_STACK_HEAD3,       "CFG_STACK_HEAD3",      CFG_UINT16_T,   2,      "0",        0x01c,  nullptr},
-            {CFG_STACK_COLUMN3,     "CFG_STACK_COLUMN3",    CFG_UINT16_T,   2,      "0",        0x020,  nullptr},
-            {CFG_STACK_HEAD4,       "CFG_STACK_HEAD4",      CFG_UINT16_T,   2,      "0",        0x022,  nullptr},
-            {CFG_STACK_COLUMN4,     "CFG_STACK_COLUMN4",    CFG_UINT16_T,   2,      "0",        0x024,  nullptr},
-            {CFG_UIMODE,            "CFG_UIMODE",           CFG_UINT32_T,   4,      "0",        0x028,  nullptr},
-            {CFG_IDX_HEAD,          "CFG_IDX_HEAD",         CFG_UINT16_T,   2,      "0",        0x02c,  nullptr},
-            {CFG_IDX_COLUMN,        "CFG_IDX_COLUMN",       CFG_UINT16_T,   2,      "0",        0x02e,  nullptr},
-            {CFG_IDX_PLAY,          "CFG_IDX_PLAY",         CFG_UINT16_T,   2,      "0",        0x030,  nullptr},
-            {CFG_PLAY_POS,          "CFG_PLAY_POS",         CFG_UINT64_T,   8,      "0",        0x038,  nullptr},
-            {CFG_SAMPLES_PLAYED,    "CFG_SAMPLES_PLAYED",   CFG_UINT32_T,   4,      "0",        0x040,  nullptr},
-            // type of CFG_MENU must be "CFG_UINT32_T" and default values indicates index of selection (see ConfigMenu.h)
-            {CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,        "CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF",       CFG_UINT32_T,   4,  "0",    0x080,  nullptr},
-            {CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,     "CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG",    CFG_UINT32_T,   4,  "1",    0x084,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_LCD_CONFIG,               "CFG_MENU_IDX_DISPLAY_LCD_CONFIG",              CFG_UINT32_T,   4,  "0",    0x088,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_ROTATION,                 "CFG_MENU_IDX_DISPLAY_ROTATION",                CFG_UINT32_T,   4,  "0",    0x08c,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,      "CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL",     CFG_UINT32_T,   4,  "7",    0x090,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,     "CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL",    CFG_UINT32_T,   4,  "12",   0x094,  nullptr},
-            {CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW,    "CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW",   CFG_UINT32_T,   4,  "1",    0x098,  nullptr},
-            {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,           "CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",          CFG_UINT32_T,   4,  "2",    0x09c,  nullptr},
-            {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,             "CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",            CFG_UINT32_T,   4,  "1",    0x0a0,  nullptr},
-            {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,            "CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",           CFG_UINT32_T,   4,  "1",    0x0a4,  nullptr},
-        };
-
-        ConfigParamClass();
-        ~ConfigParamClass();
-        ConfigParamClass(const ConfigParamClass&) = delete;
-        ConfigParamClass& operator=(const ConfigParamClass&) = delete;
-        void loadDefault();
-        uint32_t getBootCountFromFlash();
+    static ConfigParam& instance(); // Singleton
+    void printInfo() const;
+    void initialize();
+    void finalize();
+    void incBootCount();
+    template <typename T>
+    void setValue(const ParamId_t& id, const T& value) {
+        auto& param = configParamItems.at(id);
+        std::get<T>(param.value) = value;
+    }
+    template <typename T>
+    T getValue(const ParamId_t& id) const {
+        const auto& param = configParamItems.at(id);
+        return std::get<T>(param.value);
+    }
+    template <int N>
+    decltype(auto) getValue(const ParamId_t& id) const {
+        const auto& param = configParamItems.at(id);
+        return std::get<N>(param.value);
+    }
+private:
+    using variant_t = std::variant<bool, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, std::string>;
+    const std::vector<std::string> printFormat = {  // this must be matched with variant order due to being referred by index()
+        "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // bool
+        "0x%04x %s: %" PRIu8 "d (0x%" PRIx8 ")\n",    // uint8_t
+        "0x%04x %s: %" PRIu16 "d (0x%" PRIx16 ")\n",  // uint16_t
+        "0x%04x %s: %" PRIu32 "d (0x%" PRIx32 ")\n",  // uint32_t
+        "0x%04x %s: %" PRIu64 "d (0x%" PRIx64 ")\n",  // uint64_t
+        "0x%04x %s: %" PRIi8 "d (0x%" PRIx8 ")\n",    // int8_t
+        "0x%04x %s: %" PRIi16 "d (0x%" PRIx16 ")\n",  // int16_t
+        "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // int32_t
+        "0x%04x %s: %" PRIi64 "d (0x%" PRIx64 ")\n",  // int64_t
+        "0x%04x %s: %s\n",                            // std::string
     };
-}
+    struct Parameter {
+        Parameter(const char* name, const std::string defaultValue, const uint32_t flashAddr, size_t size)
+            : name(name), defaultValue(defaultValue), flashAddr(flashAddr), size(size) {}
+        template <typename T>
+        Parameter(const char* name, const T defaultValue, const uint32_t flashAddr)
+            : name(name), defaultValue(defaultValue), flashAddr(flashAddr), size(sizeof(T)) {}
+        const char* name;
+        const variant_t defaultValue;
+        const uint32_t flashAddr;
+        const size_t size;
+        variant_t value = defaultValue;
+        void loadDefault() { value = defaultValue; }
+    };
+    std::map<const ParamId_t, Parameter> configParamItems = {
+    //  id                    name                  default             flashAddr
+        {CFG_BOOT_COUNT,     {"CFG_BOOT_COUNT",     uint32_t{10},       0x000}},
+        {CFG_FORMAT_REV,     {"CFG_FORMAT_REV",     uint32_t{20240401}, 0x004}},  // update value when updated to reset user flash
+        {CFG_SEED,           {"CFG_SEED",           uint32_t{0},        0x008}},
+        {CFG_VOLUME,         {"CFG_VOLUME",         uint8_t{65},        0x00c}},
+        {CFG_STACK_COUNT,    {"CFG_STACK_COUNT",    uint8_t{0},         0x00d}},
+        {CFG_STACK_HEAD0,    {"CFG_STACK_HEAD0",    uint16_t{0},        0x010}},
+        {CFG_STACK_COLUMN0,  {"CFG_STACK_COLUMN0",  uint16_t{0},        0x012}},
+        {CFG_STACK_HEAD1,    {"CFG_STACK_HEAD1",    uint16_t{0},        0x014}},
+        {CFG_STACK_COLUMN1,  {"CFG_STACK_COLUMN1",  uint16_t{0},        0x016}},
+        {CFG_STACK_HEAD2,    {"CFG_STACK_HEAD2",    uint16_t{0},        0x018}},
+        {CFG_STACK_COLUMN2,  {"CFG_STACK_COLUMN2",  uint16_t{0},        0x01a}},
+        {CFG_STACK_HEAD3,    {"CFG_STACK_HEAD3",    uint16_t{0},        0x01c}},
+        {CFG_STACK_COLUMN3,  {"CFG_STACK_COLUMN3",  uint16_t{0},        0x020}},
+        {CFG_STACK_HEAD4,    {"CFG_STACK_HEAD4",    uint16_t{0},        0x022}},
+        {CFG_STACK_COLUMN4,  {"CFG_STACK_COLUMN4",  uint16_t{0},        0x024}},
+        {CFG_UIMODE,         {"CFG_UIMODE",         uint32_t{0},        0x028}},
+        {CFG_IDX_HEAD,       {"CFG_IDX_HEAD",       uint16_t{0},        0x02c}},
+        {CFG_IDX_COLUMN,     {"CFG_IDX_COLUMN",     uint16_t{0},        0x02e}},
+        {CFG_IDX_PLAY,       {"CFG_IDX_PLAY",       uint16_t{0},        0x030}},
+        {CFG_PLAY_POS,       {"CFG_PLAY_POS",       uint64_t{0},        0x038}},
+        {CFG_SAMPLES_PLAYED, {"CFG_SAMPLES_PLAYED", uint32_t{0},        0x040}},
+        // type of CFG_MENU must be uint32_t and default values indicates index of selection (see ConfigMenu.h)
+        {CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,     {"CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF",     uint32_t{0},    0x080}},
+        {CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,  {"CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG",  uint32_t{1},    0x084}},
+        {CFG_MENU_IDX_DISPLAY_LCD_CONFIG,            {"CFG_MENU_IDX_DISPLAY_LCD_CONFIG",            uint32_t{0},    0x088}},
+        {CFG_MENU_IDX_DISPLAY_ROTATION,              {"CFG_MENU_IDX_DISPLAY_ROTATION",              uint32_t{0},    0x08c}},
+        {CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,   {"CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL",   uint32_t{7},    0x090}},
+        {CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,  {"CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL",  uint32_t{12},   0x094}},
+        {CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW, {"CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW", uint32_t{1},    0x098}},
+        {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,        {"CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",        uint32_t{2},    0x09c}},
+        {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,          {"CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",          uint32_t{1},    0x0a0}},
+        {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,         {"CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",         uint32_t{1},    0x0a4}},
+    };
 
-#endif // __CONFIG_PARAM_H_INCLUDED__
+    ConfigParam();
+    ~ConfigParam() = default;
+    ConfigParam(const ConfigParam&) = delete;
+    ConfigParam& operator=(const ConfigParam&) = delete;
+    void loadDefault();
+    uint32_t getBootCountFromFlash();
+};

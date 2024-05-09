@@ -47,14 +47,13 @@ ConfigMenu::ConfigMenu()
     }
 }
 
-uint32_t ConfigMenu::get(Item_t& item)
+uint32_t ConfigMenu::get(const Item_t& item) const
 {
-    uint32_t sel_idx;
-    configParam.read(item.paramID, &sel_idx);
+    auto sel_idx = cfgParam.getValue<uint32_t>(item.paramID);
     return item.selection->at(sel_idx).value;
 }
 
-uint32_t ConfigMenu::get(const ConfigMenuId& id)
+uint32_t ConfigMenu::get(const ConfigMenuId& id) const
 {
     return get(menuMap.at(id));
 }
@@ -68,14 +67,14 @@ void ConfigMenu::scanHookFunc()
     }
 }
 
-int ConfigMenu::getNum()
+int ConfigMenu::getNum() const
 {
     switch (level) {
         case 0: // Top
             return static_cast<int>(CategoryId_t::__NUM_CATEGORY_ID__);
             break;
         case 1: // Category
-            return menuMapByCategory[curCategoryId].size();
+            return menuMapByCategory.at(curCategoryId).size();
             break;
         case 2: // Item
             return curItem->selection->size();
@@ -86,7 +85,7 @@ int ConfigMenu::getNum()
     return 0;
 }
 
-const char* ConfigMenu::getStr(int idx)
+const char* ConfigMenu::getStr(const uint32_t& idx) const
 {
     switch (level) {
         case 0: {  // Top
@@ -94,8 +93,8 @@ const char* ConfigMenu::getStr(int idx)
             break;
         }
         case 1: {  // Category
-            auto it = menuMapByCategory[curCategoryId].begin();
-            if (idx < menuMapByCategory[curCategoryId].size()) {
+            auto it = menuMapByCategory.at(curCategoryId).begin();
+            if (idx < menuMapByCategory.at(curCategoryId).size()) {
                 return std::next(it, idx)->second->name;
             }
             break;
@@ -109,7 +108,7 @@ const char* ConfigMenu::getStr(int idx)
     return "";
 }
 
-bool ConfigMenu::enter(int idx)
+bool ConfigMenu::enter(const uint32_t& idx)
 {
     bool flag = false;
     switch (level) {
@@ -119,8 +118,8 @@ bool ConfigMenu::enter(int idx)
             flag = true;
             break;
         case 1: { // Category
-            auto it = menuMapByCategory[curCategoryId].begin();
-            if (idx < menuMapByCategory[curCategoryId].size()) {
+            auto it = menuMapByCategory.at(curCategoryId).begin();
+            if (idx < menuMapByCategory.at(curCategoryId).size()) {
                 curItem = std::next(it, idx)->second;
                 level++;
                 flag = true;
@@ -128,8 +127,7 @@ bool ConfigMenu::enter(int idx)
 	    break;
         }
         case 2: { // Item
-                uint32_t sel_idx = idx;
-                configParam.write(curItem->paramID, &sel_idx);
+                cfgParam.setValue<uint32_t>(curItem->paramID, idx);
                 // Do hook_func() when value is set
                 if (curItem->hook_func != nullptr) {
                     curItem->hook_func();
@@ -162,15 +160,14 @@ bool ConfigMenu::leave()
     return flag;
 }
 
-bool ConfigMenu::isSelection()
+bool ConfigMenu::isSelection() const
 {
     return (level == 2);
 }
 
-bool ConfigMenu::selIdxMatched(int idx)
+bool ConfigMenu::selIdxMatched(const uint32_t& idx) const
 {
     if (!isSelection()) { return false; }
-    uint32_t sel_idx;
-    configParam.read(curItem->paramID, &sel_idx);
+    uint32_t sel_idx = cfgParam.getValue<uint32_t>(curItem->paramID);
     return ((int) sel_idx == idx);
 }
