@@ -182,13 +182,15 @@ void UIOpeningMode::restoreFromFlash()
     cfgParam.incBootCount();
 
     // Restore from cfgParam to user parameters
-    srand(GET_CFG_SEED);
-    PlayAudio::setVolume(GET_CFG_VOLUME);
+    srand(cfgParam.P_CFG_SEED.get());
+    PlayAudio::setVolume(cfgParam.P_CFG_VOLUME.get());
     bool err_flg = false;
-    for (int i = GET_CFG_STACK_COUNT - 1; i >= 0; i--) {
+    for (int i = cfgParam.P_CFG_STACK_COUNT.get() - 1; i >= 0; i--) {
         stack_data_t item;
-        item.head = GET_CFG_STACK_HEAD(i);
-        item.column = GET_CFG_STACK_COLUMN(i);
+        const auto& head_param = (i == 4) ? cfgParam.P_CFG_STACK_HEAD4 : (i == 3) ? cfgParam.P_CFG_STACK_HEAD3 : (i == 2) ? cfgParam.P_CFG_STACK_HEAD2 : (i == 1) ? cfgParam.P_CFG_STACK_HEAD1 : cfgParam.P_CFG_STACK_HEAD0;
+        const auto& column_param = (i == 4) ? cfgParam.P_CFG_STACK_COLUMN4 : (i == 3) ? cfgParam.P_CFG_STACK_COLUMN3 : (i == 2) ? cfgParam.P_CFG_STACK_COLUMN2 : (i == 1) ? cfgParam.P_CFG_STACK_COLUMN1 : cfgParam.P_CFG_STACK_COLUMN0;
+        item.head = head_param.get();
+        item.column = column_param.get();
         if (item.head+item.column >= file_menu_get_num()) { err_flg = true; break; } // idx overflow
         file_menu_sort_entry(item.head+item.column, item.head+item.column + 1);
         if (file_menu_is_dir(item.head+item.column) <= 0 || item.head+item.column == 0) { err_flg = true; break; } // Not Directory or Parent Directory
@@ -196,10 +198,10 @@ void UIOpeningMode::restoreFromFlash()
         file_menu_ch_dir(item.head+item.column);
     }
 
-    vars->init_dest_ui_mode = static_cast<ui_mode_enm_t>(GET_CFG_UIMODE);
+    vars->init_dest_ui_mode = static_cast<ui_mode_enm_t>(cfgParam.P_CFG_UIMODE.get());
 
-    uint16_t idx_head = GET_CFG_IDX_HEAD;
-    uint16_t idx_column = GET_CFG_IDX_COLUMN;
+    uint16_t idx_head = cfgParam.P_CFG_IDX_HEAD.get();
+    uint16_t idx_column = cfgParam.P_CFG_IDX_COLUMN.get();
     if (idx_head+idx_column >= file_menu_get_num()) { err_flg = true; } // idx overflow
     if (err_flg) { // Load Error
         printf("dir_stack Load Error. root directory is set\n");
@@ -216,10 +218,10 @@ void UIOpeningMode::restoreFromFlash()
     vars->fpos = 0;
     vars->samples_played = 0;
     if (vars->init_dest_ui_mode == PlayMode) {
-        vars->idx_play = GET_CFG_IDX_PLAY;
-        uint64_t play_pos = GET_CFG_PLAY_POS;
+        vars->idx_play = cfgParam.P_CFG_IDX_PLAY.get();
+        uint64_t play_pos = cfgParam.P_CFG_PLAY_POS.get();
         vars->fpos = (size_t) play_pos;
-        vars->samples_played = GET_CFG_SAMPLES_PLAYED;
+        vars->samples_played = cfgParam.P_CFG_SAMPLES_PLAYED.get();
     }
 }
 
@@ -1023,27 +1025,29 @@ void UIPowerOffMode::storeToFlash()
 {
     // Save user parameters to cfgParam
     uint32_t seed = to_ms_since_boot(get_absolute_time());
-    cfgParam.setValue<uint32_t>(ConfigParam::CFG_SEED, seed);
+    cfgParam.P_CFG_SEED.set(seed);
+
     uint8_t volume = PlayAudio::getVolume();
-    cfgParam.setValue<uint8_t>(ConfigParam::CFG_VOLUME, volume);
+    cfgParam.P_CFG_VOLUME.set(volume);
     uint8_t stack_count = stack_get_count(dir_stack);
-    cfgParam.setValue<uint8_t>(ConfigParam::CFG_STACK_COUNT, stack_count);
+    cfgParam.P_CFG_STACK_COUNT.set(stack_count);
     for (int i = 0; i < stack_count; i++) {
         stack_data_t item;
         stack_pop(dir_stack, &item);
-        cfgParam.setValue<uint16_t>(CFG_STACK_HEAD(i), item.head);
-        cfgParam.setValue<uint16_t>(CFG_STACK_COLUMN(i), item.column);
+        auto& head_param = (i == 4) ? cfgParam.P_CFG_STACK_HEAD4 : (i == 3) ? cfgParam.P_CFG_STACK_HEAD3 : (i == 2) ? cfgParam.P_CFG_STACK_HEAD2 : (i == 1) ? cfgParam.P_CFG_STACK_HEAD1 : cfgParam.P_CFG_STACK_HEAD0;
+        auto& column_param = (i == 4) ? cfgParam.P_CFG_STACK_COLUMN4 : (i == 3) ? cfgParam.P_CFG_STACK_COLUMN3 : (i == 2) ? cfgParam.P_CFG_STACK_COLUMN2 : (i == 1) ? cfgParam.P_CFG_STACK_COLUMN1 : cfgParam.P_CFG_STACK_COLUMN0;
+        head_param.set(item.head);
+        column_param.set(item.column);
     }
 
-    cfgParam.setValue<uint32_t>(ConfigParam::CFG_UIMODE, vars->resume_ui_mode);
+    cfgParam.P_CFG_UIMODE.set(vars->resume_ui_mode);
 
-    cfgParam.setValue<uint16_t>(ConfigParam::CFG_IDX_HEAD, vars->idx_head);
-    cfgParam.setValue<uint16_t>(ConfigParam::CFG_IDX_COLUMN, vars->idx_column);
-    cfgParam.setValue<uint16_t>(ConfigParam::CFG_IDX_PLAY, vars->idx_play);
+    cfgParam.P_CFG_IDX_HEAD.set(vars->idx_head);
+    cfgParam.P_CFG_IDX_COLUMN.set(vars->idx_column);
+    cfgParam.P_CFG_IDX_PLAY.set(vars->idx_play);
 
-    cfgParam.setValue<uint64_t>(ConfigParam::CFG_PLAY_POS, (uint64_t) vars->fpos);
-    cfgParam.setValue<uint32_t>(ConfigParam::CFG_SAMPLES_PLAYED, vars->samples_played);
-
+    cfgParam.P_CFG_PLAY_POS.set(static_cast<uint64_t>(vars->fpos));
+    cfgParam.P_CFG_SAMPLES_PLAYED.set(vars->samples_played);
 
     // Store Configuration parameters to Flash
     cfgParam.finalize();
