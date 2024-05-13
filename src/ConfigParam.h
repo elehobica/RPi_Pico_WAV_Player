@@ -142,7 +142,7 @@ public:
     template <typename T>
     void setValue(const ParamId_t& id, const T& value) { _setValue<Parameter<T>>(id, value); }
 
-    // Parameters       inst                                         id                                          type                                          addr   default
+    // Parameter<T>     inst                                         id                                          type                                          addr   default
     Parameter<uint32_t> P_CFG_BOOT_COUNT                            {CFG_BOOT_COUNT,                             "CFG_BOOT_COUNT",                             0x000, 10};
     Parameter<uint32_t> P_CFG_FORMAT_REV                            {CFG_FORMAT_REV,                             "CFG_FORMAT_REV",                             0x004, 20240513};  // update value when updated to reset user flash
     Parameter<uint32_t> P_CFG_SEED                                  {CFG_SEED,                                   "CFG_SEED",                                   0x008, 0};

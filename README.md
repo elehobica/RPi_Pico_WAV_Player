@@ -177,7 +177,9 @@ GP26 also needs to be pulled-up by 2.2Kohm from GP21. See schematic for detail.
 * Otherwise, put JPEG file on same folder where WAV files are located
 * JPEG format: Progressive JPEG not supported
 
-## LCD Config
+## Config Menu
+* See [ConfigMenu](doc/ConfigMenu.md) for the dttail of Config Menu items
+### LCD Config
 * ST7735S 0.96" 160x80 LCD could require different configuration for its position offset, rotation, mirror and color order. It is hard to distinguish which type of configuration is needed from the module outlook.
 * Suitable configuration out of 3 types(1, 2, 3) can be selected from Display -> LCD Config menu from Config Mode.
 
