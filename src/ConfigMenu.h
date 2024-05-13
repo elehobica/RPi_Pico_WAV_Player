@@ -16,7 +16,7 @@
 enum class ConfigMenuId: uint32_t {
     GENERAL_TIME_TO_POWER_OFF = 0,
     GENERAL_TIME_TO_LEAVE_CONFIG,
-    GENERAL_GPIO_BUTTON_LAYOUT,
+    GENERAL_PUSH_BUTTON_LAYOUT,
     GENERAL_HP_BUTTON_LAYOUT,
     DISPLAY_LCD_CONFIG,
     DISPLAY_ROTATION,
@@ -165,7 +165,7 @@ private:
         //                                            Name                      category               ConfigParamNs::ParamId_t                                   selection           hook_func
         {ConfigMenuId::GENERAL_TIME_TO_POWER_OFF,     {"Time to Power Off",     CategoryId_t::GENERAL, ConfigParamNs::CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,     &selTime0,          nullptr}},
         {ConfigMenuId::GENERAL_TIME_TO_LEAVE_CONFIG,  {"Time to Leave Config",  CategoryId_t::GENERAL, ConfigParamNs::CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,  &selTime2,          nullptr}},
-        {ConfigMenuId::GENERAL_GPIO_BUTTON_LAYOUT,    {"GPIO Button Layout",    CategoryId_t::GENERAL, ConfigParamNs::CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT,    &selButtonLayout,   nullptr}},
+        {ConfigMenuId::GENERAL_PUSH_BUTTON_LAYOUT,    {"Push Button Layout",    CategoryId_t::GENERAL, ConfigParamNs::CFG_MENU_IDX_GENERAL_PUSH_BUTTON_LAYOUT,    &selButtonLayout,   nullptr}},
         {ConfigMenuId::GENERAL_HP_BUTTON_LAYOUT,      {"HP Button Layout",      CategoryId_t::GENERAL, ConfigParamNs::CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT,      &selButtonLayout,   nullptr}},
         {ConfigMenuId::DISPLAY_LCD_CONFIG,            {"LCD Config",            CategoryId_t::DISPLAY, ConfigParamNs::CFG_MENU_IDX_DISPLAY_LCD_CONFIG,            &selLcdConfig,      hookDispLcdConfig}},
         {ConfigMenuId::DISPLAY_ROTATION,              {"Rotation",              CategoryId_t::DISPLAY, ConfigParamNs::CFG_MENU_IDX_DISPLAY_ROTATION,              &selRotation,       hookDispRotation}},

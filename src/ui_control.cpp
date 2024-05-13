@@ -129,20 +129,20 @@ static void update_button_action()
     int center_clicks;
     button_status_t button;
     button_unit_t button_unit;
-    button_status_t button_hp = adc0_get_hp_button();
-    button_status_t button_gpio = get_sw_status();
-    if (button_hp == button_status_t::Center || button_gpio == button_status_t::Center) {
+    button_status_t hp_button = adc0_get_hp_button();
+    button_status_t push_button = get_sw_status();
+    if (hp_button == button_status_t::Center || push_button == button_status_t::Center) {
         button = button_status_t::Center;
-    } else if (button_hp == button_status_t::D || button_gpio == button_status_t::D) {
+    } else if (hp_button == button_status_t::D || push_button == button_status_t::D) {
         button = button_status_t::D;
-    } else if (button_hp == button_status_t::Plus || button_gpio == button_status_t::Plus) {
+    } else if (hp_button == button_status_t::Plus || push_button == button_status_t::Plus) {
         button = button_status_t::Plus;
-    } else if (button_hp == button_status_t::Minus || button_gpio == button_status_t::Minus) {
+    } else if (hp_button == button_status_t::Minus || push_button == button_status_t::Minus) {
         button = button_status_t::Minus;
     } else {
         button = button_status_t::Open;
     }
-    button_unit = (button == button_gpio) ? button_unit_t::Gpio : button_unit_t::Hp;
+    button_unit = (button == push_button) ? button_unit_t::PushButtons : button_unit_t::HpButtons;
 
     if (button == button_status_t::Open) {
         // Ignore button release after long push

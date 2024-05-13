@@ -591,7 +591,7 @@ UIMode* UIFileViewMode::update()
     }
     if (ui_get_btn_evt(btn_act, btn_unit)) {
         vars->do_next_play = None;
-        auto& btn_layout = (btn_unit == button_unit_t::Gpio) ? cfgParam.P_CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT : cfgParam.P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT;
+        auto& btn_layout = (btn_unit == button_unit_t::PushButtons) ? cfgParam.P_CFG_MENU_IDX_GENERAL_PUSH_BUTTON_LAYOUT : cfgParam.P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT;
         switch (btn_act) {
             case button_action_t::CenterSingle:
                 if (file_menu_is_dir(vars->idx_head+vars->idx_column) > 0) { // Target is Directory
@@ -989,7 +989,7 @@ UIMode* UIConfigMode::update()
     PlayAudio* codec = get_audio_codec();
     if (ui_get_btn_evt(btn_act, btn_unit)) {
         vars->do_next_play = None;
-        auto& btn_layout = (btn_unit == button_unit_t::Gpio) ? cfgParam.P_CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT : cfgParam.P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT;
+        auto& btn_layout = (btn_unit == button_unit_t::PushButtons) ? cfgParam.P_CFG_MENU_IDX_GENERAL_PUSH_BUTTON_LAYOUT : cfgParam.P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT;
         switch (btn_act) {
             case button_action_t::CenterSingle:
                 if (select()) {

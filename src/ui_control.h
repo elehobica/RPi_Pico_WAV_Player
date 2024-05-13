@@ -19,8 +19,8 @@ enum class button_status_t : uint32_t {
 };
 
 enum class button_unit_t : uint32_t {
-    Gpio = 0,
-    Hp,
+    PushButtons = 0,
+    HpButtons,
 };
 
 enum class button_action_t : uint32_t {

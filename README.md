@@ -12,14 +12,14 @@ This project features:
   * Sampling frequency: 44.1KHz, 48KHz, 88.2KHz, 96KHz, 176.4KHz, 192KHz
 * SD Card interface (exFAT supported)
 * 160x80 LCD display
-* UI Control by 3 GPIO buttons or Headphone Remote Control Buttons
+* UI Control by 3 Push buttons or Headphone Remote Control buttons
 * Display Tag information by ID3v2 tag (RIFF ID3v2), otherwise by LIST chunk in WAV file
-* Display Coverart image from JPEG in ID3v2 tag, otherwise from JPEG file in the folder
+* Display Coverart image from JPEG bitstream in ID3v2 tag, otherwise from JPEG file in the folder
 * Volume Control Function by fully utilizing 32bit DAC range
 
 ## Supported Board and Peripheral Devices
 * Raspberry Pi Pico board
-* Waveshare RP2040-LCD-0.96 board
+  * or Waveshare RP2040-LCD-0.96 board
 * ST7735S 0.96" 160x80 LCD (for Raspberry Pi Pico board only)
 * PCM5102 32bit I2S Audio DAC
 
