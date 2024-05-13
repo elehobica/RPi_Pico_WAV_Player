@@ -7,7 +7,6 @@
 
 #include "power_manage.h"
 
-//#include <cstdio>
 #include "hardware/pll.h"
 #include "hardware/clocks.h"
 #include "hardware/structs/clocks.h"
@@ -21,10 +20,13 @@
 #include "pico/sleep.h"
 #include "pico/stdio_uart.h"
 #include "pico/stdio_usb.h" // use lib/pico_stdio_usb_revised/
-#include "lcd_extra.h"
-#include "ui_control.h"
 #include "ConfigParam.h"
 #include "ConfigMenu.h"
+#include "lcd_extra.h"
+#include "ui_control.h"
+#include "UIMode.h"
+
+//#include <cstdio>
 
 //#define USE_ACTIVE_BATTERY_CHECK // Additional circuit needed
 //#define NO_BATTERY_VOLTAGE_CHECK
@@ -87,10 +89,11 @@ void pm_backlight_update()
     const int LoopCycleMs = UIMode::UpdateCycleMs; // loop cycle (50 ms)
     const int OneSec = 1000 / LoopCycleMs;
     uint32_t bl_val;
-    if (ui_get_idle_count() < GET_CFG_MENU_DISPLAY_TIME_TO_BACKLIGHT_LOW*OneSec) {
-        bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL;
+    ConfigMenu& cfg = ConfigMenu::instance();
+    if (ui_get_idle_count() < cfg.get(ConfigMenuId::DISPLAY_TIME_TO_BACKLIGHT_LOW)*OneSec) {
+        bl_val = cfg.get(ConfigMenuId::DISPLAY_BACKLIGHT_HIGH_LEVEL);
     } else {
-        bl_val = GET_CFG_MENU_DISPLAY_BACKLIGHT_LOW_LEVEL;
+        bl_val = cfg.get(ConfigMenuId::DISPLAY_BACKLIGHT_LOW_LEVEL);
     }
     OLED_BLK_Set_PWM(bl_val);
 }
@@ -134,7 +137,8 @@ void pm_init(board_type_t board_type)
     gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
 
     // BackLight
-    OLED_BLK_Set_PWM(GET_CFG_MENU_DISPLAY_BACKLIGHT_HIGH_LEVEL);
+    ConfigMenu& cfg = ConfigMenu::instance();
+    OLED_BLK_Set_PWM(cfg.get(ConfigMenuId::DISPLAY_BACKLIGHT_HIGH_LEVEL));
 
     // Battery Check Timer start
     timer_init_battery_check();

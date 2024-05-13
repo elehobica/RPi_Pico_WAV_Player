@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add support of Waveshare RP2040-LCD-0.96 board
 * Support tag information by ID3v2 tag (RIFF ID3v2) as higher priority than that by LIST chunk
 * Also support coverart image from the JPEG bitstream in ID3v2 tag as higher priority than separate JPEG file in local directory
+* Add button layout configurations for natural button assignment in FileView and Config mode when buttons are horizontally placed
 ### Changed
 * Replace transistor with MOS-FET in battery operation circuit (Q2) thanks to conditional pullup
 
