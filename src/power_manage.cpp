@@ -7,7 +7,6 @@
 
 #include "power_manage.h"
 
-//#include <cstdio>
 #include "hardware/pll.h"
 #include "hardware/clocks.h"
 #include "hardware/structs/clocks.h"
@@ -21,10 +20,13 @@
 #include "pico/sleep.h"
 #include "pico/stdio_uart.h"
 #include "pico/stdio_usb.h" // use lib/pico_stdio_usb_revised/
-#include "lcd_extra.h"
-#include "ui_control.h"
 #include "ConfigParam.h"
 #include "ConfigMenu.h"
+#include "lcd_extra.h"
+#include "ui_control.h"
+#include "UIMode.h"
+
+//#include <cstdio>
 
 //#define USE_ACTIVE_BATTERY_CHECK // Additional circuit needed
 //#define NO_BATTERY_VOLTAGE_CHECK

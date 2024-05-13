@@ -8,36 +8,11 @@
 
 #pragma once
 
-#include "stack.h"
+#include "ConfigMenu.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvasIconDef.h"
-#include "ConfigMenu.h"
-
-typedef enum {
-    InitialMode = 0,
-    ChargeMode,
-    OpeningMode,
-    FileViewMode,
-    PlayMode,
-    ConfigMode,
-    PowerOffMode,
-    NUM_UI_MODES
-} ui_mode_enm_t;
-
-typedef enum {
-    ButtonCenterSingle = 0,
-    ButtonCenterDouble,
-    ButtonCenterTriple,
-    ButtonCenterLong,
-    ButtonCenterLongLong,
-    ButtonPlusSingle,
-    ButtonPlusLong,
-    ButtonPlusFwd,
-    ButtonMinusSingle,
-    ButtonMinusLong,
-    ButtonMinusRwd,
-    ButtonOthers
-} button_action_t;
+#include "stack.h"
+#include "ui_control.h"
 
 typedef enum {
     None = 0,
@@ -74,10 +49,12 @@ class UIMode
 public:
     static constexpr int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
     static void initialize(UIVars* vars);
+    static UIMode* getUIMode(ui_mode_enm_t ui_mode_enm);
     UIMode(const char* name, ui_mode_enm_t ui_mode_enm);
     virtual UIMode* update() = 0;
     virtual void entry(UIMode* prevMode);
     virtual void draw() = 0;
+    static std::array<UIMode*, NUM_UI_MODES> ui_mode_ary;
     const char* getName();
     ui_mode_enm_t getUIModeEnm();
     uint16_t getIdleCount();
@@ -90,6 +67,7 @@ protected:
     static constexpr int OneSec = 1000 / UpdateCycleMs; // 1 Sec
     static constexpr int OneMin = 60 * OneSec; // 1 Min
     static button_action_t btn_act;
+    static button_unit_t btn_unit;
     static UIVars* vars;
     static stack_t* dir_stack;
     static ExitType exitType;

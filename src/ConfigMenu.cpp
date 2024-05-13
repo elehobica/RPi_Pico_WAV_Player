@@ -11,21 +11,24 @@
 #include "LcdCanvas.h"
 #include "ui_control.h"
 
+#include <cstdio>
+#include <cinttypes>
+
 //=================================
 // Implementation of Hook Functions
 //=================================
 void hookDispLcdConfig()
 {
-    ConfigMenu& cfg = ConfigMenu::instance();
-    LcdCanvas::configureLcd(ui_get_board_type(), cfg.get(ConfigMenuId::DISPLAY_LCD_CONFIG));
-    lcd.setRotation(cfg.get(ConfigMenuId::DISPLAY_ROTATION));
+    ConfigMenu& cfgMenu = ConfigMenu::instance();
+    LcdCanvas::configureLcd(ui_get_board_type(), cfgMenu.get(ConfigMenuId::DISPLAY_LCD_CONFIG));
+    lcd.setRotation(cfgMenu.get(ConfigMenuId::DISPLAY_ROTATION));
     lcd.switchToListView();
 }
 
 void hookDispRotation()
 {
-    ConfigMenu& cfg = ConfigMenu::instance();
-    lcd.setRotation(cfg.get(ConfigMenuId::DISPLAY_ROTATION));
+    ConfigMenu& cfgMenu = ConfigMenu::instance();
+    lcd.setRotation(cfgMenu.get(ConfigMenuId::DISPLAY_ROTATION));
     lcd.switchToListView();
 }
 
@@ -42,15 +45,24 @@ ConfigMenu& ConfigMenu::instance()
 ConfigMenu::ConfigMenu()
 {
     // generate menuMap by category
-    for (auto& [id, item] : menuMap) {
+    for (const auto& [id, item] : menuMap) {
         menuMapByCategory[item.category_id][id] = &item;
+    }
+}
+
+void ConfigMenu::printInfo() const
+{
+    printf("=== ConfigMenu ===\n");
+    for (const auto& [id, item] : menuMap) {
+        const auto& selIdx = cfgParam.getValue<uint32_t>(item.paramID);
+        printf("%s: %" PRIu32 "d (0x%" PRIx32 ")\n", item.name, selIdx, selIdx);
     }
 }
 
 uint32_t ConfigMenu::get(const Item_t& item) const
 {
-    auto sel_idx = cfgParam.getValue<uint32_t>(item.paramID);
-    return item.selection->at(sel_idx).value;
+    const auto& selIdx = cfgParam.getValue<uint32_t>(item.paramID);
+    return item.selection->at(selIdx).value;
 }
 
 uint32_t ConfigMenu::get(const ConfigMenuId& id) const
@@ -71,7 +83,7 @@ int ConfigMenu::getNum() const
 {
     switch (level) {
         case 0: // Top
-            return static_cast<int>(CategoryId_t::__NUM_CATEGORY_ID__);
+            return menuMapByCategory.size();
             break;
         case 1: // Category
             return menuMapByCategory.at(curCategoryId).size();
@@ -124,7 +136,7 @@ bool ConfigMenu::enter(const uint32_t& idx)
                 level++;
                 flag = true;
             }
-	    break;
+            break;
         }
         case 2: { // Item
                 cfgParam.setValue<uint32_t>(curItem->paramID, idx);
@@ -168,6 +180,6 @@ bool ConfigMenu::isSelection() const
 bool ConfigMenu::selIdxMatched(const uint32_t& idx) const
 {
     if (!isSelection()) { return false; }
-    uint32_t sel_idx = cfgParam.getValue<uint32_t>(curItem->paramID);
-    return ((int) sel_idx == idx);
+    const auto& selIdx = cfgParam.getValue<uint32_t>(curItem->paramID);
+    return (idx == selIdx);
 }

@@ -38,6 +38,7 @@ Params& Params::instance()
 
 void Params::printInfo() const
 {
+    printf("=== ConfigParam ===\n");
     for (const auto& [key, item] : paramMap) {
         const auto& format = printFormat.at(item.index());
         std::visit([&format](auto&& param) {

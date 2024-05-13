@@ -40,6 +40,8 @@ typedef enum {
     CFG_SAMPLES_PLAYED,
     CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,
     CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,
+    CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT,
+    CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT,
     CFG_MENU_IDX_DISPLAY_LCD_CONFIG,
     CFG_MENU_IDX_DISPLAY_ROTATION,
     CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,
@@ -89,12 +91,12 @@ class Params
     void loadFromFlash();
     void storeToFlash() const;
     template <typename T>
-    void add(const ParamId_t& id, T* inst) { paramMap[id] = inst; }
+    void add(const ParamId_t& id, T* paramPtr) { paramMap[id] = paramPtr; }
     template <typename T>
     T& getParam(const ParamId_t& id) {
         auto& item = paramMap.at(id);
-        auto& inst = std::get<T*>(item);
-        return *inst;
+        auto& paramPtr = std::get<T*>(item);
+        return *paramPtr;
     }
     using variant_t = std::variant<
         Parameter<bool>*,
@@ -142,7 +144,7 @@ public:
 
     // Parameters       inst                                         id                                          type                                          addr   default
     Parameter<uint32_t> P_CFG_BOOT_COUNT                            {CFG_BOOT_COUNT,                             "CFG_BOOT_COUNT",                             0x000, 10};
-    Parameter<uint32_t> P_CFG_FORMAT_REV                            {CFG_FORMAT_REV,                             "CFG_FORMAT_REV",                             0x004, 20240401};  // update value when updated to reset user flash
+    Parameter<uint32_t> P_CFG_FORMAT_REV                            {CFG_FORMAT_REV,                             "CFG_FORMAT_REV",                             0x004, 20240513};  // update value when updated to reset user flash
     Parameter<uint32_t> P_CFG_SEED                                  {CFG_SEED,                                   "CFG_SEED",                                   0x008, 0};
     Parameter<uint8_t>  P_CFG_VOLUME                                {CFG_VOLUME,                                 "CFG_VOLUME",                                 0x00c, 65};
     Parameter<uint8_t>  P_CFG_STACK_COUNT                           {CFG_STACK_COUNT,                            "CFG_STACK_COUNT",                            0x00d, 0};
@@ -165,14 +167,16 @@ public:
     // type of CFG_MENU_xxx must be uint32_t and default values indidicates index of selection (see ConfigMenu.h)
     Parameter<uint32_t> P_CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF    {CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,     "CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF",     0x080, 0};
     Parameter<uint32_t> P_CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG {CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,  "CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG",  0x084, 1};
-    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_LCD_CONFIG           {CFG_MENU_IDX_DISPLAY_LCD_CONFIG,            "CFG_MENU_IDX_DISPLAY_LCD_CONFIG",            0x088, 0};
-    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_ROTATION             {CFG_MENU_IDX_DISPLAY_ROTATION,              "CFG_MENU_IDX_DISPLAY_ROTATION",              0x08c, 0};
-    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL  {CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,   "CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL",   0x090, 7};
-    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL {CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,  "CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL",  0x094, 12};
-    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW{CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW, "CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW", 0x098, 1};
-    Parameter<uint32_t> P_CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY       {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,        "CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",        0x09c, 2};
-    Parameter<uint32_t> P_CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM         {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,          "CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",          0x0a0, 1};
-    Parameter<uint32_t> P_CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH        {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,         "CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",         0x0a4, 1};
+    Parameter<uint32_t> P_CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT   {CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT,    "CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT",    0x088, 0};
+    Parameter<uint32_t> P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT     {CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT,      "CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT",      0x08c, 1};
+    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_LCD_CONFIG           {CFG_MENU_IDX_DISPLAY_LCD_CONFIG,            "CFG_MENU_IDX_DISPLAY_LCD_CONFIG",            0x090, 0};
+    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_ROTATION             {CFG_MENU_IDX_DISPLAY_ROTATION,              "CFG_MENU_IDX_DISPLAY_ROTATION",              0x094, 0};
+    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL  {CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,   "CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL",   0x098, 7};
+    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL {CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,  "CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL",  0x09c, 12};
+    Parameter<uint32_t> P_CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW{CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW, "CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW", 0x0a0, 1};
+    Parameter<uint32_t> P_CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY       {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,        "CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",        0x0a4, 2};
+    Parameter<uint32_t> P_CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM         {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,          "CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",          0x0a8, 1};
+    Parameter<uint32_t> P_CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH        {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,         "CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",         0x0ac, 1};
 
 private:
     ConfigParamClass() = default;

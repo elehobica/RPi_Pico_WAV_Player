@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstring>
 #include "pico/stdlib.h"
-#include "ui_control.h"
 #include "power_manage.h"
 #include "UserFlash.h"
 #include "ConfigParam.h"
@@ -29,11 +28,13 @@ TagRead tag;
 
 // UIMode class instances
 button_action_t UIMode::btn_act;
+button_unit_t UIMode::btn_unit;
 UIVars* UIMode::vars;
 stack_t* UIMode::dir_stack;
 UIMode::ExitType UIMode::exitType = UIMode::NoError;
 ConfigMenu& UIMode::cfgMenu = ConfigMenu::instance();
 ConfigParam& UIMode::cfgParam = ConfigParam::instance();
+std::array<UIMode*, NUM_UI_MODES> UIMode::ui_mode_ary;
 
 //================================
 // Implementation of UIMode class
@@ -43,6 +44,18 @@ void UIMode::initialize(UIVars* vars)
 {
     UIMode::vars = vars;
     dir_stack = stack_init();
+    ui_mode_ary[InitialMode]  = (UIMode*) new UIInitialMode();
+    ui_mode_ary[ChargeMode]   = (UIMode*) new UIChargeMode();
+    ui_mode_ary[OpeningMode]  = (UIMode*) new UIOpeningMode();
+    ui_mode_ary[FileViewMode] = (UIMode*) new UIFileViewMode();
+    ui_mode_ary[PlayMode]     = (UIMode*) new UIPlayMode();
+    ui_mode_ary[ConfigMode]   = (UIMode*) new UIConfigMode();
+    ui_mode_ary[PowerOffMode] = (UIMode*) new UIPowerOffMode();
+}
+
+UIMode* UIMode::getUIMode(ui_mode_enm_t ui_mode_enm)
+{
+    return ui_mode_ary.at(ui_mode_enm);
 }
 
 UIMode::UIMode(const char* name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(nullptr), ui_mode_enm(ui_mode_enm), idle_count(0)
@@ -93,7 +106,7 @@ UIInitialMode::UIInitialMode() : UIMode("UIInitialMode", InitialMode)
 
 UIMode* UIInitialMode::update()
 {
-    ui_get_btn_evt(&btn_act); // Ignore button event
+    ui_get_btn_evt(btn_act, btn_unit); // Ignore button event
     // Always transfer to ChargeMode or OpeningMode
     if (pm_usb_power_detected() && !pm_is_caused_reboot()) {
         return getUIMode(ChargeMode);
@@ -131,9 +144,9 @@ UIChargeMode::UIChargeMode() : UIMode("UIChargeMode", ChargeMode)
 
 UIMode* UIChargeMode::update()
 {
-    if (ui_get_btn_evt(&btn_act)) {
+    if (ui_get_btn_evt(btn_act, btn_unit)) {
         switch (btn_act) {
-            case ButtonCenterSingle:
+            case button_action_t::CenterSingle:
                 return getUIMode(OpeningMode);
             default:
                 break;
@@ -179,6 +192,7 @@ void UIOpeningMode::restoreFromFlash()
     // Load Configuration parameters from Flash
     userFlash.printInfo();
     cfgParam.printInfo();
+    //cfgMenu.printInfo();
     cfgParam.incBootCount();
 
     // Restore from cfgParam to user parameters
@@ -227,7 +241,7 @@ void UIOpeningMode::restoreFromFlash()
 
 UIMode* UIOpeningMode::update()
 {
-    ui_get_btn_evt(&btn_act); // Ignore button event
+    ui_get_btn_evt(btn_act, btn_unit); // Ignore button event
     if (exitType == FatFsError) {
         return getUIMode(PowerOffMode);
     } else if (idle_count++ > 1 * OneSec) { // Always transfer to FileViewMode after 1 sec when no error
@@ -574,10 +588,11 @@ UIMode* UIFileViewMode::update()
         default:
             break;
     }
-    if (ui_get_btn_evt(&btn_act)) {
+    if (ui_get_btn_evt(btn_act, btn_unit)) {
         vars->do_next_play = None;
+        auto& btn_layout = (btn_unit == button_unit_t::Gpio) ? cfgParam.P_CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT : cfgParam.P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT;
         switch (btn_act) {
-            case ButtonCenterSingle:
+            case button_action_t::CenterSingle:
                 if (file_menu_is_dir(vars->idx_head+vars->idx_column) > 0) { // Target is Directory
                     chdir();
                     listIdxItems();
@@ -587,35 +602,51 @@ UIMode* UIFileViewMode::update()
                     }
                 }
                 break;
-            case ButtonCenterDouble:
+            case button_action_t::CenterDouble:
                 // upper ("..") dirctory
                 vars->idx_head = 0;
                 vars->idx_column = 0;
                 chdir();
                 listIdxItems();
                 break;
-            case ButtonCenterTriple:
+            case button_action_t::CenterTriple:
                 return randomSearch(cfgMenu.get(ConfigMenuId::PLAY_RANDOM_DIR_DEPTH));
                 break;
-            case ButtonCenterLong:
+            case button_action_t::CenterLong:
                 return getUIMode(ConfigMode);
                 break;
-            case ButtonCenterLongLong:
+            case button_action_t::CenterLongLong:
                 break;
-            case ButtonPlusSingle:
-                idxDec();
+            case button_action_t::PlusSingle:
+                if (btn_layout.get() == static_cast<uint32_t>(button_layout_t::Horizontal)) {
+                    idxInc();
+                } else {
+                    idxDec();
+                }
                 listIdxItems();
                 break;
-            case ButtonPlusLong:
-                idxFastDec();
+            case button_action_t::PlusLong:
+                if (btn_layout.get() == static_cast<uint32_t>(button_layout_t::Horizontal)) {
+                    idxFastInc();
+                } else {
+                    idxFastDec();
+                }
                 listIdxItems();
                 break;
-            case ButtonMinusSingle:
-                idxInc();
+            case button_action_t::MinusSingle:
+                if (btn_layout.get() == static_cast<uint32_t>(button_layout_t::Horizontal)) {
+                    idxDec();
+                } else {
+                    idxInc();
+                }
                 listIdxItems();
                 break;
-            case ButtonMinusLong:
-                idxFastInc();
+            case button_action_t::MinusLong:
+                if (btn_layout.get() == static_cast<uint32_t>(button_layout_t::Horizontal)) {
+                    idxFastDec();
+                } else {
+                    idxFastInc();
+                }
                 listIdxItems();
                 break;
             default:
@@ -677,34 +708,34 @@ UIMode* UIPlayMode::update()
 {
     vars->resume_ui_mode = ui_mode_enm;
     PlayAudio* codec = get_audio_codec();
-    if (ui_get_btn_evt(&btn_act)) {
+    if (ui_get_btn_evt(btn_act, btn_unit)) {
         switch (btn_act) {
-            case ButtonCenterSingle:
+            case button_action_t::CenterSingle:
                 codec->pause(!codec->isPaused());
                 break;
-            case ButtonCenterDouble:
+            case button_action_t::CenterDouble:
                 vars->idx_play = 0;
                 codec->stop();
                 vars->do_next_play = None;
                 return getUIMode(FileViewMode);
                 break;
-            case ButtonCenterTriple:
+            case button_action_t::CenterTriple:
                 vars->idx_play = 0;
                 codec->stop();
                 vars->do_next_play = ImmediatePlay;
                 return getUIMode(FileViewMode);
                 break;
-            case ButtonCenterLong:
+            case button_action_t::CenterLong:
                 return getUIMode(ConfigMode);
                 break;
-            case ButtonCenterLongLong:
+            case button_action_t::CenterLongLong:
                 break;
-            case ButtonPlusSingle:
-            case ButtonPlusLong:
+            case button_action_t::PlusSingle:
+            case button_action_t::PlusLong:
                 PlayAudio::volumeUp();
                 break;
-            case ButtonMinusSingle:
-            case ButtonMinusLong:
+            case button_action_t::MinusSingle:
+            case button_action_t::MinusLong:
                 PlayAudio::volumeDown();
                 break;
             default:
@@ -955,37 +986,46 @@ int UIConfigMode::select()
 UIMode* UIConfigMode::update()
 {
     PlayAudio* codec = get_audio_codec();
-    if (ui_get_btn_evt(&btn_act)) {
+    if (ui_get_btn_evt(btn_act, btn_unit)) {
         vars->do_next_play = None;
+        auto& btn_layout = (btn_unit == button_unit_t::Gpio) ? cfgParam.P_CFG_MENU_IDX_GENERAL_GPIO_BUTTON_LAYOUT : cfgParam.P_CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT;
         switch (btn_act) {
-            case ButtonCenterSingle:
+            case button_action_t::CenterSingle:
                 if (select()) {
                     listIdxItems();
                 } else {
                     return prevMode;
                 }
                 break;
-            case ButtonCenterDouble:
+            case button_action_t::CenterDouble:
                 return prevMode;
                 break;
-            case ButtonCenterTriple:
+            case button_action_t::CenterTriple:
                 break;
-            case ButtonCenterLong:
+            case button_action_t::CenterLong:
                 break;
-            case ButtonCenterLongLong:
+            case button_action_t::CenterLongLong:
                 codec->getCurrentPosition(&vars->fpos, &vars->samples_played);
                 codec->stop();
                 lcd.setMsg("Bye");
                 return getUIMode(PowerOffMode);
                 break;
-            case ButtonPlusSingle:
-            case ButtonPlusLong:
-                idxDec();
+            case button_action_t::PlusSingle:
+            case button_action_t::PlusLong:
+                if (btn_layout.get() == static_cast<uint32_t>(button_layout_t::Horizontal)) {
+                    idxInc();
+                } else {
+                    idxDec();
+                }
                 listIdxItems();
                 break;
-            case ButtonMinusSingle:
-            case ButtonMinusLong:
-                idxInc();
+            case button_action_t::MinusSingle:
+            case button_action_t::MinusLong:
+                if (btn_layout.get() == static_cast<uint32_t>(button_layout_t::Horizontal)) {
+                    idxDec();
+                } else {
+                    idxInc();
+                }
                 listIdxItems();
                 break;
             default:
@@ -1055,7 +1095,7 @@ void UIPowerOffMode::storeToFlash()
 
 UIMode* UIPowerOffMode::update()
 {
-    ui_get_btn_evt(&btn_act); // Ignore button event
+    ui_get_btn_evt(btn_act, btn_unit); // Ignore button event
     if ((idle_count > 1 * OneSec && exitType == NoError) || idle_count > 4 * OneSec) {
         pm_set_power_keep(false); // Power Off unless being charged
         if (pm_usb_power_detected()) {

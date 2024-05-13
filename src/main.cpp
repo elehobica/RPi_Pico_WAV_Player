@@ -14,6 +14,7 @@
 
 #include "common.h"
 #include "power_manage.h"
+#include "UIMode.h"
 #include "ui_control.h"
 #include "lcd.h"
 

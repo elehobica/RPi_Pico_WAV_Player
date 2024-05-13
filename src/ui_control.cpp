@@ -6,16 +6,18 @@
 
 #include "ui_control.h"
 
-#include <cstdio>
 #include "pico/stdlib.h"
-#include "stack.h"
-#include "LcdCanvas.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "pico/util/queue.h"
-#include "lcd_extra.h"
-#include "power_manage.h"
 #include "ConfigMenu.h"
+#include "lcd_extra.h"
+#include "LcdCanvas.h"
+#include "power_manage.h"
+#include "stack.h"
+#include "UIMode.h"
+
+#include <cstdio>
 
 // SW PIN setting
 static constexpr uint32_t PIN_SW_PLUS = 22;
@@ -46,17 +48,16 @@ static constexpr int QueueLength = 1;
 
 UIVars vars;
 UIMode* ui_mode = nullptr;
-UIMode* ui_mode_ary[NUM_UI_MODES] = {};
 
 static button_status_t get_sw_status()
 {
     button_status_t ret;
     if (gpio_get(PIN_SW_PLUS) == false) {
-        ret = ButtonPlus;
+        ret = button_status_t::Plus;
     } else if (gpio_get(PIN_SW_MINUS) == false) {
-        ret = ButtonMinus;
+        ret = button_status_t::Minus;
     } else {
-        ret = ButtonOpen;
+        ret = button_status_t::Open;
     }
     return ret;
 }
@@ -73,15 +74,15 @@ static button_status_t adc0_get_hp_button()
     button_status_t ret;
     // 3.3V support
     if (voltage < 100) { // < 100mV  4095*100/3300 (CENTER)
-        ret = ButtonCenter;
+        ret = button_status_t::Center;
     } else if (voltage >= 142 && voltage < 238) { // 142mv ~ 238mV (D: 190mV)
-        ret = ButtonD;
+        ret = button_status_t::D;
     } else if (voltage >= 240 && voltage < 400) { // 240mV ~ 400mV (PLUS: 320mV)
-        ret = ButtonPlus;
+        ret = button_status_t::Plus;
     } else if (voltage >= 435 && voltage < 725) { // 435mV ~ 725mV (MINUS: 580mV)
-        ret = ButtonMinus;
+        ret = button_status_t::Minus;
     } else { // others
-        ret = ButtonOpen;
+        ret = button_status_t::Open;
     }
     return ret;
 }
@@ -92,28 +93,29 @@ static int count_center_clicks()
     int detected_fall = 0;
     int count = 0;
     for (i = 0; i < 4; i++) {
-        if (button_prv[i] != ButtonOpen) {
+        if (button_prv[i] != button_status_t::Open) {
             return 0;
         }
     }
     for (i = 4; i < NUM_BTN_HISTORY; i++) {
-        if (detected_fall == 0 && button_prv[i-1] == ButtonOpen && button_prv[i] == ButtonCenter) {
+        if (detected_fall == 0 && button_prv[i-1] == button_status_t::Open && button_prv[i] == button_status_t::Center) {
             detected_fall = 1;
-        } else if (detected_fall == 1 && button_prv[i-1] == ButtonCenter && button_prv[i] == ButtonOpen) {
+        } else if (detected_fall == 1 && button_prv[i-1] == button_status_t::Center && button_prv[i] == button_status_t::Open) {
             count++;
             detected_fall = 0;
         }
     }
     if (count > 0) {
-        for (i = 0; i < NUM_BTN_HISTORY; i++) button_prv[i] = ButtonOpen;
+        for (i = 0; i < NUM_BTN_HISTORY; i++) button_prv[i] = button_status_t::Open;
     }
     return count;
 }
 
-static void trigger_event(button_action_t button_action)
+static void trigger_event(button_action_t button_action, button_unit_t button_unit)
 {
     element_t element = {
-        .button_action = button_action
+        .button_action = button_action,
+        .button_unit = button_unit,
     };
     if (!queue_try_add(&btn_evt_queue, &element)) {
         //printf("FIFO was full\n");
@@ -126,62 +128,65 @@ static void update_button_action()
     int i;
     int center_clicks;
     button_status_t button;
+    button_unit_t button_unit;
     button_status_t button_hp = adc0_get_hp_button();
-    button_status_t button_sw = get_sw_status();
-    if (button_hp == ButtonCenter || button_sw == ButtonCenter) {
-        button = ButtonCenter;
-    } else if (button_hp == ButtonD || button_sw == ButtonD) {
-        button = ButtonD;
-    } else if (button_hp == ButtonPlus || button_sw == ButtonPlus) {
-        button = ButtonPlus;
-    } else if (button_hp == ButtonMinus || button_sw == ButtonMinus) {
-        button = ButtonMinus;
+    button_status_t button_gpio = get_sw_status();
+    if (button_hp == button_status_t::Center || button_gpio == button_status_t::Center) {
+        button = button_status_t::Center;
+    } else if (button_hp == button_status_t::D || button_gpio == button_status_t::D) {
+        button = button_status_t::D;
+    } else if (button_hp == button_status_t::Plus || button_gpio == button_status_t::Plus) {
+        button = button_status_t::Plus;
+    } else if (button_hp == button_status_t::Minus || button_gpio == button_status_t::Minus) {
+        button = button_status_t::Minus;
     } else {
-        button = ButtonOpen;
+        button = button_status_t::Open;
     }
-    if (button == ButtonOpen) {
+    button_unit = (button == button_gpio) ? button_unit_t::Gpio : button_unit_t::Hp;
+
+    if (button == button_status_t::Open) {
         // Ignore button release after long push
         if (button_repeat_count > LONG_PUSH_COUNT) {
             for (i = 0; i < NUM_BTN_HISTORY; i++) {
-                button_prv[i] = ButtonOpen;
+                button_prv[i] = button_status_t::Open;
             }
-            button = ButtonOpen;
+            button = button_status_t::Open;
         }
         button_repeat_count = 0;
-        if (button_prv[RELEASE_IGNORE_COUNT] == ButtonCenter) { // center release
+        if (button_prv[RELEASE_IGNORE_COUNT] == button_status_t::Center) { // center release
             center_clicks = count_center_clicks(); // must be called once per tick because button_prv[] status has changed
             switch (center_clicks) {
                 case 1:
-                    trigger_event(ButtonCenterSingle);
+                    trigger_event(button_action_t::CenterSingle, button_unit);
                     break;
                 case 2:
-                    trigger_event(ButtonCenterDouble);
+                    trigger_event(button_action_t::CenterDouble, button_unit);
                     break;
                 case 3:
-                    trigger_event(ButtonCenterTriple);
+                    trigger_event(button_action_t::CenterTriple, button_unit);
                     break;
                 default:
                     break;
             }
         }
-    } else if (button_prv[0] == ButtonOpen) { // push
-        if (button == ButtonD || button == ButtonPlus) {
-            trigger_event(ButtonPlusSingle);
-        } else if (button == ButtonMinus) {
-            trigger_event(ButtonMinusSingle);
+    } else if (button_prv[0] == button_status_t::Open) { // push
+        if (button == button_status_t::D || button == button_status_t::Plus) {
+            trigger_event(button_action_t::PlusSingle, button_unit);
+        } else if (button == button_status_t::Minus) {
+            trigger_event(button_action_t::MinusSingle, button_unit);
         }
     } else if (button_repeat_count == LONG_PUSH_COUNT) { // long push
-        if (button == ButtonCenter) {
-            trigger_event(ButtonCenterLong);
+        if (button == button_status_t::Center) {
+            trigger_event(button_action_t::CenterLong, button_unit);
             button_repeat_count++; // only once and step to longer push event
-        } else if (button == ButtonD || button == ButtonPlus) {
-            trigger_event(ButtonPlusLong);
-        } else if (button == ButtonMinus) {
-            trigger_event(ButtonMinusLong);
+        } else if (button == button_status_t::D || button == button_status_t::Plus) {
+            trigger_event(button_action_t::PlusLong, button_unit);
+        } else if (button == button_status_t::Minus) {
+            trigger_event(button_action_t::MinusLong, button_unit);
         }
     } else if (button_repeat_count == LONG_LONG_PUSH_COUNT) { // long long push
-        if (button == ButtonCenter) {
-            trigger_event(ButtonCenterLongLong);
+        if (button == button_status_t::Center) {
+            trigger_event(button_action_t::CenterLongLong, button_unit);
         }
         button_repeat_count++; // only once and step to longer push event
     } else if (button == button_prv[0]) {
@@ -227,13 +232,14 @@ uint32_t ui_set_center_switch_for_wakeup(bool flg)
     return PIN_HP_BUTTON;
 }
 
-bool ui_get_btn_evt(button_action_t* btn_act)
+bool ui_get_btn_evt(button_action_t& btn_act, button_unit_t& btn_unit)
 {
     int count = queue_get_level(&btn_evt_queue);
     if (count) {
         element_t element;
         queue_remove_blocking(&btn_evt_queue, &element);
-        *btn_act = element.button_action;
+        btn_act = element.button_action;
+        btn_unit = element.button_unit;
         return true;
     }
     return false;
@@ -251,11 +257,6 @@ void ui_clear_btn_evt()
         count--;
     }
     */
-}
-
-UIMode* getUIMode(ui_mode_enm_t ui_mode_enm)
-{
-    return ui_mode_ary[ui_mode_enm];
 }
 
 void ui_init(board_type_t board_type)
@@ -278,16 +279,8 @@ void ui_init(board_type_t board_type)
     gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
     gpio_pull_up(PIN_SW_MINUS);
 
-    //UIMode::initialize(&vars, dir_stack);
     UIMode::initialize(&vars);
-    ui_mode_ary[InitialMode]  = (UIMode*) new UIInitialMode();
-    ui_mode_ary[ChargeMode]   = (UIMode*) new UIChargeMode();
-    ui_mode_ary[OpeningMode]  = (UIMode*) new UIOpeningMode();
-    ui_mode_ary[FileViewMode] = (UIMode*) new UIFileViewMode();
-    ui_mode_ary[PlayMode]     = (UIMode*) new UIPlayMode();
-    ui_mode_ary[ConfigMode]   = (UIMode*) new UIConfigMode();
-    ui_mode_ary[PowerOffMode] = (UIMode*) new UIPowerOffMode();
-    ui_mode = getUIMode(InitialMode);
+    ui_mode = UIMode::getUIMode(InitialMode);
     ui_mode->entry(ui_mode);
 }
 
@@ -308,7 +301,7 @@ ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
 {
     //printf("%s\n", ui_mode->getName());
     ui_mode->update();
-    UIMode* ui_mode_next = getUIMode(ui_mode_enm);
+    UIMode* ui_mode_next = UIMode::getUIMode(ui_mode_enm);
     if (ui_mode_next != ui_mode) {
         ui_mode_next->entry(ui_mode);
         ui_mode = ui_mode_next;
