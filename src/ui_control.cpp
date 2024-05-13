@@ -221,7 +221,7 @@ static int timer_init_ui_button()
     return 1;
 }
 
-uint32_t ui_set_center_switch_for_wakeup(bool flg)
+uint32_t ui_set_center_switch_for_wakeup(const bool& flg)
 {
     if (flg) {
         gpio_set_dir(PIN_HP_BUTTON, GPIO_IN);
@@ -259,7 +259,7 @@ void ui_clear_btn_evt()
     */
 }
 
-void ui_init(board_type_t board_type)
+void ui_init(const board_type_t& board_type)
 {
     _board_type = board_type;
     ConfigMenu& cfg = ConfigMenu::instance();
@@ -297,7 +297,7 @@ ui_mode_enm_t ui_update()
     return ui_mode->getUIModeEnm();
 }
 
-ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm)
+ui_mode_enm_t ui_force_update(const ui_mode_enm_t& ui_mode_enm)
 {
     //printf("%s\n", ui_mode->getName());
     ui_mode->update();

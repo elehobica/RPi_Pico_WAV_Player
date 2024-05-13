@@ -49,15 +49,15 @@ class UIMode
 public:
     static constexpr int UpdateCycleMs = 50; // loop cycle (ms) (= LoopCycleMs value in arduino_main.cpp)
     static void initialize(UIVars* vars);
-    static UIMode* getUIMode(ui_mode_enm_t ui_mode_enm);
-    UIMode(const char* name, ui_mode_enm_t ui_mode_enm);
+    static UIMode* getUIMode(const ui_mode_enm_t& ui_mode_enm);
+    UIMode(const char* name, const ui_mode_enm_t& ui_mode_enm);
     virtual UIMode* update() = 0;
     virtual void entry(UIMode* prevMode);
-    virtual void draw() = 0;
+    virtual void draw() const = 0;
     static std::array<UIMode*, NUM_UI_MODES> ui_mode_ary;
-    const char* getName();
-    ui_mode_enm_t getUIModeEnm();
-    uint16_t getIdleCount();
+    const char* getName() const;
+    ui_mode_enm_t getUIModeEnm() const;
+    uint16_t getIdleCount() const;
 protected:
     typedef enum {
         NoError = 0,
@@ -73,11 +73,11 @@ protected:
     static ExitType exitType;
     static ConfigMenu& cfgMenu;
     static ConfigParam& cfgParam;
+    bool isAudioFile(const uint16_t& idx) const;
     const char* name;
-    UIMode* prevMode;
+    UIMode* prevMode = nullptr;
     ui_mode_enm_t ui_mode_enm;
-    uint16_t idle_count;
-    bool isAudioFile(uint16_t idx);
+    uint16_t idle_count = 0;
 };
 
 //===================================
@@ -89,9 +89,9 @@ public:
     UIInitialMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 protected:
-    void loadFromFlash();
+    void loadFromFlash() const;
 };
 
 //===================================
@@ -103,7 +103,7 @@ public:
     UIChargeMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 };
 
 //===================================
@@ -115,9 +115,9 @@ public:
     UIOpeningMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 protected:
-    void restoreFromFlash();
+    void restoreFromFlash() const;
 };
 
 //===================================
@@ -129,20 +129,20 @@ public:
     UIFileViewMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 protected:
     uint16_t* sft_val;
     void listIdxItems();
-    uint16_t getNumAudioFiles();
-    void chdir();
+    uint16_t getNumAudioFiles() const;
+    void chdir() const;
     UIMode* nextPlay();
-    UIMode* sequentialSearch(bool repeatFlg);
-    UIMode* randomSearch(uint16_t depth);
-    void findFirstAudioTrack();
-    void idxInc();
-    void idxDec();
-    void idxFastInc();
-    void idxFastDec();
+    UIMode* sequentialSearch(const bool& repeatFlg);
+    UIMode* randomSearch(const uint16_t& depth);
+    void findFirstAudioTrack() const;
+    void idxInc() const;
+    void idxDec() const;
+    void idxFastInc() const;
+    void idxFastDec() const;
     UIMode* getUIPlayMode();
 };
 
@@ -155,7 +155,7 @@ public:
     UIPlayMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 protected:
     size_t tagImageSize = 0;
     bool loadImageFromDir = true;
@@ -173,15 +173,15 @@ public:
     UIConfigMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 protected:
     stack_t* path_stack;
     uint16_t idx_head;
     uint16_t idx_column;
-    uint16_t getNum();
-    const char* getStr(uint16_t idx);
-    IconIndex_t getIconIndex(uint16_t idx);
-    void listIdxItems();
+    uint16_t getNum() const;
+    const char* getStr(const uint16_t& idx) const;
+    IconIndex_t getIconIndex(const uint16_t& idx) const;
+    void listIdxItems() const;
     void idxInc();
     void idxDec();
     int select();
@@ -196,7 +196,7 @@ public:
     UIPowerOffMode();
     UIMode* update();
     void entry(UIMode* prevMode);
-    void draw();
+    void draw() const;
 protected:
-    void storeToFlash();
+    void storeToFlash() const;
 };

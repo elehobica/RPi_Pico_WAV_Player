@@ -53,12 +53,13 @@ void UIMode::initialize(UIVars* vars)
     ui_mode_ary[PowerOffMode] = (UIMode*) new UIPowerOffMode();
 }
 
-UIMode* UIMode::getUIMode(ui_mode_enm_t ui_mode_enm)
+UIMode* UIMode::getUIMode(const ui_mode_enm_t& ui_mode_enm)
 {
     return ui_mode_ary.at(ui_mode_enm);
 }
 
-UIMode::UIMode(const char* name, ui_mode_enm_t ui_mode_enm) : name(name), prevMode(nullptr), ui_mode_enm(ui_mode_enm), idle_count(0)
+UIMode::UIMode(const char* name, const ui_mode_enm_t& ui_mode_enm)
+    : name(name), ui_mode_enm(ui_mode_enm)
 {
 }
 
@@ -72,7 +73,7 @@ void UIMode::entry(UIMode* prevMode)
     ui_clear_btn_evt();
 }
 
-bool UIMode::isAudioFile(uint16_t idx)
+bool UIMode::isAudioFile(const uint16_t& idx) const
 {
     if (file_menu_match_ext(idx, "wav", 3) ||  file_menu_match_ext(idx, "WAV", 3)) {
         set_audio_codec(PlayAudio::AUDIO_CODEC_WAV);
@@ -82,17 +83,17 @@ bool UIMode::isAudioFile(uint16_t idx)
     return false;
 }
 
-const char* UIMode::getName()
+const char* UIMode::getName() const
 {
     return name;
 }
 
-ui_mode_enm_t UIMode::getUIModeEnm()
+ui_mode_enm_t UIMode::getUIModeEnm() const
 {
     return ui_mode_enm;
 }
 
-uint16_t UIMode::getIdleCount()
+uint16_t UIMode::getIdleCount() const
 {
     return idle_count;
 }
@@ -123,12 +124,12 @@ void UIInitialMode::entry(UIMode* prevMode)
     loadFromFlash();
 }
 
-void UIInitialMode::draw()
+void UIInitialMode::draw() const
 {
     ui_clear_btn_evt();
 }
 
-void UIInitialMode::loadFromFlash()
+void UIInitialMode::loadFromFlash() const
 {
     // Load Configuration parameters from Flash
     cfgParam.initialize();
@@ -174,7 +175,7 @@ void UIChargeMode::entry(UIMode* prevMode)
     pm_set_power_keep(false);
 }
 
-void UIChargeMode::draw()
+void UIChargeMode::draw() const
 {
     lcd.drawPowerOff();
     ui_clear_btn_evt();
@@ -187,7 +188,7 @@ UIOpeningMode::UIOpeningMode() : UIMode("UIOpeningMode", OpeningMode)
 {
 }
 
-void UIOpeningMode::restoreFromFlash()
+void UIOpeningMode::restoreFromFlash() const
 {
     // Load Configuration parameters from Flash
     userFlash.printInfo();
@@ -293,7 +294,7 @@ void UIOpeningMode::entry(UIMode* prevMode)
     pm_set_audio_dac_enable(true); // I2S DAC Mute Off
 }
 
-void UIOpeningMode::draw()
+void UIOpeningMode::draw() const
 {
     lcd.drawOpening();
     pm_backlight_update();
@@ -326,14 +327,14 @@ void UIFileViewMode::listIdxItems()
     }
 }
 
-uint16_t UIFileViewMode::getNumAudioFiles()
+uint16_t UIFileViewMode::getNumAudioFiles() const
 {
     uint16_t num_tracks = 0;
     num_tracks += file_menu_get_ext_num("wav", 3) + file_menu_get_ext_num("WAV", 3);
     return num_tracks;
 }
 
-void UIFileViewMode::chdir()
+void UIFileViewMode::chdir() const
 {
     stack_data_t item;
     if (vars->idx_head+vars->idx_column == 0) { // upper ("..") dirctory
@@ -406,7 +407,7 @@ UIMode* UIFileViewMode::nextPlay()
     return this;
 }
 
-UIMode* UIFileViewMode::sequentialSearch(bool repeatFlg)
+UIMode* UIFileViewMode::sequentialSearch(const bool& repeatFlg)
 {
     int stack_count;
     uint16_t last_dir_idx;
@@ -460,7 +461,7 @@ UIMode* UIFileViewMode::sequentialSearch(bool repeatFlg)
     return getUIPlayMode();
 }
 
-UIMode* UIFileViewMode::randomSearch(uint16_t depth)
+UIMode* UIFileViewMode::randomSearch(const uint16_t& depth)
 {
     int i;
     int stack_count;
@@ -500,7 +501,7 @@ UIMode* UIFileViewMode::randomSearch(uint16_t depth)
     return getUIPlayMode();
 }
 
-void UIFileViewMode::findFirstAudioTrack()
+void UIFileViewMode::findFirstAudioTrack() const
 {
     vars->idx_play = 0;
     while (vars->idx_play < file_menu_get_num()) {
@@ -509,7 +510,7 @@ void UIFileViewMode::findFirstAudioTrack()
     }
 }
 
-void UIFileViewMode::idxInc(void)
+void UIFileViewMode::idxInc() const
 {
     if (vars->idx_head >= file_menu_get_num() - vars->num_list_lines && vars->idx_column == vars->num_list_lines-1) { return; }
     if (vars->idx_head + vars->idx_column + 1 >= file_menu_get_num()) { return; }
@@ -525,7 +526,7 @@ void UIFileViewMode::idxInc(void)
     }
 }
 
-void UIFileViewMode::idxDec(void)
+void UIFileViewMode::idxDec() const
 {
     if (vars->idx_head == 0 && vars->idx_column == 0) { return; }
     if (vars->idx_column == 0) {
@@ -541,7 +542,7 @@ void UIFileViewMode::idxDec(void)
     }
 }
 
-void UIFileViewMode::idxFastInc(void)
+void UIFileViewMode::idxFastInc() const
 {
     if (vars->idx_head >= file_menu_get_num() - vars->num_list_lines && vars->idx_column == vars->num_list_lines-1) { return; }
     if (vars->idx_head + vars->idx_column + 1 >= file_menu_get_num()) { return; }
@@ -555,7 +556,7 @@ void UIFileViewMode::idxFastInc(void)
     }
 }
 
-void UIFileViewMode::idxFastDec(void)
+void UIFileViewMode::idxFastDec() const
 {
     if (vars->idx_head == 0 && vars->idx_column == 0) { return; }
     if (vars->idx_head < vars->num_list_lines) {
@@ -690,7 +691,7 @@ void UIFileViewMode::entry(UIMode* prevMode)
     lcd.switchToListView();
 }
 
-void UIFileViewMode::draw()
+void UIFileViewMode::draw() const
 {
     lcd.drawListView();
     pm_backlight_update();
@@ -877,7 +878,7 @@ void UIPlayMode::entry(UIMode* prevMode)
     lcd.switchToPlay();
 }
 
-void UIPlayMode::draw()
+void UIPlayMode::draw() const
 {
     lcd.drawPlay();
     pm_backlight_update();
@@ -893,18 +894,18 @@ UIConfigMode::UIConfigMode() : UIMode("UIConfigMode", ConfigMode),
     path_stack = stack_init();
 }
 
-uint16_t UIConfigMode::getNum()
+uint16_t UIConfigMode::getNum() const
 {
     return (uint16_t) cfgMenu.getNum() + 1;
 }
 
-const char* UIConfigMode::getStr(uint16_t idx)
+const char* UIConfigMode::getStr(const uint16_t& idx) const
 {
     if (idx == 0) { return "[Back]"; }
     return cfgMenu.getStr((int) idx-1);
 }
 
-IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
+IconIndex_t UIConfigMode::getIconIndex(const uint16_t& idx) const
 {
     IconIndex_t iconIndex = IconIndex_t::UNDEF;
     if (idx == 0) {
@@ -917,7 +918,7 @@ IconIndex_t UIConfigMode::getIconIndex(uint16_t idx)
     return iconIndex;
 }
 
-void UIConfigMode::listIdxItems()
+void UIConfigMode::listIdxItems() const
 {
     for (int i = 0; i < vars->num_list_lines; i++) {
         if (idx_head+i >= getNum()) {
@@ -928,7 +929,7 @@ void UIConfigMode::listIdxItems()
     }
 }
 
-void UIConfigMode::idxInc(void)
+void UIConfigMode::idxInc()
 {
     if (idx_head >= getNum() - vars->num_list_lines && idx_column == vars->num_list_lines-1) { return; }
     if (idx_head + idx_column + 1 >= getNum()) { return; }
@@ -944,7 +945,7 @@ void UIConfigMode::idxInc(void)
     }
 }
 
-void UIConfigMode::idxDec(void)
+void UIConfigMode::idxDec()
 {
     if (idx_head == 0 && idx_column == 0) { return; }
     if (idx_column == 0) {
@@ -1047,7 +1048,7 @@ void UIConfigMode::entry(UIMode* prevMode)
     lcd.switchToListView();
 }
 
-void UIConfigMode::draw()
+void UIConfigMode::draw() const
 {
     lcd.drawListView();
     pm_backlight_update();
@@ -1061,7 +1062,7 @@ UIPowerOffMode::UIPowerOffMode() : UIMode("UIPowerOffMode", PowerOffMode)
 {
 }
 
-void UIPowerOffMode::storeToFlash()
+void UIPowerOffMode::storeToFlash() const
 {
     // Save user parameters to cfgParam
     uint32_t seed = to_ms_since_boot(get_absolute_time());
@@ -1119,7 +1120,7 @@ void UIPowerOffMode::entry(UIMode* prevMode)
     lcd.switchToPowerOff();
 }
 
-void UIPowerOffMode::draw()
+void UIPowerOffMode::draw() const
 {
     lcd.drawPowerOff();
     ui_clear_btn_evt();

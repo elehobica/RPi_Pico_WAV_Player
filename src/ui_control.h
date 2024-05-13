@@ -63,10 +63,10 @@ typedef enum {
 bool ui_get_btn_evt(button_action_t& btn_act, button_unit_t& btn_unit);
 void ui_clear_btn_evt();
 
-void ui_init(board_type_t board_type);
+void ui_init(const board_type_t& board_type);
 ui_mode_enm_t ui_update();
-ui_mode_enm_t ui_force_update(ui_mode_enm_t ui_mode_enm);
+ui_mode_enm_t ui_force_update(const ui_mode_enm_t& ui_mode_enm);
 uint16_t ui_get_idle_count();
-uint32_t ui_set_center_switch_for_wakeup(bool flg);
+uint32_t ui_set_center_switch_for_wakeup(const bool& flg);
 
 board_type_t ui_get_board_type();
