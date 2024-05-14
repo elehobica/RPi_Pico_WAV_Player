@@ -102,7 +102,7 @@ class Params
         Parameter<bool>*,
         Parameter<uint8_t>*, Parameter<uint16_t>*, Parameter<uint32_t>*, Parameter<uint64_t>*,
         Parameter<int8_t>*, Parameter<int16_t>*, Parameter<int32_t>*, Parameter<int64_t>*,
-        Parameter<std::string>*>;
+        Parameter<char*>*>;
     const std::array<std::string, 10> printFormat = {  // this must be matched with variant order due to being referred by index()
         "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // bool
         "0x%04x %s: %" PRIu8 "d (0x%" PRIx8 ")\n",    // uint8_t
@@ -113,7 +113,7 @@ class Params
         "0x%04x %s: %" PRIi16 "d (0x%" PRIx16 ")\n",  // int16_t
         "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // int32_t
         "0x%04x %s: %" PRIi64 "d (0x%" PRIx64 ")\n",  // int64_t
-        "0x%04x %s: %s\n",                            // std::string
+        "0x%04x %s: %s\n",                            // char*
     };
     std::map<const ParamId_t, variant_t> paramMap;
     template<typename> friend class Parameter;  // for all Parameter<> classes
@@ -142,7 +142,7 @@ public:
     template <typename T>
     void setValue(const ParamId_t& id, const T& value) { _setValue<Parameter<T>>(id, value); }
 
-    // Parameter<T>     inst                                         id                                          type                                          addr   default
+    // Parameter<T>     inst                                         id                                          name                                          addr   default
     Parameter<uint32_t> P_CFG_BOOT_COUNT                            {CFG_BOOT_COUNT,                             "CFG_BOOT_COUNT",                             0x000, 10};
     Parameter<uint32_t> P_CFG_FORMAT_REV                            {CFG_FORMAT_REV,                             "CFG_FORMAT_REV",                             0x004, 20240513};  // update value when updated to reset user flash
     Parameter<uint32_t> P_CFG_SEED                                  {CFG_SEED,                                   "CFG_SEED",                                   0x008, 0};

@@ -56,15 +56,15 @@ public:
 
     typedef struct {
         const char* name;
-        int         value;
+        const int   value;
     } ConfigSel_t;
 
     typedef struct {
-        const char*               name;
-        CategoryId_t              category_id;
-        ConfigParamNs::ParamId_t  paramID;
+        const char*                     name;
+        const CategoryId_t              category_id;
+        const ConfigParamNs::ParamId_t  paramID;
         const std::vector<ConfigSel_t>* selection;
-        void                      (*hook_func)();
+        void                            (*hook_func)();
     } Item_t;
 
     static ConfigMenu& instance(); // Singleton
@@ -155,7 +155,7 @@ private:
         {"Vetical", 1},
     };
 
-    const std::map<CategoryId_t, const char*> categoryMap = {
+    const std::map<const CategoryId_t, const char*> categoryMap = {
         {CategoryId_t::GENERAL, "General"},
         {CategoryId_t::DISPLAY, "Display"},
         {CategoryId_t::PLAY,    "Play"},

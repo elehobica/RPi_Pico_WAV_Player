@@ -117,10 +117,10 @@ void ConfigParamClass::initialize()
     // load from flash and get format revision
     uint32_t formatRevExpected = P_CFG_FORMAT_REV.get();
     Params::instance().loadFromFlash();
-    uint32_t formtRev = P_CFG_FORMAT_REV.get();
+    uint32_t formatRev = P_CFG_FORMAT_REV.get();
 
     // Force to reset to default due to format revision changed (parameter/address) to avoid mulfunction
-    if (formatRevExpected != formtRev) {
+    if (formatRevExpected != formatRev) {
         loadDefault();
     }
 }

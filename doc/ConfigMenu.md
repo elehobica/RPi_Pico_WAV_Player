@@ -2,9 +2,9 @@
 
 ## General
 ### Time to Power Off
-* Seconds to power off after last action
+* Time to power off after last action
 ### Time to Leave Config
-* Seconds to leave Config Menu to go back to previous mode
+* Time to leave Config Menu to go back to previous mode
 ### Push Button Layout
 * "Horizontal" to assign Push Plus button to ascend (down) at FileView and Config mode, Push Minus button to descend (up)
 * "Vertial" to assign Push Plus button to descend (up) at FileView and Config mode, Push Minus button to ascend (down)
@@ -21,15 +21,15 @@
 ### Rotation
 * Select 0 degree or 180 degree
 ### Backlight Low Level
-* Low level of backlight applied in "Time to Backlight Low" seconds after last action
+* Low level of backlight applied in "Time to Backlight Low" time after last action
 ### Backlight High Level
-* High level of backlight applied within "Time to Backlight Low" seconds after last action
+* High level of backlight applied within "Time to Backlight Low" time after last action
 ### Time to Backlight Low
-* Seconds to change backlight to Low Level
+* Time to change backlight to Low Level
 
 ## Play
 ### Time to Next Play
-* Seconds to play next folder WAV files after current folder play finished
+* Time to play next folder WAV files after current folder play finished
 ### Next Play Album
 * Choose next play action
   * "Stop" to play none
