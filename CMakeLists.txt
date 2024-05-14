@@ -29,7 +29,6 @@ add_executable(${bin_name}
     src/ImageFitter.cpp
     src/LcdCanvas.cpp
     src/lcd_background.cpp
-    src/stack.c
     src/TagRead.cpp
     src/utf_conv.cpp
     src/UserFlash.cpp

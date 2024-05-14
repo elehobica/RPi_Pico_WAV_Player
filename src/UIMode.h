@@ -11,8 +11,9 @@
 #include "ConfigMenu.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvasIconDef.h"
-#include "stack.h"
 #include "ui_control.h"
+
+#include <stack>
 
 typedef enum {
     None = 0,
@@ -69,7 +70,7 @@ protected:
     static button_action_t btn_act;
     static button_unit_t btn_unit;
     static UIVars* vars;
-    static stack_t* dir_stack;
+    static std::stack<stack_data_t> dir_stack;
     static ExitType exitType;
     static ConfigMenu& cfgMenu;
     static ConfigParam& cfgParam;
@@ -175,7 +176,7 @@ public:
     void entry(UIMode* prevMode);
     void draw() const;
 protected:
-    stack_t* path_stack;
+    std::stack<stack_data_t> path_stack;
     uint16_t idx_head;
     uint16_t idx_column;
     uint16_t getNum() const;

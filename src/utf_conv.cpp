@@ -23,7 +23,7 @@ std::string utf16_to_utf8(std::u16string const& src)
 }
 
 /*
-#include <stdlib.h>
+#include <cstdlib>
 std::string shiftjis_to_utf8(std::string const& src)
 {
     // Shift_JIS to UTF-16

@@ -8,8 +8,6 @@
 
 #include "common.h"
 
-#include <cstdint>
-
 enum class button_status_t : uint32_t {
     Open = 0,
     Center,
@@ -48,17 +46,6 @@ typedef struct element {
     button_action_t button_action;
     button_unit_t button_unit;
 } element_t;
-
-typedef enum {
-    InitialMode = 0,
-    ChargeMode,
-    OpeningMode,
-    FileViewMode,
-    PlayMode,
-    ConfigMode,
-    PowerOffMode,
-    NUM_UI_MODES
-} ui_mode_enm_t;
 
 bool ui_get_btn_evt(button_action_t& btn_act, button_unit_t& btn_unit);
 void ui_clear_btn_evt();

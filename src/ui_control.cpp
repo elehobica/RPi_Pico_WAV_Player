@@ -6,15 +6,14 @@
 
 #include "ui_control.h"
 
-#include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
+#include "pico/stdlib.h"
 #include "pico/util/queue.h"
 #include "ConfigMenu.h"
 #include "lcd_extra.h"
 #include "LcdCanvas.h"
 #include "power_manage.h"
-#include "stack.h"
 #include "UIMode.h"
 
 #include <cstdio>

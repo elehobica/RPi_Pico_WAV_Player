@@ -4,19 +4,20 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#include <stdio.h>
-#include <string.h>
-
 #include "pico/stdlib.h"
 #include "pico/stdio_usb.h"
 #include "hardware/adc.h"
 #include "hardware/gpio.h"
 
 #include "common.h"
+#include "lcd.h"
 #include "power_manage.h"
 #include "UIMode.h"
 #include "ui_control.h"
-#include "lcd.h"
+
+#include <cstdio>
+#include <cstring>
+
 
 const char *VersionStr = "0.9.4";
 

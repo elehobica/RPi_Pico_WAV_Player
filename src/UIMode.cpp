@@ -8,16 +8,17 @@
 
 #include "UIMode.h"
 
-#include <cstdio>
-#include <cstring>
 #include "pico/stdlib.h"
-#include "power_manage.h"
-#include "UserFlash.h"
-#include "ConfigParam.h"
 #include "audio_codec.h"
+#include "ConfigParam.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvas.h"
+#include "power_manage.h"
 #include "TagRead.h"
+#include "UserFlash.h"
+
+#include <cstdio>
+#include <cstring>
 
 // ENABLE_REBOOT_AFTER_WAKEUP:
 // reboot allows stdio_usb (USB CDC) and Serial terminal to be re-activated
@@ -30,7 +31,7 @@ TagRead tag;
 button_action_t UIMode::btn_act;
 button_unit_t UIMode::btn_unit;
 UIVars* UIMode::vars;
-stack_t* UIMode::dir_stack;
+std::stack<stack_data_t> UIMode::dir_stack;
 UIMode::ExitType UIMode::exitType = UIMode::NoError;
 ConfigMenu& UIMode::cfgMenu = ConfigMenu::instance();
 ConfigParam& UIMode::cfgParam = ConfigParam::instance();
@@ -43,7 +44,6 @@ std::array<UIMode*, NUM_UI_MODES> UIMode::ui_mode_ary;
 void UIMode::initialize(UIVars* vars)
 {
     UIMode::vars = vars;
-    dir_stack = stack_init();
     ui_mode_ary[InitialMode]  = (UIMode*) new UIInitialMode();
     ui_mode_ary[ChargeMode]   = (UIMode*) new UIChargeMode();
     ui_mode_ary[OpeningMode]  = (UIMode*) new UIOpeningMode();
@@ -209,7 +209,7 @@ void UIOpeningMode::restoreFromFlash() const
         if (item.head+item.column >= file_menu_get_num()) { err_flg = true; break; } // idx overflow
         file_menu_sort_entry(item.head+item.column, item.head+item.column + 1);
         if (file_menu_is_dir(item.head+item.column) <= 0 || item.head+item.column == 0) { err_flg = true; break; } // Not Directory or Parent Directory
-        stack_push(dir_stack, &item);
+        dir_stack.push(item);
         file_menu_ch_dir(item.head+item.column);
     }
 
@@ -220,8 +220,7 @@ void UIOpeningMode::restoreFromFlash() const
     if (idx_head+idx_column >= file_menu_get_num()) { err_flg = true; } // idx overflow
     if (err_flg) { // Load Error
         printf("dir_stack Load Error. root directory is set\n");
-        stack_delete(dir_stack);
-        dir_stack = stack_init();
+        while (dir_stack.size()) { dir_stack.pop(); }
         file_menu_open_dir("/");
         idx_head = idx_column = 0;
         vars->init_dest_ui_mode = FileViewMode;
@@ -338,27 +337,29 @@ void UIFileViewMode::chdir() const
 {
     stack_data_t item;
     if (vars->idx_head+vars->idx_column == 0) { // upper ("..") dirctory
-        if (stack_get_count(dir_stack) > 0) {
+        if (dir_stack.size() > 0) {
             if (vars->fs_type == FS_EXFAT) { // This is workaround for FatFs known bug for ".." in EXFAT
-                stack_t* temp_stack = stack_init();
-                while (stack_get_count(dir_stack) > 0) {
-                    stack_pop(dir_stack, &item);
-                    //printf("pop %d %d %d\n", stack_get_count(dir_stack), item.head, item.column);
-                    stack_push(temp_stack, &item);
+                std::stack<stack_data_t> temp_stack;
+                while (dir_stack.size() > 0) {
+                    item = dir_stack.top();
+                    dir_stack.pop();
+                    //printf("pop %d %d %d\n", dir_stack.size(), item.head, item.column);
+                    temp_stack.push(item);
                 }
                 file_menu_close_dir();
                 file_menu_open_dir("/"); // Root directory
-                while (stack_get_count(temp_stack) > 1) {
-                    stack_pop(temp_stack, &item);
-                    //printf("pushA %d %d %d\n", stack_get_count(dir_stack), item.head, item.column);
+                while (temp_stack.size() > 1) {
+                    item = temp_stack.top();
+                    temp_stack.pop();
+                    //printf("pushA %d %d %d\n", dir_stack.size(), item.head, item.column);
                     file_menu_sort_entry(item.head+item.column, item.head+item.column+1);
                     file_menu_ch_dir(item.head+item.column);
-                    stack_push(dir_stack, &item);
+                    dir_stack.push(item);
                 }
-                stack_pop(temp_stack, &item);
-                //printf("pushB %d %d %d\n", stack_get_count(dir_stack), item.head, item.column);
-                stack_push(dir_stack, &item);
-                stack_delete(temp_stack);
+                item = temp_stack.top();
+                temp_stack.pop();
+                //printf("pushB %d %d %d\n", dir_stack.size(), item.head, item.column);
+                dir_stack.push(item);
             } else {
                 file_menu_ch_dir(vars->idx_head+vars->idx_column);
             }
@@ -367,15 +368,16 @@ void UIFileViewMode::chdir() const
             file_menu_open_dir("/"); // Root directory
             item.head = 0;
             item.column = 0;
-            stack_push(dir_stack, &item);
+            dir_stack.push(item);
         }
-        stack_pop(dir_stack, &item);
+        item = dir_stack.top();
+        dir_stack.pop();
         vars->idx_head = item.head;
         vars->idx_column = item.column;
     } else { // normal directory
         item.head = vars->idx_head;
         item.column = vars->idx_column;
-        stack_push(dir_stack, &item);
+        dir_stack.push(item);
         file_menu_ch_dir(vars->idx_head+vars->idx_column);
         vars->idx_head = 0;
         vars->idx_column = 0;
@@ -413,7 +415,7 @@ UIMode* UIFileViewMode::sequentialSearch(const bool& repeatFlg)
     uint16_t last_dir_idx;
 
     printf("Sequential Search\n");
-    stack_count = stack_get_count(dir_stack);
+    stack_count = dir_stack.size();
     if (stack_count < 1) { return this; }
     {
         vars->idx_head = 0;
@@ -446,13 +448,13 @@ UIMode* UIFileViewMode::sequentialSearch(const bool& repeatFlg)
             chdir();
         }
         // Check if Next Target Dir has Audio track files
-        if (stack_count == stack_get_count(dir_stack) && getNumAudioFiles() > 0) {
+        if (stack_count == dir_stack.size() && getNumAudioFiles() > 0) {
             findFirstAudioTrack();
             break;
         }
         // Otherwise, chdir to stack_count-depth and retry again
         printf("Retry Sequential Search\n");
-        while (stack_count - 1 != stack_get_count(dir_stack)) {
+        while (stack_count - 1 != dir_stack.size()) {
             vars->idx_head = 0;
             vars->idx_column = 0;
             chdir(); // cd ..;
@@ -467,7 +469,7 @@ UIMode* UIFileViewMode::randomSearch(const uint16_t& depth)
     int stack_count;
 
     printf("Random Search\n");
-    stack_count = stack_get_count(dir_stack);
+    stack_count = dir_stack.size();
     if (stack_count < depth) { return this; }
     for (i = 0; i < depth; i++) {
         vars->idx_head = 0;
@@ -486,13 +488,13 @@ UIMode* UIFileViewMode::randomSearch(const uint16_t& depth)
             chdir();
         }
         // Check if Next Target Dir has Audio track files
-        if (stack_count == stack_get_count(dir_stack) && getNumAudioFiles() > 0) {
+        if (stack_count == dir_stack.size() && getNumAudioFiles() > 0) {
             findFirstAudioTrack();
             break;
         }
         // Otherwise, chdir to stack_count-depth and retry again
         printf("Retry Random Search\n");
-        while (stack_count - depth != stack_get_count(dir_stack)) {
+        while (stack_count - depth != dir_stack.size()) {
             vars->idx_head = 0;
             vars->idx_column = 0;
             chdir(); // cd ..;
@@ -889,9 +891,8 @@ void UIPlayMode::draw() const
 // Implementation of UIConfigMode class
 //=======================================
 UIConfigMode::UIConfigMode() : UIMode("UIConfigMode", ConfigMode),
-    path_stack(nullptr), idx_head(0), idx_column(0)
+    idx_head(0), idx_column(0)
 {
-    path_stack = stack_init();
 }
 
 uint16_t UIConfigMode::getNum() const
@@ -966,7 +967,8 @@ int UIConfigMode::select()
     stack_data_t stack_data;
     if (idx_head + idx_column == 0) {
         if (cfgMenu.leave()) {
-            stack_pop(path_stack, &stack_data);
+            stack_data = path_stack.top();
+            path_stack.pop();
             idx_head = stack_data.head;
             idx_column = stack_data.column;
         } else {
@@ -976,7 +978,7 @@ int UIConfigMode::select()
         if (cfgMenu.enter(idx_head + idx_column - 1)) {
             stack_data.head = idx_head;
             stack_data.column = idx_column;
-            stack_push(path_stack, &stack_data);
+            path_stack.push(stack_data);
             idx_head = 0;
             idx_column = 0;
         }
@@ -1070,11 +1072,12 @@ void UIPowerOffMode::storeToFlash() const
 
     uint8_t volume = PlayAudio::getVolume();
     cfgParam.P_CFG_VOLUME.set(volume);
-    uint8_t stack_count = stack_get_count(dir_stack);
+    uint8_t stack_count = dir_stack.size();
     cfgParam.P_CFG_STACK_COUNT.set(stack_count);
     for (int i = 0; i < stack_count; i++) {
         stack_data_t item;
-        stack_pop(dir_stack, &item);
+        item = dir_stack.top();
+        dir_stack.pop();
         auto& head_param = (i == 4) ? cfgParam.P_CFG_STACK_HEAD4 : (i == 3) ? cfgParam.P_CFG_STACK_HEAD3 : (i == 2) ? cfgParam.P_CFG_STACK_HEAD2 : (i == 1) ? cfgParam.P_CFG_STACK_HEAD1 : cfgParam.P_CFG_STACK_HEAD0;
         auto& column_param = (i == 4) ? cfgParam.P_CFG_STACK_COLUMN4 : (i == 3) ? cfgParam.P_CFG_STACK_COLUMN3 : (i == 2) ? cfgParam.P_CFG_STACK_COLUMN2 : (i == 1) ? cfgParam.P_CFG_STACK_COLUMN1 : cfgParam.P_CFG_STACK_COLUMN0;
         head_param.set(item.head);
