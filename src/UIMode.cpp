@@ -20,6 +20,7 @@
 #include "power_manage.h"
 #include "TagRead.h"
 #include "UserFlash.h"
+#include "tf_card.h"
 
 // ENABLE_REBOOT_AFTER_WAKEUP:
 // reboot allows stdio_usb (USB CDC) and Serial terminal to be re-activated
@@ -258,10 +259,6 @@ void UIOpeningMode::entry(UIMode* prevMode)
     sleep_ms(10);
     pm_enable_button_control(true);
 
-    // Particular microsd card needs interval time when reboot, otherwise fails to mount (Samsung PRO Plus)
-    if (pm_is_caused_reboot()) {
-        sleep_ms(1000);
-    }
     // Mount FAT
     int count = 0;
     FRESULT fr;
@@ -1122,7 +1119,10 @@ void UIPowerOffMode::entry(UIMode* prevMode)
     if (exitType != FatFsError) {
         storeToFlash();
         file_menu_close_dir();
+        file_menu_deinit();
         audio_codec_deinit();
+    } else {
+        pico_fatfs_reboot_spi();
     }
 
     lcd.switchToPowerOff();

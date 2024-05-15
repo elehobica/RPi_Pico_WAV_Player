@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 FRESULT file_menu_init(uint8_t* fs_type);
+FRESULT file_menu_deinit();
 FRESULT file_menu_open_dir(const TCHAR* path);
 FRESULT file_menu_ch_dir(uint16_t order);
 void file_menu_close_dir(void);

@@ -362,10 +362,21 @@ FRESULT file_menu_init(uint8_t* fs_type)
     };
 
     pico_fatfs_set_config(&config);
-    fr = f_mount(&fs, "", 1); // fr: 0: mount successful, 1: mount failed
-    if (fr == FR_OK) {
-        *fs_type = fs.fs_type;
+    for (int i = 0; i < 5; i++) {
+        fr = f_mount(&fs, "", 1); // fr: 0: mount successful, 1: mount failed
+        if (fr == FR_OK) {
+            *fs_type = fs.fs_type;
+            break;
+        }
+        pico_fatfs_reboot_spi();
     }
+    return fr;
+}
+
+FRESULT file_menu_deinit()
+{
+    FRESULT fr = f_unmount("");
+    pico_fatfs_reboot_spi();
     return fr;
 }
 
