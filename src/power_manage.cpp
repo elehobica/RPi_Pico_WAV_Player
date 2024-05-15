@@ -180,12 +180,15 @@ void pm_init(board_type_t board_type)
         gpio_set_dir(PIN_ACTIVE_BATT_LVL, GPIO_IN);
     }
 
-    // DCDC PSM control
-    // 0: PFM mode (best efficiency)
-    // 1: PWM mode (improved ripple)
+    // For Raspberry Pi Pico: DCDC PSM control of RT6150B-33GQW
+    //   0: PFM mode (best efficiency)
+    //   1: PWM mode (improved ripple) <-- select this for less Audio noise
+    // For Waveshare RP2040-LCD-0.96: PS/SYNC control of TPS63000
+    //   0: Power-save mode enable (better efficiency)
+    //   1: Power-save mode disable    <-- select this
     gpio_init(PIN_DCDC_PSM_CTRL);
     gpio_set_dir(PIN_DCDC_PSM_CTRL, GPIO_OUT);
-    gpio_put(PIN_DCDC_PSM_CTRL, 1); // PWM mode for less Audio noise
+    gpio_put(PIN_DCDC_PSM_CTRL, 1);
 
     // BackLight
     ConfigMenu& cfg = ConfigMenu::instance();
