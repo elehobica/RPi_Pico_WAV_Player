@@ -16,6 +16,7 @@ extern "C" {
 
 void pm_backlight_update();
 void pm_init(board_type_t board_type);
+bool pm_get_active_battery_check();
 void pm_set_audio_dac_enable(bool flag);
 void pm_monitor_battery_voltage();
 bool pm_usb_power_detected();

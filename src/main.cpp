@@ -19,11 +19,11 @@
 #include <cstring>
 
 
-const char *VersionStr = "0.9.4";
+static constexpr const char* VersionStr = "0.9.4";
 
 static inline uint32_t _millis(void)
 {
-	return to_ms_since_boot(get_absolute_time());
+    return to_ms_since_boot(get_absolute_time());
 }
 
 int main() {
@@ -42,6 +42,9 @@ int main() {
 
     // Set PLL_USB 96MHz and use it for PIO clock for I2S
     pw_set_pll_usb_96MHz();
+
+    // ADC Initialize
+    adc_init();
 
     // Power Manage Init
     pm_init(board_type);
@@ -63,9 +66,11 @@ int main() {
             printf("Board: unknown\n");
             break;
     }
-
-    // ADC Initialize
-    adc_init();
+    if (pm_get_active_battery_check()) {
+        printf("Active Battery Check\n");
+    } else {
+        printf("Static Battery Check\n");
+    }
 
     // UI initialize
     ui_init(board_type);

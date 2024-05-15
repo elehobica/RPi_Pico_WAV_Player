@@ -8,15 +8,10 @@
 
 #include <cstdint>
 
-typedef enum _board_type_t {
+typedef enum {
     RASPBERRY_PI_PICO = 0,
     WAVESHARE_RP2040_LCD_096
 } board_type_t;
-
-typedef struct {
-    uint16_t head;
-    uint16_t column;
-} stack_data_t;
 
 typedef enum {
     InitialMode = 0,

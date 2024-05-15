@@ -28,7 +28,6 @@
 
 //#include <cstdio>
 
-//#define USE_ACTIVE_BATTERY_CHECK // Additional circuit needed
 //#define NO_BATTERY_VOLTAGE_CHECK
 
 static board_type_t _board_type;
@@ -44,24 +43,31 @@ static constexpr uint32_t PIN_COND_PU_BUTTONS = 21;
 static constexpr uint32_t PIN_POWER_KEEP = 19;
 // Audio DAC Enable Pin
 static constexpr uint32_t PIN_AUDIO_DAC_ENABLE = 27;
-#ifdef USE_ACTIVE_BATTERY_CHECK
 // Battery Check Pin
-static constexpr uint32_t PIN_BATT_CHECK = 8;
+static constexpr uint32_t PIN_ACTIVE_BATT_CHECK = 8;
 // Battery Voltage Pin (GPIO28: ADC2)
-static constexpr uint32_t PIN_BATT_LVL = 28;
-static constexpr uint32_t ADC_PIN_BATT_LVL = 2;
-#else // USE_ACTIVE_BATTERY_CHECK
+static constexpr uint32_t PIN_ACTIVE_BATT_LVL = 28;
+static constexpr uint32_t ADC_PIN_ACTIVE_BATT_LVL = 2;
+// ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm (active)
+static constexpr float COEF_A_ACTIVE_BATT_CHECK = 4.2;
+static constexpr float COEF_B_ACTIVE_BATT_CHECK = -0.02;
 // Battery Voltage Pin (GPIO29: ADC3) (Raspberry Pi Pico built-in circuit)
-static constexpr uint32_t PIN_BATT_LVL = 29;
-static constexpr uint32_t ADC_PIN_BATT_LVL = 3;
-#endif // USE_ACTIVE_BATTERY_CHECK
+static constexpr uint32_t PIN_STATIC_BATT_LVL = 29;
+static constexpr uint32_t ADC_PIN_STATIC_BATT_LVL = 3;
+// ADC3 pin is connected to middle point of voltage divider 200Kohm + 100Kohm (static)
+static constexpr float COEF_A_STATIC_BATT_CHECK = 9.875;
+static constexpr float COEF_B_STATIC_BATT_CHECK = -0.02;
+
+// flag for active battery check
+static bool _use_active_batt_check = false;
 
 // ADC Timer & frequency
 static repeating_timer_t timer;
 const int TIMER_BATTERY_CHECK_HZ = 20;
 
 // Battery monitor interval
-const int BATT_CHECK_INTERVAL_SEC = 5;
+constexpr int BATT_CHECK_INTERVAL_SEC = 5;
+constexpr float LOW_BATT_LVL = 2.9;
 static float _battery_voltage = 4.2;
 
 // for preserving clock configuration
@@ -69,19 +75,31 @@ static uint32_t _scr;
 static uint32_t _sleep_en0;
 static uint32_t _sleep_en1;
 
-static bool timer_callback_battery_check(repeating_timer_t *rt) {
+static bool _timer_callback_battery_check(repeating_timer_t *rt) {
     pm_monitor_battery_voltage();
     return true; // keep repeating
 }
 
-static int timer_init_battery_check()
+static int _timer_init_battery_check()
 {
     // negative timeout means exact delay (rather than delay between callbacks)
-    if (!add_repeating_timer_us(-1000000 / TIMER_BATTERY_CHECK_HZ, timer_callback_battery_check, nullptr, &timer)) {
+    if (!add_repeating_timer_us(-1000000 / TIMER_BATTERY_CHECK_HZ, _timer_callback_battery_check, nullptr, &timer)) {
         //printf("Failed to add timer\n");
         return 0;
     }
     return 1;
+}
+
+static float _get_battery_voltage(bool use_active_batt_check)
+{
+    uint32_t adc_pin_batt_lvl = (use_active_batt_check) ? ADC_PIN_ACTIVE_BATT_LVL : ADC_PIN_STATIC_BATT_LVL;
+    adc_select_input(adc_pin_batt_lvl);
+    uint16_t result = adc_read();
+    // ADC Calibration Coefficients
+    const float coef_a = (use_active_batt_check) ? COEF_A_ACTIVE_BATT_CHECK : COEF_A_STATIC_BATT_CHECK;
+    const float coef_b = (use_active_batt_check) ? COEF_B_ACTIVE_BATT_CHECK : COEF_B_STATIC_BATT_CHECK;
+    float voltage = static_cast<float>(result) * coef_a / 4095 + coef_b;
+    return voltage;
 }
 
 void pm_backlight_update()
@@ -119,15 +137,47 @@ void pm_init(board_type_t board_type)
     gpio_set_dir(PIN_AUDIO_DAC_ENABLE, GPIO_OUT);
     gpio_put(PIN_AUDIO_DAC_ENABLE, 0);
 
-#ifdef USE_ACTIVE_BATTERY_CHECK
-    // Battery Check Enable Pin (Output)
-    gpio_init(PIN_BATT_CHECK);
-    gpio_set_dir(PIN_BATT_CHECK, GPIO_OUT);
-    gpio_put(PIN_BATT_CHECK, 0);
-#endif // USE_ACTIVE_BATTERY_CHECK
+    // Judge whether active battery check circuit is populated or not
+    _use_active_batt_check = false;
+    do {
+        // If active battery check circuit is populated,
+        // battery voltage measured by ADC pin should react depending on Battery Check Enable Pin's level and
+        // the level when enable pin is high should be at least higher than LOW_BATT_LVL.
+        gpio_init(PIN_ACTIVE_BATT_CHECK);
+        gpio_set_dir(PIN_ACTIVE_BATT_CHECK, GPIO_OUT);
+        gpio_disable_pulls(PIN_ACTIVE_BATT_LVL);
+        adc_gpio_init(PIN_ACTIVE_BATT_LVL);
+        adc_select_input(ADC_PIN_ACTIVE_BATT_LVL);
+        // check if the voltage is low enough when enable control pin = low
+        gpio_put(PIN_ACTIVE_BATT_CHECK, 0);
+        sleep_ms(10);
+        float voltage = _get_battery_voltage(true);
+        if (voltage > LOW_BATT_LVL/10.0) { break; }
+        // check if the voltage is high enough when enable control pin = high
+        gpio_put(PIN_ACTIVE_BATT_CHECK, 1);
+        sleep_ms(10);
+        voltage = _get_battery_voltage(true);
+        gpio_put(PIN_ACTIVE_BATT_CHECK, 0);
+        if (voltage < LOW_BATT_LVL) { break; }
+        // active battery check circuit is populated if reached here
+        _use_active_batt_check = true;
+    } while(false);
 
-    // Battery Level Input (ADC)
-    adc_gpio_init(PIN_BATT_LVL);
+    if (_use_active_batt_check) {
+        // Battery Level Input (ADC)
+        adc_gpio_init(PIN_ACTIVE_BATT_LVL);
+        // reset unused pins' configuration
+        gpio_init(PIN_STATIC_BATT_LVL);
+        gpio_set_dir(PIN_STATIC_BATT_LVL, GPIO_IN);
+    } else {
+        // Battery Level Input (ADC)
+        adc_gpio_init(PIN_STATIC_BATT_LVL);
+        // reset unused pins' configuration
+        gpio_init(PIN_ACTIVE_BATT_CHECK);
+        gpio_set_dir(PIN_ACTIVE_BATT_CHECK, GPIO_IN);
+        gpio_init(PIN_ACTIVE_BATT_LVL);
+        gpio_set_dir(PIN_ACTIVE_BATT_LVL, GPIO_IN);
+    }
 
     // DCDC PSM control
     // 0: PFM mode (best efficiency)
@@ -141,7 +191,12 @@ void pm_init(board_type_t board_type)
     OLED_BLK_Set_PWM(cfg.get(ConfigMenuId::DISPLAY_BACKLIGHT_HIGH_LEVEL));
 
     // Battery Check Timer start
-    timer_init_battery_check();
+    _timer_init_battery_check();
+}
+
+bool pm_get_active_battery_check()
+{
+    return _use_active_batt_check;
 }
 
 void pm_set_audio_dac_enable(bool flag)
@@ -152,29 +207,14 @@ void pm_set_audio_dac_enable(bool flag)
 void pm_monitor_battery_voltage()
 {
     static int count = 0;
-#ifdef USE_ACTIVE_BATTERY_CHECK
-    if (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-2) {
+    if (_use_active_batt_check && (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-2)) {
         // Prepare to check battery voltage
-        gpio_put(PIN_BATT_CHECK, 1);
-    } else
-#endif // USE_ACTIVE_BATTERY_CHECK
-    if (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-1) {
-        // ADC Calibration Coefficients
-#ifdef USE_ACTIVE_BATTERY_CHECK
-        // ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm
-        const float coef_a = 4.2;
-        const float coef_b = -0.02;
-#else // USE_ACTIVE_BATTERY_CHECK
-        // ADC3 pin is connected to middle point of voltage divider 200Kohm + 100Kohm
-        const float coef_a = 9.875;
-        const float coef_b = -0.02;
-#endif // USE_ACTIVE_BATTERY_CHECK
-        adc_select_input(ADC_PIN_BATT_LVL);
-        uint16_t result = adc_read();
-#ifdef USE_ACTIVE_BATTERY_CHECK
-        gpio_put(PIN_BATT_CHECK, 0);
-#endif // USE_ACTIVE_BATTERY_CHECK
-        float voltage = result * coef_a / 4095 + coef_b;
+        gpio_put(PIN_ACTIVE_BATT_CHECK, 1);
+    } else if (count % (TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC) == TIMER_BATTERY_CHECK_HZ*BATT_CHECK_INTERVAL_SEC-1) {
+        float voltage = _get_battery_voltage(_use_active_batt_check);
+        if (_use_active_batt_check) {
+            gpio_put(PIN_ACTIVE_BATT_CHECK, 0);
+        }
         if (_board_type == WAVESHARE_RP2040_LCD_096) {
             voltage += 0.33;  // Forward voltage of D2 (MBR230LSFT1G)
         }
@@ -204,7 +244,7 @@ bool pm_get_low_battery()
 #ifdef NO_BATTERY_VOLTAGE_CHECK
     return false;
 #else
-    return (_battery_voltage < 2.9);
+    return (_battery_voltage < LOW_BATT_LVL);
 #endif
 }
 

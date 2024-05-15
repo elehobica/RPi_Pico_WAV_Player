@@ -26,6 +26,11 @@ typedef enum {
     RandomPlay,
 } next_play_type_t;
 
+typedef struct {
+    uint16_t head;
+    uint16_t column;
+} stack_data_t;
+
 struct UIVars
 {
     uint8_t fs_type = FS_FAT32;

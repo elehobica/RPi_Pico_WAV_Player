@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add button layout configurations for natural button assignment in FileView and Config mode when buttons are horizontally placed
 ### Changed
 * Replace transistor with MOS-FET in battery operation circuit (Q2) thanks to conditional pullup
+* Self-check if active battery check circuit is populated, not by USE_ACTIVE_BATTERY_CHECK macro definition
 
 ## [v0.9.4] - 2024-04-09
 ### Added
@@ -29,9 +30,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Fix resume play freeze when card contents have been changed
 
 ## [v0.9.3] - 2024-03-06
-### Fixed
-* Fix build error of "cannot find -lmy_pico_stdio_usb_headers"
-* Delete obsolete CENTER button completely not to disturb other button actions when pullup is not attached. [issue#4](https://github.com/elehobica/RPi_Pico_WAV_Player/issues/4)
 ### Changed
 * Support pico-sdk 1.5.1 (previously 1.4.0)
 * Update FatFs R0.15 (previously R0.14b)
@@ -39,6 +37,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Remove external pullup resistors for MISO, MOSI of microsd SPI
 * Clean up libraries. pico_fatfs and pico_st7735_80x160 are switched to submodules.
 * Change I2C DMA scheme from single buffer to double buffers
+### Fixed
+* Fix build error of "cannot find -lmy_pico_stdio_usb_headers"
+* Delete obsolete CENTER button completely not to disturb other button actions when pullup is not attached. [issue#4](https://github.com/elehobica/RPi_Pico_WAV_Player/issues/4)
 
 ## [v0.9.2] - 2023-11-25
 ### Fixed
