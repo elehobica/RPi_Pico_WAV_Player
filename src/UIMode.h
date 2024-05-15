@@ -8,12 +8,12 @@
 
 #pragma once
 
+#include <stack>
+
 #include "ConfigMenu.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvasIconDef.h"
 #include "ui_control.h"
-
-#include <stack>
 
 typedef enum {
     None = 0,

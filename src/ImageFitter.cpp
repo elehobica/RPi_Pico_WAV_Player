@@ -4,9 +4,11 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#include <cstring>
-#include "JPEGDecoder.h"
 #include "ImageFitter.h"
+
+#include <cstring>
+
+#include "JPEGDecoder.h"
 
 //#define DEBUG_IMAGE_FITTER
 

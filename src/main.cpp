@@ -4,6 +4,9 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
+#include <cstdio>
+#include <cstring>
+
 #include "pico/stdlib.h"
 #include "pico/stdio_usb.h"
 #include "hardware/adc.h"
@@ -14,10 +17,6 @@
 #include "power_manage.h"
 #include "UIMode.h"
 #include "ui_control.h"
-
-#include <cstdio>
-#include <cstring>
-
 
 static constexpr const char* VersionStr = "0.9.4";
 

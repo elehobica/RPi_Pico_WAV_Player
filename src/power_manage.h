@@ -6,13 +6,7 @@
 
 #pragma once
 
-#include <cstdint>
-
 #include "common.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void pm_backlight_update();
 void pm_init(board_type_t board_type);
@@ -28,7 +22,3 @@ void pm_enter_dormant_and_wake();
 void pw_set_pll_usb_96MHz();
 void pm_reboot();
 bool pm_is_caused_reboot();
-
-#ifdef __cplusplus
-}
-#endif

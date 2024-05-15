@@ -11,10 +11,10 @@ https://github.com/Bodmer/JPEGDecoder
 
 */
 
-#ifndef JPEGDECODER_H
-#define JPEGDECODER_H
+#pragma once
 
 #include <cstdio>
+
 #include "ff.h"
 #include "picojpeg.h"
 
@@ -92,5 +92,3 @@ public:
 };
 
 extern JPEGDecoder JpegDec;
-
-#endif // JPEGDECODER_H

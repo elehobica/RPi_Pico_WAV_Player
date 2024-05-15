@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include "ConfigParam.h"
-
 #include <map>
 #include <vector>
+
+#include "ConfigParam.h"
 
 enum class ConfigMenuId: uint32_t {
     GENERAL_TIME_TO_POWER_OFF = 0,

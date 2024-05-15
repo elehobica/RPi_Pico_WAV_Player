@@ -6,11 +6,12 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
+#include "LcdElementBox.h"
+
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cstdarg>
-#include "LcdElementBox.h"
 
 //=================================
 // Implementation of ImageBox class

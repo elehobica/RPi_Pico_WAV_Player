@@ -6,10 +6,12 @@
 
 #include "PlayWav.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <algorithm>
+
 #include "pico/stdlib.h"
+
 #include "ReadBuffer.h"
 
 //#define DEBUG_PLAYWAV

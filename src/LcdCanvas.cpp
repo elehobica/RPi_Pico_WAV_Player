@@ -10,6 +10,7 @@
 
 #include <cstdio>
 #include <cstring>
+
 #include "ImageFitter.h"
 #include "LcdCanvasIcon.h"
 

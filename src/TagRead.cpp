@@ -11,9 +11,10 @@
 
 #include "TagRead.h"
 
-#include "utf_conv.h"
 #include <cstring>
 #include <tuple>
+
+#include "utf_conv.h"
 
 TagRead::TagRead()
 {

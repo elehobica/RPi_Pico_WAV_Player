@@ -8,11 +8,11 @@
 
 #include "ConfigMenu.h"
 
+#include <cinttypes>
+#include <cstdio>
+
 #include "LcdCanvas.h"
 #include "ui_control.h"
-
-#include <cstdio>
-#include <cinttypes>
 
 //=================================
 // Implementation of Hook Functions

@@ -6,20 +6,8 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#ifndef __LCD_BACKGROUND_H_INCLUDED__
-#define __LCD_BACKGROUND_H_INCLUDED__
+#pragma once
 
-#include <stdlib.h>
 #include "lcd_extra.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 u16 LCD_GetBackground(u16 x, u16 y);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // __LCD_BACKGROUND_H_INCLUDED__

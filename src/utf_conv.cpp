@@ -7,8 +7,9 @@
 /------------------------------------------------------*/
 
 #include "utf_conv.h"
-#include <codecvt>
+
 #include <cassert>
+#include <codecvt>
 #include <locale>
 
 extern "C"{

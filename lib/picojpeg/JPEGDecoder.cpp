@@ -36,9 +36,11 @@ Bodmer (20/1/17): Prevent deleting the pImage pointer twice (causes an exception
 Bodmer (24/1/17): Correct greyscale images, update examples
 */
 
-#include <cstring>
-#include "picojpeg.h"
 #include "JPEGDecoder.h"
+
+#include <cstring>
+
+#include "picojpeg.h"
 
 JPEGDecoder JpegDec;
 

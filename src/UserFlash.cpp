@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <cstring>
+
 #include "pico/flash.h"
 
 void _user_flash_program_core(void* ptr)
@@ -45,14 +46,14 @@ void UserFlash::printInfo()
     printf("  UserFlashOfs: 0x%x (%d)\n", UserFlashOfs, UserFlashOfs);
 }
 
-void UserFlash::read(uint32_t flash_ofs, size_t size, void *buf)
+void UserFlash::read(uint32_t flash_ofs, size_t size, void* buf)
 {
     if (flash_ofs + size <=  PagePgrSize) {
         memcpy(buf, &flashContents[flash_ofs], size);
     }
 }
 
-void UserFlash::writeReserve(uint32_t flash_ofs, size_t size, const void *buf)
+void UserFlash::writeReserve(uint32_t flash_ofs, size_t size, const void* buf)
 {
     if (flash_ofs + size <=  PagePgrSize) {
         memcpy(&data[flash_ofs], buf, size);

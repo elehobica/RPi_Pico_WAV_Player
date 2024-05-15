@@ -6,17 +6,18 @@
 
 #include "ui_control.h"
 
+#include <cstdio>
+
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "pico/stdlib.h"
 #include "pico/util/queue.h"
+
 #include "ConfigMenu.h"
 #include "lcd_extra.h"
 #include "LcdCanvas.h"
 #include "power_manage.h"
 #include "UIMode.h"
-
-#include <cstdio>
 
 // SW PIN setting
 static constexpr uint32_t PIN_SW_PLUS = 22;

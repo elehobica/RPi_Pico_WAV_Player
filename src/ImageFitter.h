@@ -4,8 +4,7 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /------------------------------------------------------*/
 
-#ifndef _IMAGEFITTER_H_DEFINED_
-#define _IMAGEFITTER_H_DEFINED_
+#pragma once
 
 #include <cstdint>
 #include <cstdlib>
@@ -39,6 +38,3 @@ public:
     bool loadJpegFile(const char *filename, const uint64_t pos = 0, const size_t size = 0);
     void getSizeAfterFit(uint16_t *img_w, uint16_t *img_h);
 };
-
-#endif // _IMAGEFITTER_H_DEFINED_
-

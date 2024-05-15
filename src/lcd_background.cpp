@@ -6,8 +6,9 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#include "LcdCanvas.h"
 #include "lcd_background.h"
+
+#include "LcdCanvas.h"
 
 u16 LCD_GetBackground(u16 x, u16 y)
 {

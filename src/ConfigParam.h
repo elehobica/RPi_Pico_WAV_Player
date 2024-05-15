@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include "UserFlash.h"
-
 #include <map>
 #include <string>
 #include <cinttypes>  // this must be located at later than <string>
 #include <variant>
+
+#include "UserFlash.h"
+
 
 namespace ConfigParamNs {
 typedef enum {

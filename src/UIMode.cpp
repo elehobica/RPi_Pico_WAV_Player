@@ -8,7 +8,11 @@
 
 #include "UIMode.h"
 
+#include <cstdio>
+#include <cstring>
+
 #include "pico/stdlib.h"
+
 #include "audio_codec.h"
 #include "ConfigParam.h"
 #include "file_menu_FatFs.h"
@@ -16,9 +20,6 @@
 #include "power_manage.h"
 #include "TagRead.h"
 #include "UserFlash.h"
-
-#include <cstdio>
-#include <cstring>
 
 // ENABLE_REBOOT_AFTER_WAKEUP:
 // reboot allows stdio_usb (USB CDC) and Serial terminal to be re-activated

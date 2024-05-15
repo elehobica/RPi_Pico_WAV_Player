@@ -6,10 +6,10 @@
 / refer to https://opensource.org/licenses/BSD-2-Clause
 /-----------------------------------------------------------*/
 
-#ifndef _FILE_MENU_FATFS_H_
-#define _FILE_MENU_FATFS_H_
+#pragma once
 
 #include <stddef.h>
+
 #include "ff.h"
 
 #ifdef __cplusplus
@@ -34,6 +34,4 @@ void file_menu_idle(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
