@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 * Replace transistor with MOS-FET in battery operation circuit (Q2) thanks to conditional pullup
 * Self-check if active battery check circuit is populated, not by USE_ACTIVE_BATTERY_CHECK macro definition
+### Fixed
+* Add workaround for mount fail case of Samsung PRO Plus card when reboot
 
 ## [v0.9.4] - 2024-04-09
 ### Added
