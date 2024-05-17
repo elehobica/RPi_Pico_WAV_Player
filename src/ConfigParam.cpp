@@ -40,10 +40,7 @@ void Params::printInfo() const
 {
     printf("=== ConfigParam ===\n");
     for (const auto& [key, item] : paramMap) {
-        std::visit([](auto&& param) {
-            PrintInfoVisitor visitor;
-            param->accept(visitor);
-        }, item);
+        std::visit(PrintInfoVisitor{}, item);
     }
 }
 
@@ -59,20 +56,14 @@ void Params::loadDefault()
 void Params::loadFromFlash()
 {
     for (auto& [key, item] : paramMap) {
-        std::visit([](auto&& param) {
-            ReadFromFlashVisitor visitor;
-            param->accept(visitor);
-        }, item);
+        std::visit(ReadFromFlashVisitor{}, item);
     }
 }
 
 void Params::storeToFlash() const
 {
     for (const auto& [key, item] : Params::instance().paramMap) {
-        std::visit([](auto&& param) {
-            WriteReserveVisitor visitor;
-            param->accept(visitor);
-        }, item);
+        std::visit(WriteReserveVisitor{}, item);
     }
     UserFlash& userFlash = UserFlash::instance();
     userFlash.program();
@@ -101,7 +92,7 @@ uint32_t ConfigParamClass::getBootCountFromFlash()
 {
     auto& param = P_CFG_BOOT_COUNT;
     ReadFromFlashVisitor visitor;
-    param.accept(visitor);
+    visitor(&param);
     return param.get();
 }
 

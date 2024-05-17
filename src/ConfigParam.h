@@ -68,8 +68,6 @@ private:
     Parameter(const Parameter&) = delete;
     Parameter& operator=(const Parameter&) = delete;  // don't permit copy
     void loadDefault() { value = defaultValue; }
-    template <typename U>
-    void accept(U& visitor) { visitor.visit(*this); }
     const ParamId_t id;
     const char* name;
     const uint32_t flashAddr;
@@ -98,24 +96,24 @@ struct FlashVisitor {
 
 struct ReadFromFlashVisitor : FlashVisitor {
     template <typename T>
-    void visit(T& param) const {
-        userFlash.read(param.flashAddr, param.size, &param.value);
+    void operator()(const T& param) const {
+        userFlash.read(param->flashAddr, param->size, &param->value);
     }
 };
 
 struct WriteReserveVisitor : FlashVisitor {
     template <typename T>
-    void visit(const T& param) const {
-        userFlash.writeReserve(param.flashAddr, param.size, &param.value);
+    void operator()(const T& param) const {
+        userFlash.writeReserve(param->flashAddr, param->size, &param->value);
     }
 };
 
 struct PrintInfoVisitor {
     template <typename T>
-    void visit(T& param) const {
-        const variant_t item = &param;
+    void operator()(T& param) const {
+        const variant_t item = param;
         const auto& format = printFormat.at(item.index());
-        printf(format.c_str(), param.flashAddr, param.name, param.value, param.value);
+        printf(format.c_str(), param->flashAddr, param->name, param->value, param->value);
     }
     const std::array<std::string, 10> printFormat = {  // this must be matched with variant order due to being referred by index()
         "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // bool
