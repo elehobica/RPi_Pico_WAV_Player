@@ -68,8 +68,14 @@ private:
     Parameter(const Parameter&) = delete;
     Parameter& operator=(const Parameter&) = delete;  // don't permit copy
     void loadDefault() { value = defaultValue; }
-    void readFromFlash() { userFlash.read(flashAddr, size, &value); }
-    void writeReserve() const { userFlash.writeReserve(flashAddr, size, &value); }
+    void readFromFlash() {
+        UserFlash& userFlash = UserFlash::instance();
+        userFlash.read(flashAddr, size, &value);
+    }
+    void writeReserve() const {
+        UserFlash& userFlash = UserFlash::instance();
+        userFlash.writeReserve(flashAddr, size, &value);
+    }
     const ParamId_t id;
     const char* name;
     const uint32_t flashAddr;

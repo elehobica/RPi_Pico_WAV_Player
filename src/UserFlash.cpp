@@ -20,16 +20,15 @@ void _user_flash_program_core(void* ptr)
 //=================================
 // Implementation of UserFlash class
 //=================================
-UserFlash UserFlash::_instance; // Singleton
-
 UserFlash& UserFlash::instance()
 {
+    static UserFlash _instance; // Singleton
     return _instance;
 }
 
 UserFlash::UserFlash()
 {
-    memcpy(data, flashContents, sizeof(data));
+    std::copy(flashContents, flashContents + data.size(), data.begin());
 }
 
 UserFlash::~UserFlash()
@@ -46,17 +45,17 @@ void UserFlash::printInfo()
     printf("  UserFlashOfs: 0x%x (%d)\n", UserFlashOfs, UserFlashOfs);
 }
 
-void UserFlash::read(uint32_t flash_ofs, size_t size, void* buf)
+void UserFlash::read(const uint32_t& flash_ofs, const size_t& size, void* buf)
 {
-    if (flash_ofs + size <=  PagePgrSize) {
+    if (flash_ofs + size <= PagePgrSize) {
         memcpy(buf, &flashContents[flash_ofs], size);
     }
 }
 
-void UserFlash::writeReserve(uint32_t flash_ofs, size_t size, const void* buf)
+void UserFlash::writeReserve(const uint32_t& flash_ofs, const size_t& size, const void* buf)
 {
-    if (flash_ofs + size <=  PagePgrSize) {
-        memcpy(&data[flash_ofs], buf, size);
+    if (flash_ofs + size <= PagePgrSize) {
+        memcpy(&data.at(flash_ofs), buf, size);
     }
 }
 
@@ -74,6 +73,6 @@ bool UserFlash::program()
 void UserFlash::_program_core()
 {
     flash_range_erase(UserFlashOfs, EraseSize);
-    flash_range_program(UserFlashOfs, data, FLASH_PAGE_SIZE);
-    memcpy(data, flashContents, sizeof(data));
+    flash_range_program(UserFlashOfs, data.data(), FLASH_PAGE_SIZE);
+    std::copy(flashContents, flashContents + data.size(), data.begin());
 }

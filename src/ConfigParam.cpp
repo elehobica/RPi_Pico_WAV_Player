@@ -72,6 +72,7 @@ void Params::storeToFlash() const
             param->writeReserve();
         }, item);
     }
+    UserFlash& userFlash = UserFlash::instance();
     userFlash.program();
 }
 

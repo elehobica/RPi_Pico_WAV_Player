@@ -79,6 +79,7 @@ protected:
     static ExitType exitType;
     static ConfigMenu& cfgMenu;
     static ConfigParam& cfgParam;
+    static UserFlash& userFlash;
     bool isAudioFile(const uint16_t& idx) const;
     const char* name;
     UIMode* prevMode = nullptr;

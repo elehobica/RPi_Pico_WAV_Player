@@ -37,6 +37,7 @@ std::stack<stack_data_t> UIMode::dir_stack;
 UIMode::ExitType UIMode::exitType = UIMode::NoError;
 ConfigMenu& UIMode::cfgMenu = ConfigMenu::instance();
 ConfigParam& UIMode::cfgParam = ConfigParam::instance();
+UserFlash& UIMode::userFlash = UserFlash::instance();
 std::array<UIMode*, NUM_UI_MODES> UIMode::ui_mode_ary;
 
 //================================
@@ -156,7 +157,7 @@ UIMode* UIChargeMode::update()
         }
         idle_count = 0;
     }
-    if (idle_count >= 2  *OneSec) {
+    if (idle_count >= 2 * OneSec) {
         lcd.setMsg("");
         lcd.clear(true);
         pm_enter_dormant_and_wake();
