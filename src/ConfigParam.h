@@ -68,14 +68,8 @@ private:
     Parameter(const Parameter&) = delete;
     Parameter& operator=(const Parameter&) = delete;  // don't permit copy
     void loadDefault() { value = defaultValue; }
-    void readFromFlash() {
-        UserFlash& userFlash = UserFlash::instance();
-        userFlash.read(flashAddr, size, &value);
-    }
-    void writeReserve() const {
-        UserFlash& userFlash = UserFlash::instance();
-        userFlash.writeReserve(flashAddr, size, &value);
-    }
+    template <typename U>
+    void accept(U& visitor) { visitor.visit(*this); }
     const ParamId_t id;
     const char* name;
     const uint32_t flashAddr;
@@ -84,6 +78,57 @@ private:
     valueType value = defaultValue;
     friend class Params;
     friend class ConfigParamClass;
+    friend class ReadFromFlashVisitor;
+    friend class WriteReserveVisitor;
+    friend class PrintInfoVisitor;
+};
+
+using variant_t = std::variant<
+    Parameter<bool>*,
+    Parameter<uint8_t>*, Parameter<uint16_t>*, Parameter<uint32_t>*, Parameter<uint64_t>*,
+    Parameter<int8_t>*, Parameter<int16_t>*, Parameter<int32_t>*, Parameter<int64_t>*,
+    Parameter<char*>*>;
+
+//=================================
+// Interface of Visitors
+//=================================
+struct FlashVisitor {
+    UserFlash& userFlash = UserFlash::instance();
+};
+
+struct ReadFromFlashVisitor : FlashVisitor {
+    template <typename T>
+    void visit(T& param) const {
+        userFlash.read(param.flashAddr, param.size, &param.value);
+    }
+};
+
+struct WriteReserveVisitor : FlashVisitor {
+    template <typename T>
+    void visit(const T& param) const {
+        userFlash.writeReserve(param.flashAddr, param.size, &param.value);
+    }
+};
+
+struct PrintInfoVisitor {
+    template <typename T>
+    void visit(T& param) const {
+        const variant_t item = &param;
+        const auto& format = printFormat.at(item.index());
+        printf(format.c_str(), param.flashAddr, param.name, param.value, param.value);
+    }
+    const std::array<std::string, 10> printFormat = {  // this must be matched with variant order due to being referred by index()
+        "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // bool
+        "0x%04x %s: %" PRIu8 "d (0x%" PRIx8 ")\n",    // uint8_t
+        "0x%04x %s: %" PRIu16 "d (0x%" PRIx16 ")\n",  // uint16_t
+        "0x%04x %s: %" PRIu32 "d (0x%" PRIx32 ")\n",  // uint32_t
+        "0x%04x %s: %" PRIu64 "d (0x%" PRIx64 ")\n",  // uint64_t
+        "0x%04x %s: %" PRIi8 "d (0x%" PRIx8 ")\n",    // int8_t
+        "0x%04x %s: %" PRIi16 "d (0x%" PRIx16 ")\n",  // int16_t
+        "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // int32_t
+        "0x%04x %s: %" PRIi64 "d (0x%" PRIx64 ")\n",  // int64_t
+        "0x%04x %s: %s\n",                            // char*
+    };
 };
 
 //=================================
@@ -105,23 +150,6 @@ class Params
         auto& paramPtr = std::get<T*>(item);
         return *paramPtr;
     }
-    using variant_t = std::variant<
-        Parameter<bool>*,
-        Parameter<uint8_t>*, Parameter<uint16_t>*, Parameter<uint32_t>*, Parameter<uint64_t>*,
-        Parameter<int8_t>*, Parameter<int16_t>*, Parameter<int32_t>*, Parameter<int64_t>*,
-        Parameter<char*>*>;
-    const std::array<std::string, 10> printFormat = {  // this must be matched with variant order due to being referred by index()
-        "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // bool
-        "0x%04x %s: %" PRIu8 "d (0x%" PRIx8 ")\n",    // uint8_t
-        "0x%04x %s: %" PRIu16 "d (0x%" PRIx16 ")\n",  // uint16_t
-        "0x%04x %s: %" PRIu32 "d (0x%" PRIx32 ")\n",  // uint32_t
-        "0x%04x %s: %" PRIu64 "d (0x%" PRIx64 ")\n",  // uint64_t
-        "0x%04x %s: %" PRIi8 "d (0x%" PRIx8 ")\n",    // int8_t
-        "0x%04x %s: %" PRIi16 "d (0x%" PRIx16 ")\n",  // int16_t
-        "0x%04x %s: %" PRIi32 "d (0x%" PRIx32 ")\n",  // int32_t
-        "0x%04x %s: %" PRIi64 "d (0x%" PRIx64 ")\n",  // int64_t
-        "0x%04x %s: %s\n",                            // char*
-    };
     std::map<const ParamId_t, variant_t> paramMap;
     template<typename> friend class Parameter;  // for all Parameter<> classes
     friend class ConfigParamClass;
