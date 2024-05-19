@@ -141,11 +141,11 @@ void LcdCanvas::configureLcd(board_type_t board_type, uint cfg_id)
 LcdCanvas& LcdCanvas::instance()
 {
     // since LcdCanvas refers to LCD_H(), LCD_V() in its initialization, the instance must be generated dynamically after LCD initialization
-    static LcdCanvas* _instance = nullptr; // Singleton
-    if (_instance == nullptr) {
-        _instance = new LcdCanvas();
+    static LcdCanvas* instance = nullptr; // Singleton
+    if (instance == nullptr) {
+        instance = new LcdCanvas();
     }
-    return *_instance;
+    return *instance;
 }
 
 void LcdCanvas::switchToOpening()

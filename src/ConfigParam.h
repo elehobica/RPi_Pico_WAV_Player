@@ -97,14 +97,14 @@ struct FlashVisitor {
 struct ReadFromFlashVisitor : FlashVisitor {
     template <typename T>
     void operator()(const T& param) const {
-        userFlash.read(param->flashAddr, param->size, &param->value);
+        userFlash.read(param->flashAddr, param->size, param->value);
     }
 };
 
 struct WriteReserveVisitor : FlashVisitor {
     template <typename T>
     void operator()(const T& param) const {
-        userFlash.writeReserve(param->flashAddr, param->size, &param->value);
+        userFlash.writeReserve(param->flashAddr, param->size, param->value);
     }
 };
 

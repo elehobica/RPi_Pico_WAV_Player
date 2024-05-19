@@ -39,14 +39,11 @@ protected:
 //=================================
 // Definition of LcdCanvas Class
 //=================================
-// reference to Singleton instance
-#define lcd LcdCanvas::instance()
-
 class LcdCanvas
 {
 public:
     static void configureLcd(board_type_t board_type, uint cfg_id);
-    static LcdCanvas& instance(); // Singleton
+    static LcdCanvas& instance();  // Singleton, however dynamic generation
     void clear(bool bgOpaque = false);
     void setRotation(uint8_t rot);
     void setImageJpeg(const char* filename, const uint64_t pos = 0, const size_t size = 0);

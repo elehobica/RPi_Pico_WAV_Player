@@ -22,8 +22,8 @@ void _user_flash_program_core(void* ptr)
 //=================================
 UserFlash& UserFlash::instance()
 {
-    static UserFlash _instance; // Singleton
-    return _instance;
+    static UserFlash instance; // Singleton
+    return instance;
 }
 
 UserFlash::UserFlash()
@@ -43,20 +43,6 @@ void UserFlash::printInfo()
     printf("  EraseSize: 0x%x (%d)\n", EraseSize, EraseSize);
     printf("  PagePgrSize: 0x%x (%d)\n", PagePgrSize, PagePgrSize);
     printf("  UserFlashOfs: 0x%x (%d)\n", UserFlashOfs, UserFlashOfs);
-}
-
-void UserFlash::read(const uint32_t& flash_ofs, const size_t& size, void* buf)
-{
-    if (flash_ofs + size <= PagePgrSize) {
-        memcpy(buf, &flashContents[flash_ofs], size);
-    }
-}
-
-void UserFlash::writeReserve(const uint32_t& flash_ofs, const size_t& size, const void* buf)
-{
-    if (flash_ofs + size <= PagePgrSize) {
-        memcpy(&data.at(flash_ofs), buf, size);
-    }
 }
 
 bool UserFlash::program()

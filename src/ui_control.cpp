@@ -264,6 +264,7 @@ void ui_init(const board_type_t& board_type)
     _board_type = board_type;
     ConfigMenu& cfg = ConfigMenu::instance();
     LcdCanvas::configureLcd(_board_type, cfg.get(ConfigMenuId::DISPLAY_LCD_CONFIG));
+    LcdCanvas& lcd = LcdCanvas::instance();  // dynamic instance generation after configureLcd() is needed
     lcd.setRotation(cfg.get(ConfigMenuId::DISPLAY_ROTATION));
     vars.num_list_lines = LCD_H()/16;
 

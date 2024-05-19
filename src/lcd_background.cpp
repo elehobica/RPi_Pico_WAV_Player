@@ -12,6 +12,7 @@
 
 u16 LCD_GetBackground(u16 x, u16 y)
 {
+    LcdCanvas& lcd = LcdCanvas::instance();
     uint16_t pix =  lcd.getTiledImage(x, y);
     pix = ((pix & 0xff00) >> 8) | ((pix & 0x00ff) << 8);
     uint16_t r = ((pix & 0xf800) >> 2) & 0xf800;

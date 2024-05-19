@@ -11,9 +11,12 @@
 #include <stack>
 
 #include "ConfigMenu.h"
+#include "ConfigParam.h"
 #include "file_menu_FatFs.h"
+#include "LcdCanvas.h"
 #include "LcdCanvasIconDef.h"
 #include "ui_control.h"
+#include "UserFlash.h"
 
 typedef enum {
     None = 0,
@@ -79,6 +82,7 @@ protected:
     static ExitType exitType;
     static ConfigMenu& cfgMenu;
     static ConfigParam& cfgParam;
+    static LcdCanvas* lcd;
     static UserFlash& userFlash;
     bool isAudioFile(const uint16_t& idx) const;
     const char* name;

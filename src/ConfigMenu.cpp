@@ -20,6 +20,7 @@
 void hookDispLcdConfig()
 {
     ConfigMenu& cfgMenu = ConfigMenu::instance();
+    LcdCanvas& lcd = LcdCanvas::instance();
     LcdCanvas::configureLcd(ui_get_board_type(), cfgMenu.get(ConfigMenuId::DISPLAY_LCD_CONFIG));
     lcd.setRotation(cfgMenu.get(ConfigMenuId::DISPLAY_ROTATION));
     lcd.switchToListView();
@@ -28,6 +29,7 @@ void hookDispLcdConfig()
 void hookDispRotation()
 {
     ConfigMenu& cfgMenu = ConfigMenu::instance();
+    LcdCanvas& lcd = LcdCanvas::instance();
     lcd.setRotation(cfgMenu.get(ConfigMenuId::DISPLAY_ROTATION));
     lcd.switchToListView();
 }
@@ -38,8 +40,8 @@ void hookDispRotation()
 
 ConfigMenu& ConfigMenu::instance()
 {
-    static ConfigMenu _instance; // Singleton
-    return _instance;
+    static ConfigMenu instance; // Singleton
+    return instance;
 }
 
 ConfigMenu::ConfigMenu()

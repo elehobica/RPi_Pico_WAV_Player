@@ -17,8 +17,8 @@
 //=====================================
 ImageFitter& ImageFitter::instance()
 {
-    static ImageFitter _instance; // Singleton
-    return _instance;
+    static ImageFitter instance; // Singleton
+    return instance;
 }
 
 ImageFitter::ImageFitter()

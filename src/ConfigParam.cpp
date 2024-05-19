@@ -32,8 +32,8 @@ Parameter<T>::Parameter(const ParamId_t& id, const char* name, const uint32_t& f
 //=================================
 Params& Params::instance()
 {
-    static Params _instance; // Singleton
-    return _instance;
+    static Params instance; // Singleton
+    return instance;
 }
 
 void Params::printInfo() const
@@ -74,8 +74,8 @@ void Params::storeToFlash() const
 //=================================
 ConfigParamClass& ConfigParamClass::instance()
 {
-    static ConfigParamClass _instance; // Singleton
-    return _instance;
+    static ConfigParamClass instance; // Singleton
+    return instance;
 }
 
 void ConfigParamClass::printInfo() const
