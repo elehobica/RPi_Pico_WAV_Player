@@ -23,17 +23,17 @@ add_subdirectory(lib/PlayAudio)
 set(bin_name ${PROJECT_NAME})
 add_executable(${bin_name}
     src/main.cpp
+    src/ConfigMenu.cpp
+    src/FlashParam.cpp
+    src/ImageFitter.cpp
+    src/lcd_background.cpp
+    src/LcdCanvas.cpp
     src/power_manage.cpp
+    src/TagRead.cpp
     src/ui_control.cpp
     src/UIMode.cpp
-    src/ImageFitter.cpp
-    src/LcdCanvas.cpp
-    src/lcd_background.cpp
-    src/TagRead.cpp
-    src/utf_conv.cpp
     src/UserFlash.cpp
-    src/ConfigMenu.cpp
-    src/ConfigParam.cpp
+    src/utf_conv.cpp
 )
 
 target_link_libraries(${bin_name} 
