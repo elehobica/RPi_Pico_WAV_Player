@@ -10,12 +10,10 @@
 
 #include "hardware/flash.h"
 
+namespace FlashParamNs {
 //=================================
 // Interface of UserFlash class
 //=================================
-
-//#define userFlash UserFlash::instance()
-
 class UserFlash
 {
 public:
@@ -44,14 +42,15 @@ protected:
     static constexpr size_t EraseSize = ((UserReqSize + (FLASH_SECTOR_SIZE - 1)) / FLASH_SECTOR_SIZE) * FLASH_SECTOR_SIZE;
     static constexpr size_t PagePgrSize = ((UserReqSize + (FLASH_PAGE_SIZE - 1)) / FLASH_PAGE_SIZE) * FLASH_PAGE_SIZE;
     static constexpr uint32_t UserFlashOfs = FlashSize - EraseSize;
-    const uint8_t* flashContents = reinterpret_cast<const uint8_t*>(XIP_BASE + UserFlashOfs);
-    std::array<uint8_t, PagePgrSize> data;
-    // Singleton
     UserFlash();
     virtual ~UserFlash();
     UserFlash(const UserFlash&) = delete;
     UserFlash& operator=(const UserFlash&) = delete;
     void _program_core();
+    const uint8_t* flashContents = reinterpret_cast<const uint8_t*>(XIP_BASE + UserFlashOfs);
+    std::array<uint8_t, PagePgrSize> data;
 
     friend void _user_flash_program_core(void*);
+    friend class FlashParam;
 };
+}

@@ -47,32 +47,14 @@ typedef enum {
     CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,
 } ParamId_t;
 
-struct ConfigParam : ConfigParamBase {
-    static ConfigParam& instance() {  // Singleton
-        static ConfigParam instance;
-        return instance;
-    }
-    uint32_t getBootCountFromFlash() {
-        auto& param = P_CFG_BOOT_COUNT;
-        ReadFromFlashVisitor visitor;
-        visitor(&param);
-        return param.get();
-    }
-    void incBootCount() {
-        auto& param = P_CFG_BOOT_COUNT;
-        param.set(param.get() + 1);
-    }
-    void initialize() {
-        loadDefault();
-        // don't load from Flash if flash is blank
-        if (getBootCountFromFlash() == 0xffffffffUL) { return; }
-        // load from flash and get format revision
-        uint32_t formatRevExpected = P_CFG_FORMAT_REV.get();
-        loadFromFlash();
-        uint32_t formatRev = P_CFG_FORMAT_REV.get();
-        // Force to reset to default due to format revision changed (parameter/address) to avoid mulfunction
-        if (formatRevExpected != formatRev) { loadDefault(); }
-    }
+//=================================
+// Interface of ConfigParam class
+//=================================
+struct ConfigParam : FlashParam {
+    static ConfigParam& instance();  // Singleton
+    uint32_t getBootCountFromFlash();
+    void incBootCount();
+    void initialize();
 
     // Parameter<T>     inst                                         id                                          name                                          addr   default
     Parameter<uint32_t> P_CFG_BOOT_COUNT                            {CFG_BOOT_COUNT,                             "CFG_BOOT_COUNT",                             0x000, 10};

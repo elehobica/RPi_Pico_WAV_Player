@@ -35,7 +35,6 @@ UIMode::ExitType UIMode::exitType = UIMode::NoError;
 ConfigMenu& UIMode::cfgMenu = ConfigMenu::instance();
 ConfigParam& UIMode::cfgParam = ConfigParam::instance();
 LcdCanvas* UIMode::lcd = nullptr;  // dynamic instance generation after configureLcd() is needed
-UserFlash& UIMode::userFlash = UserFlash::instance();
 std::array<UIMode*, NUM_UI_MODES> UIMode::ui_mode_ary;
 
 //================================
@@ -193,7 +192,6 @@ UIOpeningMode::UIOpeningMode() : UIMode("UIOpeningMode", OpeningMode)
 void UIOpeningMode::restoreFromFlash() const
 {
     // Load Configuration parameters from Flash
-    userFlash.printInfo();
     cfgParam.printInfo();
     //cfgMenu.printInfo();
     cfgParam.incBootCount();

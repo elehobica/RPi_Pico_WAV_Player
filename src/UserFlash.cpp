@@ -11,6 +11,7 @@
 
 #include "pico/flash.h"
 
+namespace FlashParamNs {
 void _user_flash_program_core(void* ptr)
 {
     UserFlash* inst = static_cast<UserFlash*>(ptr);
@@ -61,4 +62,5 @@ void UserFlash::_program_core()
     flash_range_erase(UserFlashOfs, EraseSize);
     flash_range_program(UserFlashOfs, data.data(), FLASH_PAGE_SIZE);
     std::copy(flashContents, flashContents + data.size(), data.begin());
+}
 }

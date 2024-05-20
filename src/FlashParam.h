@@ -38,7 +38,7 @@ private:
     const size_t size;
     valueType value = defaultValue;
     friend class Params;
-    friend class ConfigParamBase;
+    friend class FlashParam;
     friend class ReadFromFlashVisitor;
     friend class WriteReserveVisitor;
     friend class PrintInfoVisitor;
@@ -113,16 +113,16 @@ class Params
     }
     std::map<const uint32_t, variant_t> paramMap;
     template<typename> friend class Parameter;  // for all Parameter<> classes
-    friend class ConfigParamBase;
+    friend class FlashParam;
 };
 
 //=================================
-// Interface of ConfigParamBase class
+// Interface of FlashParam class
 //=================================
-class ConfigParamBase
+class FlashParam
 {
 public:
-    static ConfigParamBase& instance(); // Singleton
+    static FlashParam& instance(); // Singleton
     void printInfo() const;
     void finalize() const;
     /*
@@ -139,10 +139,10 @@ public:
     void setValue(const uint32_t& id, const T& value) { _setValue<Parameter<T>>(id, value); }
 
 protected:
-    ConfigParamBase() = default;
-    ~ConfigParamBase() = default;
-    ConfigParamBase(const ConfigParamBase&) = delete;
-    ConfigParamBase& operator=(const ConfigParamBase&) = delete;
+    FlashParam() = default;
+    ~FlashParam() = default;
+    FlashParam(const FlashParam&) = delete;
+    FlashParam& operator=(const FlashParam&) = delete;
     void loadDefault();
     void loadFromFlash();
     // accessor by uint32_t on template T = Patameter<>

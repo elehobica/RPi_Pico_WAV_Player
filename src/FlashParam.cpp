@@ -90,30 +90,32 @@ void Params::storeToFlash() const
 }
 
 //=================================
-// Implementation of ConfigParamBase class
+// Implementation of FlashParam class
 //=================================
-ConfigParamBase& ConfigParamBase::instance()
+FlashParam& FlashParam::instance()
 {
-    static ConfigParamBase instance; // Singleton
+    static FlashParam instance; // Singleton
     return instance;
 }
 
-void ConfigParamBase::printInfo() const
+void FlashParam::printInfo() const
 {
+    UserFlash& userFlash = UserFlash::instance();
+    userFlash.printInfo();
     Params::instance().printInfo();
 }
 
-void ConfigParamBase::loadDefault()
+void FlashParam::loadDefault()
 {
     Params::instance().loadDefault();
 }
 
-void ConfigParamBase::loadFromFlash()
+void FlashParam::loadFromFlash()
 {
     Params::instance().loadFromFlash();
 }
 
-void ConfigParamBase::finalize() const
+void FlashParam::finalize() const
 {
     Params::instance().storeToFlash();
 }
