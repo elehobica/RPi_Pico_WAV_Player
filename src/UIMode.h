@@ -14,7 +14,6 @@
 #include "ConfigParam.h"
 #include "file_menu_FatFs.h"
 #include "LcdCanvas.h"
-#include "LcdCanvasIconDef.h"
 #include "ui_control.h"
 
 typedef enum {

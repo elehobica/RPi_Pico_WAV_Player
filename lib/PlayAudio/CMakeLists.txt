@@ -2,12 +2,12 @@ if (NOT TARGET PlayAudio)
     add_library(PlayAudio INTERFACE)
 
     target_sources(PlayAudio INTERFACE
-            ${CMAKE_CURRENT_LIST_DIR}/i2s_audio_init.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/audio_codec.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/ReadBuffer.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/PlayAudio.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/PlayNone.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/PlayWav.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/i2s_audio_init.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/audio_codec.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ReadBuffer.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/PlayAudio.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/PlayNone.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/PlayWav.cpp
     )
 
     target_link_libraries(PlayAudio INTERFACE
