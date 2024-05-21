@@ -8,7 +8,6 @@
 
 #include "ConfigParam.h"
 
-namespace FlashParamNs {
 //=================================
 // Implementation of ConfigParam class
 //=================================
@@ -21,7 +20,7 @@ ConfigParam& ConfigParam::instance()  // Singleton
 uint32_t ConfigParam::getBootCountFromFlash()
 {
     auto& param = P_CFG_BOOT_COUNT;
-    ReadFromFlashVisitor visitor;
+    FlashParamNs::ReadFromFlashVisitor visitor;
     visitor(&param);
     return param.get();
 }
@@ -43,5 +42,4 @@ void ConfigParam::initialize()
     uint32_t formatRev = P_CFG_FORMAT_REV.get();
     // Force to reset to default due to format revision changed (parameter/address) to avoid mulfunction
     if (formatRevExpected != formatRev) { loadDefault(); }
-}
 }

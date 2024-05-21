@@ -126,13 +126,13 @@ public:
     void printInfo() const;
     void finalize() const;
     /*
-    // accessor by Parameter<> instance on template T = Parameter<>
+    // accessor by Parameter<> instance on template T = Parameter<>  --> use directly .set(), .get()
     template <typename T>
     decltype(auto) getValue(const T& param) const { return param.get(); }
     template <typename T>
     void setValue(T& param, const typename T::valueType value) { param.set(value); }
     */
-    // accessor by uint32_t on template T = primitive type
+    // accessor by id on template T = primitive type
     template <typename T>
     decltype(auto) getValue(const uint32_t& id) const { return _getValue<Parameter<T>>(id); }
     template <typename T>
