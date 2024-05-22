@@ -38,7 +38,6 @@ add_executable(${bin_name}
 
 target_link_libraries(${bin_name} 
         hardware_adc
-        hardware_exception
         hardware_sleep
         hardware_uart
         pico_stdlib

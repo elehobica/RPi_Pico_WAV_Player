@@ -7,7 +7,9 @@ if (NOT TARGET pico_flash_param)
     )
 
     target_link_libraries(pico_flash_param INTERFACE
+        hardware_exception
         pico_flash
+        pico_stdlib
     )
     target_include_directories(pico_flash_param INTERFACE ${CMAKE_CURRENT_LIST_DIR})
 endif()
