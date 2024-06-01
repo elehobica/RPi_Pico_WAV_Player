@@ -257,6 +257,10 @@ void UIOpeningMode::entry(UIMode* prevMode)
     sleep_ms(10);
     pm_enable_button_control(true);
 
+    // Particular microsd card needs interval time when reboot, otherwise fails to mount (Samsung PRO Plus)
+    if (pm_is_caused_reboot()) {
+        sleep_ms(1000);
+    }
     // Mount FAT
     int count = 0;
     FRESULT fr;
