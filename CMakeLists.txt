@@ -10,48 +10,45 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-add_subdirectory(lib/pico_st7735_80x160)
-add_subdirectory(lib/pico_fatfs)
 add_subdirectory(lib/file_menu)
-add_subdirectory(lib/picojpeg)
 add_subdirectory(lib/LcdElementBox)
-add_subdirectory(lib/pico_audio_i2s_32b/src/pico_audio_32b)
 add_subdirectory(lib/pico_audio_i2s_32b)
+add_subdirectory(lib/pico_audio_i2s_32b/src/pico_audio_32b)
+add_subdirectory(lib/pico_fatfs)
+add_subdirectory(lib/pico_flash_param)
+add_subdirectory(lib/pico_st7735_80x160)
 add_subdirectory(lib/pico_stdio_usb_revised)
+add_subdirectory(lib/picojpeg)
 add_subdirectory(lib/PlayAudio)
 
 set(bin_name ${PROJECT_NAME})
 add_executable(${bin_name}
     src/main.cpp
+    src/ConfigMenu.cpp
+    src/ImageFitter.cpp
+    src/lcd_background.cpp
+    src/LcdCanvas.cpp
     src/power_manage.cpp
+    src/TagRead.cpp
     src/ui_control.cpp
     src/UIMode.cpp
-    src/ImageFitter.cpp
-    src/LcdCanvas.cpp
-    src/lcd_background.cpp
-    src/TagRead.cpp
     src/utf_conv.cpp
-    src/UserFlash.cpp
-    src/ConfigMenu.cpp
-    src/ConfigParam.cpp
 )
 
 target_link_libraries(${bin_name} 
-        hardware_uart
-        hardware_sleep
-        hardware_flash
         hardware_adc
-        hardware_exception
-        hardware_watchdog
+        hardware_sleep
+        hardware_uart
         pico_stdlib
-        pico_flash
-        pico_stdio_uart
-        pico_stdio_usb_revised
-        pico_fatfs
-        pico_st7735_80x160
         file_menu
-        picojpeg
         LcdElementBox
+        pico_audio_32b
+        pico_audio_i2s_32b
+        pico_fatfs
+        pico_flash_param
+        pico_st7735_80x160
+        pico_stdio_usb_revised
+        picojpeg
         PlayAudio
 )
 

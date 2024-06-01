@@ -130,7 +130,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 * Confirmed with cmake-3.27.2-windows-x86_64 and gcc-arm-none-eabi-10.3-2021.10-win32
 * Lanuch "Developer Command Prompt for VS 2022"
 ```
-> cd pico_spdif_recorder
+> cd RPi_Pico_WAV_Player
 > mkdir build && cd build
 > cmake -G "NMake Makefiles" ..
 > nmake
@@ -140,7 +140,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 * Build is confirmed with [rp2040-dev-docker:sdk-1.5.1-1.0.1]( https://hub.docker.com/r/elehobica/rp2040-dev-docker) 
 * Confirmed with cmake-3.22.1 and arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1
 ```
-$ cd pico_spdif_recorder
+> cd RPi_Pico_WAV_Player
 $ mkdir build && cd build
 $ cmake ..
 $ make -j4
@@ -189,7 +189,7 @@ GP26 also needs to be pulled-up by 2.2Kohm from GP21. See schematic for detail.
 * JPEG format: Progressive JPEG not supported
 
 ## Config Menu
-* See [ConfigMenu](doc/ConfigMenu.md) for the dttail of Config Menu items
+* See [ConfigMenu](doc/ConfigMenu.md) for the detail of Config Menu items
 ### LCD Config
 * ST7735S 0.96" 160x80 LCD could require different configuration for its position offset, rotation, mirror and color order. It is hard to distinguish which type of configuration is needed from the module outlook.
 * Suitable configuration out of 3 types(1, 2, 3) can be selected from Display -> LCD Config menu from Config Mode.

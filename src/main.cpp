@@ -18,8 +18,6 @@
 #include "UIMode.h"
 #include "ui_control.h"
 
-static constexpr const char* VersionStr = "0.9.4";
-
 static inline uint32_t _millis(void)
 {
     return to_ms_since_boot(get_absolute_time());
@@ -53,22 +51,22 @@ int main() {
     for (int i = 0; i < 30; i++) {
         sleep_ms(25);
     }
-    printf("Raspberry Pi Pico Player ver. %s\n", VersionStr);
+    printf("\r\n");
     switch (board_type) {
         case RASPBERRY_PI_PICO:
-            printf("Board: Raspberry Pi Pico\n");
+            printf("Board: Raspberry Pi Pico\r\n");
             break;
         case WAVESHARE_RP2040_LCD_096:
-            printf("Board: Waveshare RP2040-LCD-0.96\n");
+            printf("Board: Waveshare RP2040-LCD-0.96\r\n");
             break;
         default:
-            printf("Board: unknown\n");
+            printf("Board: unknown\r\n");
             break;
     }
     if (pm_get_active_battery_check()) {
-        printf("Active Battery Check\n");
+        printf("Active Battery Check\r\n");
     } else {
-        printf("Static Battery Check\n");
+        printf("Static Battery Check\r\n");
     }
 
     // UI initialize
