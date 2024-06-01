@@ -134,6 +134,7 @@ void UIInitialMode::loadFromFlash() const
 {
     // Load Configuration parameters from Flash
     cfgParam.initialize();
+    printf("Raspberry Pi Pico Player ver. %s\r\n", cfgParam.P_CFG_REVISION.get().c_str());
     cfgMenu.scanHookFunc();
 }
 
@@ -194,7 +195,6 @@ void UIOpeningMode::restoreFromFlash() const
     // Load Configuration parameters from Flash
     cfgParam.printInfo();
     //cfgMenu.printInfo();
-    cfgParam.incBootCount();
 
     // Restore from cfgParam to user parameters
     srand(cfgParam.P_CFG_SEED.get());
@@ -219,7 +219,7 @@ void UIOpeningMode::restoreFromFlash() const
     uint16_t idx_column = cfgParam.P_CFG_IDX_COLUMN.get();
     if (idx_head+idx_column >= file_menu_get_num()) { err_flg = true; } // idx overflow
     if (err_flg) { // Load Error
-        printf("dir_stack Load Error. root directory is set\n");
+        printf("dir_stack Load Error. root directory is set\r\n");
         while (dir_stack.size()) { dir_stack.pop(); }
         file_menu_open_dir("/");
         idx_head = idx_column = 0;
@@ -271,7 +271,7 @@ void UIOpeningMode::entry(UIMode* prevMode)
         return;
     }
     const char* fs_type_str[5] = {"NOT_MOUNTED", "FAT12", "FAT16", "FAT32", "EXFAT"};
-    printf("SD Card File System = %s\n", fs_type_str[vars->fs_type]);
+    printf("SD Card File System = %s\r\n", fs_type_str[vars->fs_type]);
 
     // Open root directory
     file_menu_open_dir("/");
@@ -343,7 +343,7 @@ void UIFileViewMode::chdir() const
                 while (dir_stack.size() > 0) {
                     item = dir_stack.top();
                     dir_stack.pop();
-                    //printf("pop %d %d %d\n", dir_stack.size(), item.head, item.column);
+                    //printf("pop %d %d %d\r\n", dir_stack.size(), item.head, item.column);
                     temp_stack.push(item);
                 }
                 file_menu_close_dir();
@@ -351,14 +351,14 @@ void UIFileViewMode::chdir() const
                 while (temp_stack.size() > 1) {
                     item = temp_stack.top();
                     temp_stack.pop();
-                    //printf("pushA %d %d %d\n", dir_stack.size(), item.head, item.column);
+                    //printf("pushA %d %d %d\r\n", dir_stack.size(), item.head, item.column);
                     file_menu_sort_entry(item.head+item.column, item.head+item.column+1);
                     file_menu_ch_dir(item.head+item.column);
                     dir_stack.push(item);
                 }
                 item = temp_stack.top();
                 temp_stack.pop();
-                //printf("pushB %d %d %d\n", dir_stack.size(), item.head, item.column);
+                //printf("pushB %d %d %d\r\n", dir_stack.size(), item.head, item.column);
                 dir_stack.push(item);
             } else {
                 file_menu_ch_dir(vars->idx_head+vars->idx_column);
@@ -414,7 +414,7 @@ UIMode* UIFileViewMode::sequentialSearch(const bool& repeatFlg)
     int stack_count;
     uint16_t last_dir_idx;
 
-    printf("Sequential Search\n");
+    printf("Sequential Search\r\n");
     stack_count = dir_stack.size();
     if (stack_count < 1) { return this; }
     {
@@ -453,7 +453,7 @@ UIMode* UIFileViewMode::sequentialSearch(const bool& repeatFlg)
             break;
         }
         // Otherwise, chdir to stack_count-depth and retry again
-        printf("Retry Sequential Search\n");
+        printf("Retry Sequential Search\r\n");
         while (stack_count - 1 != dir_stack.size()) {
             vars->idx_head = 0;
             vars->idx_column = 0;
@@ -468,7 +468,7 @@ UIMode* UIFileViewMode::randomSearch(const uint16_t& depth)
     int i;
     int stack_count;
 
-    printf("Random Search\n");
+    printf("Random Search\r\n");
     stack_count = dir_stack.size();
     if (stack_count < depth) { return this; }
     for (i = 0; i < depth; i++) {
@@ -493,7 +493,7 @@ UIMode* UIFileViewMode::randomSearch(const uint16_t& depth)
             break;
         }
         // Otherwise, chdir to stack_count-depth and retry again
-        printf("Retry Random Search\n");
+        printf("Retry Random Search\r\n");
         while (stack_count - depth != dir_stack.size()) {
             vars->idx_head = 0;
             vars->idx_column = 0;
@@ -825,7 +825,7 @@ void UIPlayMode::readTag()
         size_t size;
         bool isUnsynced;
         if (tag.getPicturePos(0, mime, ptype, pos, size, isUnsynced)) {
-            //printf("found coverart mime: %d, ptype: %d, pos: %d, size: %d, isUnsynced: %d\n", mime, ptype, (int) pos, size, (int) isUnsynced);
+            //printf("found coverart mime: %d, ptype: %d, pos: %d, size: %d, isUnsynced: %d\r\n", mime, ptype, (int) pos, size, (int) isUnsynced);
             if (!isUnsynced && mime == jpeg && size != tagImageSize) {  // Note: judge by size to check if the image is identical to previous
                 file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
                 lcd->setImageJpeg(str, pos, size);
@@ -858,7 +858,7 @@ void UIPlayMode::play()
     char str[FF_MAX_LFN];
     memset(str, 0, sizeof(str));
     file_menu_get_fname(vars->idx_play, str, sizeof(str) - 1);
-    printf("%s\n", str);
+    printf("%s\r\n", str);
     PlayAudio* codec = get_audio_codec();
     readTag();
     loadImageFromDir = false;

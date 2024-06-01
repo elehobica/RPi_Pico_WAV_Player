@@ -25,7 +25,6 @@ set(bin_name ${PROJECT_NAME})
 add_executable(${bin_name}
     src/main.cpp
     src/ConfigMenu.cpp
-    src/ConfigParam.cpp
     src/ImageFitter.cpp
     src/lcd_background.cpp
     src/LcdCanvas.cpp

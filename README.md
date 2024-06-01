@@ -130,7 +130,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 * Confirmed with cmake-3.27.2-windows-x86_64 and gcc-arm-none-eabi-10.3-2021.10-win32
 * Lanuch "Developer Command Prompt for VS 2022"
 ```
-> cd pico_spdif_recorder
+> cd RPi_Pico_WAV_Player
 > mkdir build && cd build
 > cmake -G "NMake Makefiles" ..
 > nmake
@@ -140,7 +140,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 * Build is confirmed with [rp2040-dev-docker:sdk-1.5.1-1.0.1]( https://hub.docker.com/r/elehobica/rp2040-dev-docker) 
 * Confirmed with cmake-3.22.1 and arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1
 ```
-$ cd pico_spdif_recorder
+> cd RPi_Pico_WAV_Player
 $ mkdir build && cd build
 $ cmake ..
 $ make -j4
