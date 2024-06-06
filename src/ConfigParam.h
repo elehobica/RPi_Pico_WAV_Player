@@ -56,7 +56,7 @@ struct ConfigParam : FlashParamNs::FlashParam {
         return instance;
     }
     // Parameter<T>                      inst                                         id                                          name                                          default  size
-    FlashParamNs::Parameter<std::string> P_CFG_REVISION                              {CFG_REVISION,                               "CFG_REVISION",                               "0.9.4", 8};
+    FlashParamNs::Parameter<std::string> P_CFG_REVISION                              {CFG_REVISION,                               "CFG_REVISION",                               "0.9.5", 8};
     FlashParamNs::Parameter<uint32_t>    P_CFG_SEED                                  {CFG_SEED,                                   "CFG_SEED",                                   0};
     FlashParamNs::Parameter<uint8_t>     P_CFG_VOLUME                                {CFG_VOLUME,                                 "CFG_VOLUME",                                 65};
     FlashParamNs::Parameter<uint8_t>     P_CFG_STACK_COUNT                           {CFG_STACK_COUNT,                            "CFG_STACK_COUNT",                            0};
@@ -89,4 +89,9 @@ struct ConfigParam : FlashParamNs::FlashParam {
     FlashParamNs::Parameter<uint32_t>    P_CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY       {CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,        "CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY",        2};
     FlashParamNs::Parameter<uint32_t>    P_CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM         {CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,          "CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM",          1};
     FlashParamNs::Parameter<uint32_t>    P_CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH        {CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,         "CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH",         1};
+
+    void initialize(bool preserveStoreCount = false) override {
+        FlashParamNs::FlashParam::initialize();
+        P_CFG_REVISION.setDefault();
+    }
 };

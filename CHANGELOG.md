@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [v0.9.5] - 2024-06-06
 ### Added
 * Add support of Waveshare RP2040-LCD-0.96 board
 * Support tag information by ID3v2 tag (RIFF ID3v2) as higher priority than that by LIST chunk
@@ -12,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Add button layout configurations for natural button assignment in FileView and Config mode when buttons are horizontally placed
 ### Changed
 * Replace transistor with MOS-FET in battery operation circuit (Q2) thanks to conditional pullup
-* Self-check if active battery check circuit is populated, not by USE_ACTIVE_BATTERY_CHECK macro definition
+* Self-configure by checking if active battery check circuit is populated, not define USE_ACTIVE_BATTERY_CHECK macro
 * Use submodule for pico_flash_param library
 ### Fixed
 * Add workaround for mount fail case of Samsung PRO Plus card
