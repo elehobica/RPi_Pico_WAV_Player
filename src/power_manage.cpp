@@ -49,8 +49,8 @@ static constexpr uint32_t PIN_ACTIVE_BATT_CHECK = 8;
 // Battery Voltage Pin (GPIO28: ADC2)
 static constexpr uint32_t PIN_ACTIVE_BATT_LVL = 28;
 static constexpr uint32_t ADC_PIN_ACTIVE_BATT_LVL = 2;
-// ADC2 pin is connected to middle point of voltage divider 1.0Kohm + 3.3Kohm (active)
-static constexpr float COEF_A_ACTIVE_BATT_CHECK = 4.2;
+// ADC2 pin is connected to middle point of voltage divider 2.2Kohm + 3.3Kohm (active)
+static constexpr float COEF_A_ACTIVE_BATT_CHECK = 5.48;
 static constexpr float COEF_B_ACTIVE_BATT_CHECK = -0.02;
 // Battery Voltage Pin (GPIO29: ADC3) (Raspberry Pi Pico built-in circuit)
 static constexpr uint32_t PIN_STATIC_BATT_LVL = 29;
@@ -85,7 +85,7 @@ static int _timer_init_battery_check()
 {
     // negative timeout means exact delay (rather than delay between callbacks)
     if (!add_repeating_timer_us(-1000000 / TIMER_BATTERY_CHECK_HZ, _timer_callback_battery_check, nullptr, &timer)) {
-        //printf("Failed to add timer\n");
+        //printf("Failed to add timer\r\n");
         return 0;
     }
     return 1;
@@ -100,6 +100,7 @@ static float _get_battery_voltage(bool use_active_batt_check)
     const float coef_a = (use_active_batt_check) ? COEF_A_ACTIVE_BATT_CHECK : COEF_A_STATIC_BATT_CHECK;
     const float coef_b = (use_active_batt_check) ? COEF_B_ACTIVE_BATT_CHECK : COEF_B_STATIC_BATT_CHECK;
     float voltage = static_cast<float>(result) * coef_a / 4095 + coef_b;
+    //printf("Battery Voltage = %7.4f V (%dd)\r\n", voltage, result);
     return voltage;
 }
 
@@ -222,7 +223,7 @@ void pm_monitor_battery_voltage()
         if (_board_type == WAVESHARE_RP2040_LCD_096) {
             voltage += 0.33;  // Forward voltage of D2 (MBR230LSFT1G)
         }
-        //printf("Battery Voltage = %7.4f (V)\n", voltage);
+        //printf("Battery Voltage = %7.4f V\r\n", voltage);
         _battery_voltage = voltage;
     }
     count++;

@@ -31,8 +31,10 @@ class BatteryIconBox : public IconBox
 public:
     BatteryIconBox(int16_t pos_x, int16_t pos_y, uint16_t fgColor = LCD_WHITE, uint16_t bgColor = LCD_BLACK);
     void draw();
-    void setLevel(uint8_t value);
+    void setLevel(const uint8_t& value);
+    void setCharging();
 protected:
+    bool isCharging;
     uint8_t level;
 };
 
@@ -60,7 +62,7 @@ public:
     void setAlbum(const char* str);
     void setArtist(const char* str);
     //void setYear(const char* str);
-    void setBatteryVoltage(float voltage);
+    void setBatteryVoltage(const float& voltage);
     void switchToOpening();
     void switchToListView();
     void switchToPlay();

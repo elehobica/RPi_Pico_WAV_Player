@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+* Show different color in Battery Icon when charging
+### Fixed
+* Revise active battery check voltage divider to torelate up to 5.5V
 
 ## [v0.9.5] - 2024-06-06
 ### Added

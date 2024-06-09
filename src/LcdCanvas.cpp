@@ -31,18 +31,30 @@ void BatteryIconBox::draw()
     isUpdated = false;
     clear();
     LCD_ShowIcon(pos_x, pos_y, icon, !bgOpaque, fgColor);
-    uint16_t color = (level >= 50) ? 0x0600 : (level >= 20) ? 0xc600 : 0xc000;
-    if (level/10 < 9) {
-        LCD_Fill(pos_x+4, pos_y+4, pos_x+4+8-1, pos_y+4+10-level/10-1-1, bgColor);
+    if (isCharging) {
+        LCD_Fill(pos_x+4, pos_y+13-level/10, pos_x+4+8-1, pos_y+13-level/10+level/10+1-1, 0x07ff);
+    } else {
+        uint16_t color = (level >= 50) ? 0x0600 : (level >= 20) ? 0xc600 : 0xc000;
+        if (level/10 < 9) {
+            LCD_Fill(pos_x+4, pos_y+4, pos_x+4+8-1, pos_y+4+10-level/10-1-1, bgColor);
+        }
+        LCD_Fill(pos_x+4, pos_y+13-level/10, pos_x+4+8-1, pos_y+13-level/10+level/10+1-1, color);
     }
-    LCD_Fill(pos_x+4, pos_y+13-level/10, pos_x+4+8-1, pos_y+13-level/10+level/10+1-1, color);
 }
 
-void BatteryIconBox::setLevel(uint8_t value)
+void BatteryIconBox::setLevel(const uint8_t& value)
 {
-    value = (value <= 100) ? value : 100;
-    if (this->level == value) { return; }
-    this->level = value;
+    if (!isCharging && level == value) { return; }
+    isCharging = false;
+    level = value;
+    update();
+}
+
+void BatteryIconBox::setCharging()
+{
+    if (isCharging) { return; }
+    isCharging = true;
+    level = 100;
     update();
 }
 
@@ -368,9 +380,17 @@ void LcdCanvas::setYear(const char*str)
 }
 */
 
-void LcdCanvas::setBatteryVoltage(float voltage)
+void LcdCanvas::setBatteryVoltage(const float& voltage)
 {
-    const float lvl100 = 4.1;
-    const float lvl0 = 2.9;
-    battery.setLevel(static_cast<uint8_t>(((voltage - lvl0) * 100) / (lvl100 - lvl0)));
+    const float levelCharging = 4.5;
+    const float level100 = 4.1;
+    const float level0 = 2.9;
+    float value = voltage;
+    if (value > levelCharging) {
+        battery.setCharging();
+    } else {
+        if (value < level0) { value = level0; }
+        if (value > level100) { value = level100; }
+        battery.setLevel(static_cast<uint8_t>(((voltage - level0) * 100) / (level100 - level0)));
+    }
 }
