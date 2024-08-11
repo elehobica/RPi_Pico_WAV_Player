@@ -46,6 +46,7 @@ target_link_libraries(${bin_name}
         pico_audio_i2s_32b
         pico_fatfs
         pico_flash_param
+        pico_runtime_init
         pico_st7735_80x160
         pico_stdio_usb_revised
         picojpeg

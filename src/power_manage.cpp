@@ -18,6 +18,7 @@
 #include "hardware/adc.h"
 #include "hardware/sync.h"
 #include "hardware/watchdog.h"
+#include "pico/runtime_init.h"
 #include "pico/stdlib.h"
 #include "pico/sleep.h"
 #include "pico/stdio_uart.h"
@@ -274,7 +275,7 @@ static void _recover_clock_after_sleep()
     scb_hw->scr = _scr;
     clocks_hw->sleep_en0 = _sleep_en0;
     clocks_hw->sleep_en1 = _sleep_en1;
-    clocks_init(); // reset clocks
+    runtime_init_clocks(); // reset clocks
 }
 // === 'recover_from_sleep' part (end) ===================================
 

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 * Show different color in Battery Icon when charging
+### Changed
+* Support pico-sdk 2.0.0
 ### Fixed
 * Revise active battery check voltage divider to torelate up to 5.5V
 
