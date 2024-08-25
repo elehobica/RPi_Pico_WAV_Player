@@ -34,7 +34,7 @@ typedef struct _id32frame {
     char ID[4];
     uint8_t sizebytes[4];
     char flags[2];
-    uint64_t pos; // position in the file
+    size_t pos; // position in the file
     size_t size;
     char* data;
     bool hasFullData;
@@ -45,7 +45,7 @@ typedef struct _id32frame {
 typedef struct _id322frame {
     char ID[3];
     uint8_t sizebytes[3];
-    uint64_t pos; // position in the file
+    size_t pos; // position in the file
     size_t size;
     char* data;
     bool hasFullData;
@@ -77,7 +77,7 @@ typedef struct _MP4_ilst_item {
     char type[4];
     mp4_data_t data_type;
     uint32_t data_size;
-    uint64_t pos; // position in the file
+    size_t pos; // position in the file
     char* data_buf;
     bool hasFullData;
     struct _MP4_ilst_item* next;
@@ -150,7 +150,7 @@ public:
     int getUTF8Artist(char* str, size_t size);
     int getUTF8Year(char* str, size_t size);
     int getPictureCount();
-    int getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
+    int getPicturePos(int idx, mime_t& mime, ptype_t& ptype, size_t& pos, size_t& size, bool& isUnsynced);
 
 private:
     using chunk_map_t = std::map<std::string, riff_chunk_t>;
@@ -173,7 +173,7 @@ private:
     int GetID3IDCount(const char* id3v22, const char* id3v23);
     void ID32Print(id32* id32header);
     void ID32Free(id32* id32header);
-    int getID32Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced);
+    int getID32Picture(int idx, mime_t& mime, ptype_t& ptype, size_t& pos, size_t& size, bool& isUnsynced);
 
     int ID31Detect(char* header, id31** id31header);
     void ID31Print(id31* id31header);
@@ -196,11 +196,11 @@ private:
     MP4_ilst mp4_ilst;
     void clearMP4_ilst();
     int getMP4Box(FIL* fil);
-    int findNextMP4Box(FIL* fil, uint32_t end_pos, char chunk_id[4], uint32_t* pos, uint32_t* size);
+    int findNextMP4Box(FIL* fil, size_t end_pos, char chunk_id[4], size_t* pos, size_t* size);
     int GetMP4BoxUTF8(const char* mp4_type, char* str, size_t size);
     int GetMP4TypeCount(const char* mp4_type);
-    int getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size);
+    int getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, size_t& pos, size_t& size);
 
     template <typename T>
-    T read(FIL& file, const uint64_t pos, const size_t size);
+    T read(FIL& file, const size_t pos, const size_t size);
 };

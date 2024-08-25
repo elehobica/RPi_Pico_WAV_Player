@@ -825,7 +825,7 @@ void UIPlayMode::readTag()
     {  // load image from TAG
         mime_t mime;
         ptype_t ptype;
-        uint64_t pos;
+        size_t pos;
         size_t size;
         bool isUnsynced;
         if (tag.getPicturePos(0, mime, ptype, pos, size, isUnsynced)) {

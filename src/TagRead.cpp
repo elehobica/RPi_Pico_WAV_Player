@@ -350,6 +350,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
             }
             if((frame->ID[0] & 0xff) == 0xff) {
                 printf("Size is wrong 1:(\n");
+                return NULL;
 
                 // fix size
                 /*
@@ -439,6 +440,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
             }
             if((frame->ID[0] & 0xff) == 0xff) {
                 printf("Size is wrong 2:(\n");
+                return NULL;
 
                 // fix size
                 /*
@@ -573,7 +575,7 @@ int TagRead::getPictureCount()
     return GetMP4TypeCount("covr") + GetID3IDCount("PIC", "APIC");
 }
 
-int TagRead::getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced)
+int TagRead::getPicturePos(int idx, mime_t& mime, ptype_t& ptype, size_t& pos, size_t& size, bool& isUnsynced)
 {
     int i = idx;
 
@@ -595,7 +597,7 @@ int TagRead::getPicturePos(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos,
     return 0;
 }
 
-int TagRead::getID32Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size, bool& isUnsynced)
+int TagRead::getID32Picture(int idx, mime_t& mime, ptype_t& ptype, size_t& pos, size_t& size, bool& isUnsynced)
 {
     int count = 0;
     mime = non;
@@ -1059,7 +1061,7 @@ void TagRead::clearMP4_ilst()
     mp4_ilst.last = NULL;
 }
 
-int TagRead::findNextMP4Box(FIL* file, uint32_t end_pos, char type[4], uint32_t* pos, uint32_t* size)
+int TagRead::findNextMP4Box(FIL* file, size_t end_pos, char type[4], size_t* pos, size_t* size)
 {
     uint8_t c[8]; // size(4) + type(4)
     FRESULT fr;
@@ -1070,6 +1072,7 @@ int TagRead::findNextMP4Box(FIL* file, uint32_t end_pos, char type[4], uint32_t*
     *size = getBESize4(c);
     memcpy(type, &c[4], 4);
     if (*size < 8) { return 0; } // size is out of 32bit range
+    if (*pos > *pos + *size) { return 0; } // size is out of 32bit range
     *pos += *size;
     if (end_pos < *pos) { return 0; } // size overflow
     /*
@@ -1087,12 +1090,12 @@ int TagRead::findNextMP4Box(FIL* file, uint32_t end_pos, char type[4], uint32_t*
         strncmp(type, "udta", 4) == 0 ||
         strncmp(type, "ilst", 4) == 0 ||
         0) {
-        uint32_t pos_next = *pos - *size + 8;
-        uint32_t size_next;
+        size_t pos_next = *pos - *size + 8;
+        size_t size_next;
         findNextMP4Box(file, *pos, type, &pos_next, &size_next);
     } else if (strncmp(type, "meta", 4) == 0) {
-        uint32_t pos_next = *pos - *size + 8 + 4; // meta is illegal size position somehow
-        uint32_t size_next;
+        size_t pos_next = *pos - *size + 8 + 4; // meta is illegal size position somehow
+        size_t size_next;
         findNextMP4Box(file, *pos, type, &pos_next, &size_next);
 
     // below are end leaves of optional APPLE item list box
@@ -1143,9 +1146,9 @@ int TagRead::findNextMP4Box(FIL* file, uint32_t end_pos, char type[4], uint32_t*
 int TagRead::getMP4Box(FIL* file)
 {
     char type[4];
-    uint32_t end_pos = f_size(file);
-    uint32_t pos = 0;
-    uint32_t size;
+    size_t end_pos = f_size(file);
+    size_t pos = 0;
+    size_t size;
     return findNextMP4Box(file, end_pos, type, &pos, &size);
 }
 
@@ -1199,7 +1202,7 @@ int TagRead::GetMP4TypeCount(const char* mp4_type)
     return count;
 }
 
-int TagRead::getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos, size_t& size)
+int TagRead::getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, size_t& pos, size_t& size)
 {
     int count = 0;
     MP4_ilst_item* mp4_ilst_item = mp4_ilst.first;
@@ -1223,7 +1226,7 @@ int TagRead::getMP4Picture(int idx, mime_t& mime, ptype_t& ptype, uint64_t& pos,
 // ========================
 
 template <typename T>
-T TagRead::read(FIL& file, const uint64_t pos, const size_t size)
+T TagRead::read(FIL& file, const size_t pos, const size_t size)
 {
     T s;
     UINT br;
