@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Support pico-sdk 2.0.0
 ### Fixed
 * Revise active battery check voltage divider to torelate up to 5.5V
+* Fix ID3v2 tag (RIFF ID3v2) read failure for large file over 32bit signed size range
 
 ## [v0.9.5] - 2024-06-06
 ### Added

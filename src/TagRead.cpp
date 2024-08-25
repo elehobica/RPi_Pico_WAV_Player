@@ -117,7 +117,7 @@ int TagRead::loadFile(const char* filename)
 
 int TagRead::GetID3HeadersFull(FIL& infile, int testfail, id31*& id31save, id32*& id32save)
 {
-    int result;
+    UINT result;
     char* input;
     id31* id31header;
     id32* id32header;
@@ -189,10 +189,10 @@ int TagRead::GetID3HeadersFull(FIL& infile, int testfail, id31*& id31save, id32*
 id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
 {
     uint8_t* buffer;
-    int result;
+    UINT result;
     int i = 0;
     id32* id32header;
-    int filepos = pos;
+    size_t filepos = pos;
     int size = 0;
     id32frame* lastframe = NULL;
     id322frame* lastframev2 = NULL;
@@ -222,7 +222,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
     $49 44 33 yy yy xx zz zz zz zz
     Where yy is less than $FF, xx is the 'flags' byte and zz is less than $80.
     */
-    result=1;
+    result = 1;
     for (i = 6; i < 10; i++) {
         if (buffer[i] >= 0x80) result = 0;
     }
@@ -263,9 +263,8 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
         //printf("Want version 3, have version %d\n", id32header->version[0]);
         //return NULL;
         // this code is modified from version 3, ideally we should reuse some
-        while (filepos-10 < (int) id32header->size + pos) {
+        while (filepos - 10 < id32header->size + pos) {
             // make space for new frame
-            int i;
             id322frame* frame = (id322frame*) calloc(1, sizeof(id322frame));
             frame->next = NULL;
             // populate from file
@@ -318,7 +317,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
             }
             //filepos += result;
             filepos = f_tell(infile);
-            if (result != (int) frame->size) {
+            if (result != (UINT) frame->size) {
                 printf("Expected to read %d bytes, only got %d\n", frame->size, result);
                 return NULL;
             }
@@ -333,9 +332,8 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
         }
     } else if (id32header->version[0] == 3) { // ID3v2.3
         // start reading frames
-        while (filepos-10 < (int) id32header->size + pos) {
+        while (filepos - 10 < id32header->size + pos) {
             // make space for new frame
-            int i;
             id32frame* frame = (id32frame*) calloc(1, sizeof(id32frame));
             frame->next = NULL;
             // populate from file
@@ -351,7 +349,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
                 break;
             }
             if((frame->ID[0] & 0xff) == 0xff) {
-                printf("Size is wrong :(\n");
+                printf("Size is wrong 1:(\n");
 
                 // fix size
                 /*
@@ -405,23 +403,23 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
             }
             //filepos += result;
             filepos = f_tell(infile);
-            if (result != (int) frame->size) {
+            if (result != (UINT) frame->size) {
                 printf("Expected to read %d bytes, only got %d\n", frame->size, result);
                 return NULL;
             }
             // add to end of queue
             if (id32header->firstframe == NULL) {
                 // read in to buffer
-                id32header->firstframe=frame;
+                id32header->firstframe = frame;
             } else {
-                lastframe->next=frame;
+                lastframe->next = frame;
             }
-            lastframe=frame;
+            lastframe = frame;
             // then loop until we've filled the struct
         }
     } else if (id32header->version[0] == 4) { // ID3v2.4
         // start reading frames
-        while (filepos-10 < (int) id32header->size + pos) {
+        while (filepos - 10 < id32header->size + pos) {
             // make space for new frame
             int i;
             id32frame* frame = (id32frame*) calloc(1, sizeof(id32frame));
@@ -440,7 +438,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
                 break;
             }
             if((frame->ID[0] & 0xff) == 0xff) {
-                printf("Size is wrong :(\n");
+                printf("Size is wrong 2:(\n");
 
                 // fix size
                 /*
@@ -492,18 +490,18 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
             }
             //filepos += result;
             filepos = f_tell(infile);
-            if (result != (int) frame->size) {
+            if (result != (UINT) frame->size) {
                 printf("Expected to read %d bytes, only got %d\n", frame->size, result);
                 return NULL;
             }
             // add to end of queue
             if (id32header->firstframe == NULL) {
                 // read in to buffer
-                id32header->firstframe=frame;
+                id32header->firstframe = frame;
             } else {
-                lastframe->next=frame;
+                lastframe->next = frame;
             }
-            lastframe=frame;
+            lastframe = frame;
             // then loop until we've filled the struct
         }
     }
