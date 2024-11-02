@@ -307,7 +307,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
                 */
                 frame->data = (char*) calloc(1, frame_start_bytes); // for frame parsing
                 f_read_unsync(infile, frame->data, frame_start_bytes, &br, unsync);
-                if (f_lseek(infile, frame->size - frame_start_bytes) == FR_OK) {
+                if (f_lseek(infile, frame->pos + frame->size) == FR_OK) {
                     result = frame->size;
                 } else {
                     result = 0;
@@ -388,13 +388,13 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
                 result = br;
                 frame->isUnsynced = unsync;
                 frame->hasFullData = true;
-            } else { // give up to get full contents due to size over
+            } else { // give up to get full contents due to size over to skip frame such as cover art (APIC)
                 /*
-                printf("frameID: %c%c%c%c size over %d\n", frame->ID[0], frame->ID[1], frame->ID[2], frame->ID[3], frame->size);
+                printf("frameID: %c%c%c%c size over at pos %d size %d\n", frame->ID[0], frame->ID[1], frame->ID[2], frame->ID[3], frame->pos, frame->size);
                 */
                 frame->data = (char*) calloc(1, frame_start_bytes); // for frame parsing
                 f_read_unsync(infile, frame->data, frame_start_bytes, &br, unsync);
-                if (f_lseek(infile, frame->size - frame_start_bytes) == FR_OK) {
+                if (f_lseek(infile, frame->pos + frame->size) == FR_OK) {
                     result = frame->size;
                 } else {
                     result = 0;
@@ -482,7 +482,7 @@ id32* TagRead::ID32Detect(FIL* infile, const size_t pos)
                 frame->data = (char*) calloc(1, frame_start_bytes); // for frame parsing
                 fr = f_read_unsync(infile, frame->data, frame_start_bytes, &br, unsync);
                 result = br;
-                if (f_lseek(infile, frame->size - result) == FR_OK) {
+                if (f_lseek(infile, frame->pos + frame->size) == FR_OK) {
                     result = frame->size;
                 } else {
                     result = 0;
@@ -1134,6 +1134,7 @@ int TagRead::findNextMP4Box(FIL* file, size_t end_pos, char type[4], size_t* pos
                 mp4_ilst.last->hasFullData = false;
                 mp4_ilst.last->data_buf = (char*) calloc(1, frame_start_bytes);
                 f_read(file, mp4_ilst.last->data_buf, frame_start_bytes, &br);
+                f_lseek(file, mp4_ilst.last->pos + data_size);
             }
             mp4_ilst.last->next = NULL;
         }
