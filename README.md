@@ -110,15 +110,15 @@ For complete portable player with Li-Po battery operation, refer to the followin
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
 * Put "pico-sdk", "pico-examples" and "pico-extras" on the same level with this project folder.
 * Set environmental variables for PICO_SDK_PATH, PICO_EXTRAS_PATH and PICO_EXAMPLES_PATH
-* Confirmed with Pico SDK 2.1.0
+* Confirmed with Pico SDK 2.1.1
 ```
-> git clone -b 2.1.0 https://github.com/raspberrypi/pico-sdk.git
+> git clone -b 2.1.1 https://github.com/raspberrypi/pico-sdk.git
 > cd pico-sdk
 > git submodule update -i
 > cd ..
-> git clone -b sdk-2.1.0 https://github.com/raspberrypi/pico-examples.git
+> git clone -b sdk-2.1.1 https://github.com/raspberrypi/pico-examples.git
 >
-> git clone -b sdk-2.1.0 https://github.com/raspberrypi/pico-extras.git
+> git clone -b sdk-2.1.1 https://github.com/raspberrypi/pico-extras.git
 > 
 > git clone -b main https://github.com/elehobica/RPi_Pico_WAV_Player.git
 > cd RPi_Pico_WAV_Player
@@ -137,7 +137,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 ```
 * Put "RPi_Pico_WAV_Player.uf2" on RPI-RP2 drive
 ### Linux
-* Build is confirmed with [pico-sdk-dev-docker:sdk-2.1.0-1.0.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker)
+* Build is confirmed with [pico-sdk-dev-docker:sdk-2.1.1-1.0.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker)
 * Confirmed with cmake-3.22.1 and arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1
 ```
 $ cd RPi_Pico_WAV_Player
