@@ -17,7 +17,6 @@ add_subdirectory(lib/pico_audio_i2s_32b/src/pico_audio_32b)
 add_subdirectory(lib/pico_fatfs)
 add_subdirectory(lib/pico_flash_param)
 add_subdirectory(lib/pico_st7735_80x160)
-add_subdirectory(lib/pico_stdio_usb_revised)
 add_subdirectory(lib/picojpeg)
 add_subdirectory(lib/PlayAudio)
 
@@ -48,13 +47,13 @@ target_link_libraries(${bin_name}
         pico_flash_param
         pico_runtime_init
         pico_st7735_80x160
-        pico_stdio_usb_revised
+        pico_stdio_usb
         picojpeg
         PlayAudio
 )
 
 #pico_enable_stdio_usb(${bin_name} 1) --> pico_stdio_uart
-#pico_enable_stdio_uart(${bin_name} 1) --> pico_stdio_usb_revised
+#pico_enable_stdio_uart(${bin_name} 1) --> pico_stdio_usb
 
 target_compile_definitions(${bin_name} PRIVATE
 #    NO_BATTERY_VOLTAGE_CHECK
