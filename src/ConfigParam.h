@@ -92,6 +92,6 @@ struct ConfigParam : FlashParamNs::FlashParam {
 
     void initialize(bool preserveStoreCount = false) override {
         FlashParamNs::FlashParam::initialize();
-        P_CFG_REVISION.setDefault();
+        P_CFG_REVISION.loadDefault();
     }
 };
