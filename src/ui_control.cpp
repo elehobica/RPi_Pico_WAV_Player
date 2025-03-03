@@ -52,9 +52,9 @@ UIMode* ui_mode = nullptr;
 static button_status_t get_sw_status()
 {
     button_status_t ret;
-    if (gpio_get(PIN_SW_PLUS) == false) {
+    if (!gpio_get(PIN_SW_PLUS)) {
         ret = button_status_t::Plus;
-    } else if (gpio_get(PIN_SW_MINUS) == false) {
+    } else if (!gpio_get(PIN_SW_MINUS)) {
         ret = button_status_t::Minus;
     } else {
         ret = button_status_t::Open;
@@ -275,8 +275,10 @@ void ui_init(const board_type_t& board_type)
     timer_init_ui_button();
 
     // SW GPIO initialize
+    gpio_init(PIN_SW_PLUS);
     gpio_set_dir(PIN_SW_PLUS, GPIO_IN);
     gpio_pull_up(PIN_SW_PLUS);
+    gpio_init(PIN_SW_MINUS);
     gpio_set_dir(PIN_SW_MINUS, GPIO_IN);
     gpio_pull_up(PIN_SW_MINUS);
 
