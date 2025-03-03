@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 * Show different color in Battery Icon when charging
 ### Changed
 * Support pico-sdk 2.1.1
+* Support Raspberry Pi Pico 2 board
 ### Fixed
 * Revise active battery check voltage divider to torelate up to 5.5V
 * Fix ID3v2 tag (RIFF ID3v2) read failure for large file over 32bit signed size range

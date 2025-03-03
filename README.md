@@ -1,9 +1,9 @@
-# Hi-Res WAV player for Raspberry Pi Pico
+# Hi-Res WAV player for Raspberry Pi Pico / Pico 2
 ![Scene3_5](doc/implementation/compact/RPi_Pico_WAV_Player_Scene3_5.jpg)
 ![Scene2](doc/implementation/compact/RPi_Pico_WAV_Player_Scene2.jpg)
 
 ## Overview
-RPi_Pico_WAV_Player is Hi-Res WAV player for Raspberry Pi Pico.
+RPi_Pico_WAV_Player is Hi-Res WAV player for Raspberry Pi Pico / Pico 2.
 
 This project features:
 * Playback up to Hi-Res WAV format
@@ -20,7 +20,8 @@ This project features:
 ## Supported Board and Peripheral Devices
 * Raspberry Pi Pico board
   * or Waveshare RP2040-LCD-0.96 board
-* ST7735S 0.96" 160x80 LCD (for Raspberry Pi Pico board only)
+* Raspberry Pi Pico 2 board
+* ST7735S 0.96" 160x80 LCD (for Raspberry Pi Pico / Pico 2 boards only)
 * PCM5102 32bit I2S Audio DAC
 
 ## Pin Assignment & Connection
@@ -60,7 +61,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 | 20 | GP15 | GPIO | RES |
 | 36 | 3V3(OUT) | 3.3V | VCC |
 
-* Raspberry Pi Pico board only
+* Raspberry Pi Pico / Pico 2 boards only
 
 ![st7735s_schematic](doc/schematic/RPi_Pico_WAV_Player_ST7735S_Schematic.png)
 
@@ -100,7 +101,7 @@ Either of GPIO Push Buttons or Headphone Remote Control Buttons need to be imple
 ## Schematic
 For complete portable player with Li-Po battery operation, refer to the following schematics which describe additional power control circuit.
 
-### Raspberry Pi Pico board
+### Raspberry Pi Pico board (also applicable to Raspberry Pi Pico 2 board)
 [RPi_Pico_WAV_Player_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_schematic.pdf)
 
 ### Waveshare RP2040-LCD-0.96 board
@@ -132,20 +133,22 @@ For complete portable player with Li-Po battery operation, refer to the followin
 ```
 > cd RPi_Pico_WAV_Player
 > mkdir build && cd build
-> cmake -G "NMake Makefiles" ..
+> cmake -G "NMake Makefiles" ..  ; (for Raspberry Pi Pico 1 series)
+> cmake -G "NMake Makefiles" -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2 ..  ; (for Raspberry Pi Pico 2)
 > nmake
 ```
-* Put "RPi_Pico_WAV_Player.uf2" on RPI-RP2 drive
+* Put "*.uf2" on RPI-RP2 or RP2350 drive
 ### Linux
 * Build is confirmed with [pico-sdk-dev-docker:sdk-2.1.1-1.0.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker)
 * Confirmed with cmake-3.22.1 and arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1
 ```
 $ cd RPi_Pico_WAV_Player
 $ mkdir build && cd build
-$ cmake ..
+$ cmake ..  # (for Raspberry Pi Pico 1 series)
+$ cmake -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2 ..  # (for Raspberry Pi Pico 2)
 $ make -j4
 ```
-* Download "RPi_Pico_WAV_Player.uf2" on RPI-RP2 drive
+* Download "*.uf2" on RPI-RP2 or RP2350 drive
 
 ## Button Control Guide
 UI Control is available with GPIO 3 push switches or 3 button Headphone Remote Control.
