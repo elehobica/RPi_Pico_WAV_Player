@@ -5,15 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [v0.9.6] - 2025-03-06
 ### Added
-* Show different color in Battery Icon when charging
+* Show cyan color in Battery Icon when charging
+* Support Raspberry Pi Pico 2 board
 ### Changed
 * Support pico-sdk 2.1.1
-* Support Raspberry Pi Pico 2 board
 ### Fixed
 * Revise active battery check voltage divider to torelate up to 5.5V
 * Fix ID3v2 tag (RIFF ID3v2) read failure for large file over 32bit signed size range
-* Fix seeking next ID3/MP4Box frame when current frame size ove
+* Fix seeking next ID3/MP4Box frame when current frame size over
 
 ## [v0.9.5] - 2024-06-06
 ### Added
