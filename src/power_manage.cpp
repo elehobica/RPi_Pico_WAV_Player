@@ -125,6 +125,7 @@ void pm_init(board_type_t board_type)
     _board_type = board_type;
 
     // USB Power detect Pin = Charge detect (Input)
+    gpio_init(PIN_USB_POWER_DETECT);
     gpio_set_dir(PIN_USB_POWER_DETECT, GPIO_IN);
 
     // Power Keep Pin (Output)
