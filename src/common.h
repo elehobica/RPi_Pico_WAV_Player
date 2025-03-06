@@ -10,7 +10,8 @@
 
 typedef enum {
     RASPBERRY_PI_PICO = 0,
-    WAVESHARE_RP2040_LCD_096
+    WAVESHARE_RP2040_LCD_096,
+    RASPBERRY_PI_PICO_2
 } board_type_t;
 
 typedef enum {

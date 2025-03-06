@@ -33,7 +33,11 @@ int main() {
     //    Waveshare RP2040-LCD-0.96: LCD BLK (pulled-up to 3.3K and connected to driver of backlight)
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_IN);
+#if defined(RASPBERRYPI_PICO2)
+    board_type_t board_type = RASPBERRY_PI_PICO_2;
+#else
     board_type_t board_type = gpio_get(PICO_DEFAULT_LED_PIN) ? WAVESHARE_RP2040_LCD_096 : RASPBERRY_PI_PICO;
+#endif
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
 
@@ -58,6 +62,9 @@ int main() {
             break;
         case WAVESHARE_RP2040_LCD_096:
             printf("Board: Waveshare RP2040-LCD-0.96\r\n");
+            break;
+        case RASPBERRY_PI_PICO_2:
+            printf("Board: Raspberry Pi Pico 2\r\n");
             break;
         default:
             printf("Board: unknown\r\n");
