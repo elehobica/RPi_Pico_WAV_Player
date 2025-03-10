@@ -224,6 +224,7 @@ static int timer_init_ui_button()
 uint32_t ui_set_center_switch_for_wakeup(const bool& flg)
 {
     if (flg) {
+        gpio_init(PIN_HP_BUTTON);
         gpio_set_dir(PIN_HP_BUTTON, GPIO_IN);
         gpio_set_input_enabled(PIN_HP_BUTTON, true);
     } else {
