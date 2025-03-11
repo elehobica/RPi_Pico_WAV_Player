@@ -222,7 +222,7 @@ void pm_monitor_battery_voltage()
         if (_use_active_batt_check) {
             gpio_put(PIN_ACTIVE_BATT_CHECK, 0);
         }
-        if (_board_type == WAVESHARE_RP2040_LCD_096) {
+        if (_board_type == WAVESHARE_RP2040_LCD_096 || _board_type == WAVESHARE_RP2350_LCD_096) {
             voltage += 0.33;  // Forward voltage of D2 (MBR230LSFT1G)
         }
         //printf("Battery Voltage = %7.4f V\r\n", voltage);

@@ -9,7 +9,7 @@ This project features:
 * Playback up to Hi-Res WAV format
   * Channel: Mono, Stereo
   * Bit resolution: 16bit, 24bit
-  * Sampling frequency: 44.1KHz, 48KHz, 88.2KHz, 96KHz, 176.4KHz, 192KHz
+  * Sampling frequency: 44.1KHz, 48KHz, 88.2KHz, 96KHz, 176.4KHz and 192KHz
 * SD Card interface (exFAT supported)
 * 160x80 LCD display
 * UI Control by 3 Push buttons or Headphone Remote Control buttons
@@ -19,8 +19,9 @@ This project features:
 
 ## Supported Board and Peripheral Devices
 * Raspberry Pi Pico board
-  * or Waveshare RP2040-LCD-0.96 board
+  * Waveshare RP2040-LCD-0.96 board as well
 * Raspberry Pi Pico 2 board
+  * Waveshare RP2350-LCD-0.96 board as well
 * ST7735S 0.96" 160x80 LCD (for Raspberry Pi Pico / Pico 2 boards only)
 * PCM5102 32bit I2S Audio DAC
 
@@ -104,7 +105,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 ### Raspberry Pi Pico board (also applicable to Raspberry Pi Pico 2 board)
 [RPi_Pico_WAV_Player_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_schematic.pdf)
 
-### Waveshare RP2040-LCD-0.96 board
+### Waveshare RP2040-LCD-0.96 board (also applicable to RP2350-LCD-0.96 board)
 [RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf)
 
 ## How to build

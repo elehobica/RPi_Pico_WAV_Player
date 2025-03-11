@@ -71,7 +71,8 @@ void LcdCanvas::configureLcd(board_type_t board_type, uint cfg_id)
     uint pin_blk;
 
     switch (board_type) {
-        case WAVESHARE_RP2040_LCD_096:
+        case WAVESHARE_RP2040_LCD_096: // fallthrough
+        case WAVESHARE_RP2350_LCD_096:
             pin_spi_cs   = PIN_LCD_SPI1_CS_WAVESHARE;
             pin_spi_sck  = PIN_LCD_SPI1_SCK_WAVESHARE;
             pin_spi_mosi = PIN_LCD_SPI1_MOSI_WAVESHARE;
@@ -80,6 +81,7 @@ void LcdCanvas::configureLcd(board_type_t board_type, uint cfg_id)
             pin_blk      = PIN_LCD_BLK_WAVESHARE;
             break;
         case RASPBERRY_PI_PICO: // fallthrough
+        case RASPBERRY_PI_PICO_2: // fallthrough
         default:
             pin_spi_cs   = PIN_LCD_SPI1_CS_DEFAULT;
             pin_spi_sck  = PIN_LCD_SPI1_SCK_DEFAULT;
