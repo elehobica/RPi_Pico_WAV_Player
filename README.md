@@ -78,6 +78,7 @@ For battery operation, use 3V3(OUT) pin as described in schematic.
 
 #### Caution
 * Wire length between Pico and SD card is very sensitive. Short wiring as possible is desired, otherwise access errors  will occur.
+* Avoid the level-shifters between microsd pins and Pico pins.
 
 ![microsd_schematic](doc/schematic/RPi_Pico_WAV_Player_microsd_Schematic.png)
 
@@ -215,10 +216,10 @@ GP26 also needs to be pulled-up by 2.2Kohm from GP21. See schematic for detail.
 
 | # | Vendor | Product Name | Part Number | Comment |
 ----|----|----|----|----
-| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Pretty fine with 24bit 192KHz playing |
-| 1 | Kioxia | Exceria G2 256GB | LMEX2L256GG2 | Pretty fine with 24bit 192KHz playing |
-| 3 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Fine with 24bit 192KHz playing |
-| 4 | SanDisk | Ultra 256GB | SDSQUAC-256G-GN6MN | Pretty fine with 24bit 96KHz playing |
+| 1 | Samsung | PRO Plus 256GB | MB-MD256SA | Very good with 24bit 192KHz playing |
+| 1 | Kioxia | Exceria G2 256GB | LMEX2L256GG2 | Very good with 24bit 192KHz playing |
+| 3 | SanDisk | Extreme PRO 256GB | SDSQXCD-256G-GN6MA | Good with 24bit 192KHz playing |
+| 4 | SanDisk | Ultra 256GB | SDSQUAC-256G-GN6MN | Very good with 24bit 96KHz playing |
 
 <img src="doc/microsd/Samsung-MB-MD256SA.jpg" width="80" />  <img src="doc/microsd/Kioxia-LMEX2L256GG2.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQXCD-256G-GN6MA.jpg" width="80" />  <img src="doc/microsd/Sandisk-SDSQUAC-256G-GN6MN.jpg" width="80" />
 
