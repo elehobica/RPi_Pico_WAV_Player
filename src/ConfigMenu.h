@@ -162,19 +162,19 @@ private:
     };
 
     const std::map<const ConfigMenuId, const Item_t> menuMap = {
-        //                                            Name                      category               ParamId_t                                   selection           hook_func
-        {ConfigMenuId::GENERAL_TIME_TO_POWER_OFF,     {"Time to Power Off",     CategoryId_t::GENERAL, CFG_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,     &selTime0,          nullptr}},
-        {ConfigMenuId::GENERAL_TIME_TO_LEAVE_CONFIG,  {"Time to Leave Config",  CategoryId_t::GENERAL, CFG_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,  &selTime2,          nullptr}},
-        {ConfigMenuId::GENERAL_PUSH_BUTTON_LAYOUT,    {"Push Button Layout",    CategoryId_t::GENERAL, CFG_MENU_IDX_GENERAL_PUSH_BUTTON_LAYOUT,    &selButtonLayout,   nullptr}},
-        {ConfigMenuId::GENERAL_HP_BUTTON_LAYOUT,      {"HP Button Layout",      CategoryId_t::GENERAL, CFG_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT,      &selButtonLayout,   nullptr}},
-        {ConfigMenuId::DISPLAY_LCD_CONFIG,            {"LCD Config",            CategoryId_t::DISPLAY, CFG_MENU_IDX_DISPLAY_LCD_CONFIG,            &selLcdConfig,      hookDispLcdConfig}},
-        {ConfigMenuId::DISPLAY_ROTATION,              {"Rotation",              CategoryId_t::DISPLAY, CFG_MENU_IDX_DISPLAY_ROTATION,              &selRotation,       hookDispRotation}},
-        {ConfigMenuId::DISPLAY_BACKLIGHT_LOW_LEVEL,   {"Backlight Low Level",   CategoryId_t::DISPLAY, CFG_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,   &selBacklightLevel, nullptr}},
-        {ConfigMenuId::DISPLAY_BACKLIGHT_HIGH_LEVEL,  {"Backlight High Level",  CategoryId_t::DISPLAY, CFG_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,  &selBacklightLevel, nullptr}},
-        {ConfigMenuId::DISPLAY_TIME_TO_BACKLIGHT_LOW, {"Time to Backlight Low", CategoryId_t::DISPLAY, CFG_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW, &selTime1,          nullptr}},
-        {ConfigMenuId::PLAY_TIME_TO_NEXT_PLAY,        {"Time to Next Play",     CategoryId_t::PLAY,    CFG_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,        &selTime2,          nullptr}},
-        {ConfigMenuId::PLAY_NEXT_PLAY_ALBUM,          {"Next Play Album",       CategoryId_t::PLAY,    CFG_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,          &selNextPlayAlbum,  nullptr}},
-        {ConfigMenuId::PLAY_RANDOM_DIR_DEPTH,         {"Random Dir Depth",      CategoryId_t::PLAY,    CFG_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,         &selRandDirDepth,   nullptr}},
+        //                                            Name                      category               ParamId_t                                      selection           hook_func
+        {ConfigMenuId::GENERAL_TIME_TO_POWER_OFF,     {"Time to Power Off",     CategoryId_t::GENERAL, CFG_ID_MENU_IDX_GENERAL_TIME_TO_POWER_OFF,     &selTime0,          nullptr}},
+        {ConfigMenuId::GENERAL_TIME_TO_LEAVE_CONFIG,  {"Time to Leave Config",  CategoryId_t::GENERAL, CFG_ID_MENU_IDX_GENERAL_TIME_TO_LEAVE_CONFIG,  &selTime2,          nullptr}},
+        {ConfigMenuId::GENERAL_PUSH_BUTTON_LAYOUT,    {"Push Button Layout",    CategoryId_t::GENERAL, CFG_ID_MENU_IDX_GENERAL_PUSH_BUTTON_LAYOUT,    &selButtonLayout,   nullptr}},
+        {ConfigMenuId::GENERAL_HP_BUTTON_LAYOUT,      {"HP Button Layout",      CategoryId_t::GENERAL, CFG_ID_MENU_IDX_GENERAL_HP_BUTTON_LAYOUT,      &selButtonLayout,   nullptr}},
+        {ConfigMenuId::DISPLAY_LCD_CONFIG,            {"LCD Config",            CategoryId_t::DISPLAY, CFG_ID_MENU_IDX_DISPLAY_LCD_CONFIG,            &selLcdConfig,      hookDispLcdConfig}},
+        {ConfigMenuId::DISPLAY_ROTATION,              {"Rotation",              CategoryId_t::DISPLAY, CFG_ID_MENU_IDX_DISPLAY_ROTATION,              &selRotation,       hookDispRotation}},
+        {ConfigMenuId::DISPLAY_BACKLIGHT_LOW_LEVEL,   {"Backlight Low Level",   CategoryId_t::DISPLAY, CFG_ID_MENU_IDX_DISPLAY_BACKLIGHT_LOW_LEVEL,   &selBacklightLevel, nullptr}},
+        {ConfigMenuId::DISPLAY_BACKLIGHT_HIGH_LEVEL,  {"Backlight High Level",  CategoryId_t::DISPLAY, CFG_ID_MENU_IDX_DISPLAY_BACKLIGHT_HIGH_LEVEL,  &selBacklightLevel, nullptr}},
+        {ConfigMenuId::DISPLAY_TIME_TO_BACKLIGHT_LOW, {"Time to Backlight Low", CategoryId_t::DISPLAY, CFG_ID_MENU_IDX_DISPLAY_TIME_TO_BACKLIGHT_LOW, &selTime1,          nullptr}},
+        {ConfigMenuId::PLAY_TIME_TO_NEXT_PLAY,        {"Time to Next Play",     CategoryId_t::PLAY,    CFG_ID_MENU_IDX_PLAY_TIME_TO_NEXT_PLAY,        &selTime2,          nullptr}},
+        {ConfigMenuId::PLAY_NEXT_PLAY_ALBUM,          {"Next Play Album",       CategoryId_t::PLAY,    CFG_ID_MENU_IDX_PLAY_NEXT_PLAY_ALBUM,          &selNextPlayAlbum,  nullptr}},
+        {ConfigMenuId::PLAY_RANDOM_DIR_DEPTH,         {"Random Dir Depth",      CategoryId_t::PLAY,    CFG_ID_MENU_IDX_PLAY_RANDOM_DIR_DEPTH,         &selRandDirDepth,   nullptr}},
     };
 
     std::map<const CategoryId_t, std::map<const ConfigMenuId, const Item_t*>> menuMapByCategory;
