@@ -2,6 +2,8 @@
 ![Scene3_5](doc/implementation/compact/RPi_Pico_WAV_Player_Scene3_5.jpg)
 ![Scene2](doc/implementation/compact/RPi_Pico_WAV_Player_Scene2.jpg)
 
+[![workflow](https://github.com/elehobica/RPi_Pico_WAV_Player/actions/workflows/build-binaries.yml/badge.svg)](https://github.com/elehobica/RPi_Pico_WAV_Player/actions/workflows/build-binaries.yml)
+
 ## Overview
 RPi_Pico_WAV_Player is Hi-Res WAV player for Raspberry Pi Pico / Pico 2.
 

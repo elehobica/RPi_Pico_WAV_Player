@@ -1,0 +1,49 @@
+#------------------------------------------------------
+# Copyright (c) 2025, Elehobica
+# Released under the BSD-2-Clause
+# refer to https://opensource.org/licenses/BSD-2-Clause
+#------------------------------------------------------
+
+name: Build and Rename
+
+inputs:
+  path:
+    required: true
+    type: string
+  build:
+    required: false
+    type: string
+    default: build
+  platform:
+    required: false
+    type: string
+    default: rp2040
+  board:
+    required: false
+    type: string
+    default: pico
+  identifier:
+    required: true
+    type: string
+  output_path:
+    required: false
+    type: string
+    default: Release
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Build
+      uses: elehobica/build-pico@v1
+      with:
+        path: ${{inputs.path}}
+        build: ${{inputs.build}}
+        platform: ${{inputs.platform}}
+        board: ${{inputs.board}}
+    - name: Move artifacts
+      uses: elehobica/add-identifier@v1
+      with:
+        paths: ${{inputs.build}}
+        exts: .uf2 .elf
+        identifier: ${{inputs.identifier}}
+        output_path: ${{inputs.output_path}}

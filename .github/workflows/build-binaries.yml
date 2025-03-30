@@ -1,0 +1,43 @@
+#------------------------------------------------------
+# Copyright (c) 2025, Elehobica
+# Released under the BSD-2-Clause
+# refer to https://opensource.org/licenses/BSD-2-Clause
+#------------------------------------------------------
+
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_DIR: Release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Build Pico
+        uses: ./.github/actions/build-and-rename
+        with:
+          path: .
+          build: build
+          identifier: pico
+          output_path: ${{env.RELEASE_DIR}}
+      - name: Build Pico 2
+        uses: ./.github/actions/build-and-rename
+        with:
+          path: .
+          build: build2
+          platform: rp2350
+          board: pico2
+          identifier: pico2
+          output_path: ${{env.RELEASE_DIR}}
+      - name: Upload production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-binaries
+          path: |
+            ${{env.RELEASE_DIR}}/*.uf2
+            ${{env.RELEASE_DIR}}/*.elf
