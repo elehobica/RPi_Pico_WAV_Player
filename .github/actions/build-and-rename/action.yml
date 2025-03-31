@@ -9,25 +9,19 @@ name: Build and Rename
 inputs:
   path:
     required: true
-    type: string
   build:
     required: false
-    type: string
     default: build
   platform:
     required: false
-    type: string
     default: rp2040
   board:
     required: false
-    type: string
     default: pico
   identifier:
     required: true
-    type: string
   output_path:
     required: false
-    type: string
     default: Release
 
 runs:
