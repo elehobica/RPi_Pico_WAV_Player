@@ -18,6 +18,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+      - name: Set Version
+        uses: ./.github/actions/set-version
+        with:
+          target: src/ConfigParam.h
+          version_str: '0.0.9'
       - name: Build Pico
         uses: ./.github/actions/build-and-rename
         with:
