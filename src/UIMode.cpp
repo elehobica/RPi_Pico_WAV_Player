@@ -134,7 +134,7 @@ void UIInitialMode::loadFromFlash() const
 {
     // Load Configuration parameters from Flash
     cfgParam.initialize();
-    printf("Raspberry Pi Pico Player ver. %s\r\n", cfgParam.P_CFG_VERSION.get().c_str());
+    printf("Raspberry Pi Pico Player: %s\r\n", cfgParam.P_CFG_VERSION.get().c_str());
     cfgMenu.scanHookFunc();
 }
 
