@@ -11,7 +11,7 @@
 #include "FlashParam.h"
 
 typedef enum {
-    CFG_ID_REVISION = FlashParamNs::CFG_ID_BASE,
+    CFG_ID_VERSION = FlashParamNs::CFG_ID_BASE,
     CFG_ID_SEED,
     CFG_ID_VOLUME,
     CFG_ID_STACK_COUNT,
@@ -54,7 +54,7 @@ struct ConfigParam : FlashParamNs::FlashParam {
         return instance;
     }
     // Parameter<T>                      inst                                         id                                             name                                          default  size
-    FlashParamNs::Parameter<std::string> P_CFG_REVISION                              {CFG_ID_REVISION,                               "CFG_REVISION",                               "0.9.6", 8};
+    FlashParamNs::Parameter<std::string> P_CFG_VERSION                               {CFG_ID_VERSION,                                "CFG_VERSION",                                "0.0.0", 16};
     FlashParamNs::Parameter<uint32_t>    P_CFG_SEED                                  {CFG_ID_SEED,                                   "CFG_SEED",                                   0};
     FlashParamNs::Parameter<uint8_t>     P_CFG_VOLUME                                {CFG_ID_VOLUME,                                 "CFG_VOLUME",                                 65};
     FlashParamNs::Parameter<uint8_t>     P_CFG_STACK_COUNT                           {CFG_ID_STACK_COUNT,                            "CFG_STACK_COUNT",                            0};
@@ -90,6 +90,6 @@ struct ConfigParam : FlashParamNs::FlashParam {
 
     void initialize(bool preserveStoreCount = false) override {
         FlashParamNs::FlashParam::initialize();
-        P_CFG_REVISION.loadDefault();
+        P_CFG_VERSION.loadDefault();
     }
 };

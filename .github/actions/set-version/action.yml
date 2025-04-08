@@ -1,0 +1,24 @@
+#------------------------------------------------------
+# Copyright (c) 2025, Elehobica
+# Released under the BSD-2-Clause
+# refer to https://opensource.org/licenses/BSD-2-Clause
+#------------------------------------------------------
+
+name: Set Version
+description: Set version for the project
+
+inputs:
+  target: 
+    description: 'Target to set version'
+    required: true
+    default: 'src/ConfigParam.h'
+  version_str: 
+    description: 'Version string to set'
+    required: true
+    default: '0.0.0'
+  version_str_size: 
+    required: false
+    default: 16
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
