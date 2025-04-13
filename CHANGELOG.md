@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 * Add support of Waveshare RP2350-LCD-0.96 board
 * Add workflow to build binaries
+* Add workflow to generate the draft of Release Note
 
 ## [v0.9.6] - 2025-03-06
 ### Added

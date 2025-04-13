@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------/
-/ index.js
+/ set-version/index.js
 /------------------------------------------------------------/
 / Copyright (c) 2025, Elehobica
 / Released under the BSD-2-Clause
