@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_DIR: Release
+      VERSION_LENGTH: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,24 +22,29 @@ jobs:
       - name: Generate version stirng
         id: generate-version-string
         run: |
-          if [[ ${{github.ref_type}} == 'branch' ]]; then
-            ref_name=${{github.ref_name}}
-            echo "value=${ref_name:0:8}-${{github.run_number}}" >> $GITHUB_OUTPUT
+          ref_name=${{ github.ref_name }}
+          if [[ ${{ github.ref_type }} == 'branch' ]]; then
+            run_number=-${{ github.run_number }}
+            run_number_length=${#run_number}
+            ref_max_length=$((${{ env.VERSION_LENGTH }} - run_number_length))
           else
-            echo 'value=${{github.ref_name}}' >> $GITHUB_OUTPUT
+            run_number=
+            ref_max_length=${{ env.VERSION_LENGTH }}
           fi
+          echo "value=${ref_name:0:$ref_max_length}${run_number}" >> $GITHUB_OUTPUT
       - name: Set Version
         uses: ./.github/actions/set-version
         with:
           target: src/ConfigParam.h
-          version_str: ${{steps.generate-version-string.outputs.value}}
+          version_str: ${{ steps.generate-version-string.outputs.value }}
+          version_str_size: ${{ env.VERSION_LENGTH }}
       - name: Build Pico
         uses: ./.github/actions/build-and-rename
         with:
           path: .
           build: build
           identifier: pico
-          output_path: ${{env.RELEASE_DIR}}
+          output_path: ${{ env.RELEASE_DIR }}
       - name: Build Pico 2
         uses: ./.github/actions/build-and-rename
         with:
@@ -47,11 +53,18 @@ jobs:
           platform: rp2350
           board: pico2
           identifier: pico2
-          output_path: ${{env.RELEASE_DIR}}
+          output_path: ${{ env.RELEASE_DIR }}
       - name: Upload production artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dist-binaries
           path: |
-            ${{env.RELEASE_DIR}}/*.uf2
-            ${{env.RELEASE_DIR}}/*.elf
+            ${{ env.RELEASE_DIR }}/*.uf2
+            ${{ env.RELEASE_DIR }}/*.elf
+
+  upload-release-asset:
+    needs: [build-and-upload]
+    if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'v') }}
+    uses: ./.github/workflows/upload-release-asset.yml
+    with:
+      source_run_id: ${{ github.run_id }}

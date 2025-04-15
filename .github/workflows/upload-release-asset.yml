@@ -1,0 +1,64 @@
+#------------------------------------------------------
+# Copyright (c) 2025, Elehobica
+# Released under the BSD-2-Clause
+# refer to https://opensource.org/licenses/BSD-2-Clause
+#------------------------------------------------------
+
+name: Upload Release Asset
+
+on:
+  workflow_call:
+    inputs:
+      source_run_id:
+        description: 'The run ID of the source workflow'
+        type: string
+        required: true
+
+jobs:
+  upload-release-asset:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      checks: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CHANGELOG: ./CHANGELOG.md
+      RELEAESE_NOTE: ./ReleaseNote.md
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Extract Release Note from CHANGELOG
+        run: |
+          pattern1="^## \[${{ github.ref_name }}\]"
+          pattern2="^## \["
+          print=false
+          while read line; do
+              if [[ $line =~ $pattern1 ]]; then
+                  print=true
+              elif [[ $line =~ $pattern2 ]]; then
+                  print=false
+              elif $print; then
+                  echo "$line" >> ${{ env.RELEAESE_NOTE }}
+              fi
+          done < ${{ env.CHANGELOG }}
+      - name: Create Release as Draft
+        id: create-release
+        run: |
+          gh release create ${{ github.ref_name }} \
+            --title "Release ${{ github.ref_name }}" \
+            --notes-file ${{ env.RELEAESE_NOTE}} \
+            --notes "Changes in this Release\n- 1\n- First Change\n- Second Change" \
+            --draft \
+            --target ${{ github.sha }}
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-binaries
+          github-token: ${{ env.GH_TOKEN }}
+          run-id: ${{ inputs.source_run_id }}
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        run: |
+          for file in $(ls *.uf2 *.elf); do
+            gh release upload ${{ github.ref_name }} "$file"
+          done
