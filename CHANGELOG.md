@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [v0.9.7] - 2025-04-15
 ### Added
 * Add support of Waveshare RP2350-LCD-0.96 board
 * Add workflow to build binaries
