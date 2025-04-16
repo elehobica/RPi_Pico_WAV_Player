@@ -14,12 +14,22 @@ jobs:
     env:
       RELEASE_DIR: Release
       VERSION_LENGTH: 15
+    outputs:
+      release-tag-condition-matched: ${{ steps.release-tag-condition.outputs.matched }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Generate version stirng
+      - name: Check if Release Tag Condition Matched
+        id: release-tag-condition
+        run: |
+          if [[ ${{ github.ref_type }} == 'tag' && ${{ github.ref_name }} =~ ^v[0-9]+.[0-9]+.[0-9]+$ ]]; then
+            echo "matched=true" >> $GITHUB_OUTPUT
+          else
+            echo "matched=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Generate version string
         id: generate-version-string
         run: |
           ref_name=${{ github.ref_name }}
@@ -62,9 +72,9 @@ jobs:
             ${{ env.RELEASE_DIR }}/*.uf2
             ${{ env.RELEASE_DIR }}/*.elf
 
-  upload-release-asset:
+  call-upload-release-asset:
     needs: [build-and-upload]
-    if: ${{ github.ref_type == 'tag' && startsWith(github.ref_name, 'v') }}
+    if: ${{ needs.build-and-upload.outputs.release-tag-condition-matched == 'true' }}
     uses: ./.github/workflows/upload-release-asset.yml
     with:
       source_run_id: ${{ github.run_id }}
