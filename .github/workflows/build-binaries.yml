@@ -21,14 +21,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Check if Release Tag Condition Matched
-        id: release-tag-condition
-        run: |
-          if [[ ${{ github.ref_type }} == 'tag' && ${{ github.ref_name }} =~ ^v[0-9]+.[0-9]+.[0-9]+$ ]]; then
-            echo "matched=true" >> $GITHUB_OUTPUT
-          else
-            echo "matched=false" >> $GITHUB_OUTPUT
-          fi
       - name: Generate version string
         id: generate-version-string
         run: |
@@ -72,9 +64,23 @@ jobs:
             ${{ env.RELEASE_DIR }}/*.uf2
             ${{ env.RELEASE_DIR }}/*.elf
 
+  release-tag-condition:
+    runs-on: ubuntu-latest
+    outputs:
+      matched: ${{ steps.check.outputs.matched }}
+    steps:
+      - name: Check if Release Tag Condition Matched
+        id: check
+        run: |
+          if [[ ${{ github.ref_type }} == 'tag' && ${{ github.ref_name }} =~ ^v[0-9]+.[0-9]+.[0-9]+$ ]]; then
+            echo "matched=true" >> $GITHUB_OUTPUT
+          else
+            echo "matched=false" >> $GITHUB_OUTPUT
+          fi
+
   call-upload-release-asset:
-    needs: [build-and-upload]
-    if: ${{ needs.build-and-upload.outputs.release-tag-condition-matched == 'true' }}
+    needs: [build-and-upload, release-tag-condition]
+    if: ${{ needs.release-tag-condition.outputs.matched == 'true' }}
     uses: ./.github/workflows/upload-release-asset.yml
     with:
       source_run_id: ${{ github.run_id }}
