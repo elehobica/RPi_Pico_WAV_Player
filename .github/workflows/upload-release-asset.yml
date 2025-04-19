@@ -47,7 +47,6 @@ jobs:
           gh release create ${{ github.ref_name }} \
             --title "Release ${{ github.ref_name }}" \
             --notes-file ${{ env.RELEAESE_NOTE}} \
-            --notes "Changes in this Release\n- 1\n- First Change\n- Second Change" \
             --draft \
             --target ${{ github.sha }}
       - name: Download Artifacts

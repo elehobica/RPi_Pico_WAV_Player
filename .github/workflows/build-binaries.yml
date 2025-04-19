@@ -74,8 +74,10 @@ jobs:
         run: |
           if [[ ${{ github.ref_type }} == 'tag' && ${{ github.ref_name }} =~ ^v[0-9]+.[0-9]+.[0-9]+$ ]]; then
             echo "matched=true" >> $GITHUB_OUTPUT
+            echo "Release tag condition matched"
           else
             echo "matched=false" >> $GITHUB_OUTPUT
+            echo "Release tag condition not matched"
           fi
 
   call-upload-release-asset:

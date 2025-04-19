@@ -37,7 +37,7 @@ runs:
     - name: Move artifacts
       uses: elehobica/add-identifier@v1
       with:
-        paths: ${{ inputs.build }}
+        paths: ${{ inputs.path }}/${{ inputs.build }}
         exts: .uf2 .elf
         identifier: ${{ inputs.identifier }}
         output_path: ${{ inputs.output_path }}
