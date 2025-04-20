@@ -13,6 +13,10 @@ on:
         description: 'The run ID of the source workflow'
         type: string
         required: true
+      artifacts_dirs:
+        description: 'The directories of the artifacts'
+        type: string
+        required: true
 
 jobs:
   upload-release-asset:
@@ -50,14 +54,14 @@ jobs:
             --draft \
             --target ${{ github.sha }}
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-binaries
-          github-token: ${{ env.GH_TOKEN }}
-          run-id: ${{ inputs.source_run_id }}
-      - name: Upload Release Asset
-        id: upload-release-asset 
+        id: download-artifacts
         run: |
-          for file in $(ls *.uf2 *.elf); do
-            gh release upload ${{ github.ref_name }} "$file"
+          gh run download ${{ inputs.source_run_id }}
+      - name: Upload Release Assets
+        id: upload-release-assets
+        run: |
+          for dir in ${{ inputs.artifacts_dirs }}; do
+            for file in $(ls $dir/*.uf2 $dir/*.elf); do
+              gh release upload ${{ github.ref_name }} "$file"
+            done
           done

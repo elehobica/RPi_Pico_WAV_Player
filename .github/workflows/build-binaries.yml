@@ -14,8 +14,6 @@ jobs:
     env:
       RELEASE_DIR: Release
       VERSION_LENGTH: 15
-    outputs:
-      release-tag-condition-matched: ${{ steps.release-tag-condition.outputs.matched }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -86,3 +84,4 @@ jobs:
     uses: ./.github/workflows/upload-release-asset.yml
     with:
       source_run_id: ${{ github.run_id }}
+      artifacts_dirs: "dist-binaries"
