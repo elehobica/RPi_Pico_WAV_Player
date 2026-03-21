@@ -8,17 +8,30 @@ name: Set Version
 description: Set version for the project
 
 inputs:
-  target: 
+  target:
     description: 'Target to set version'
     required: true
     default: 'src/ConfigParam.h'
-  version_str: 
+  regexp_str:
+    description: 'sed extended RegExp string to match and replace version (must contain one capture group)'
+    required: false
+    default: '("CFG_VERSION",\s+)"[0-9]+\.[0-9]+\.[0-9]+"'
+  version_str:
     description: 'Version string to set'
     required: true
     default: '0.0.0'
-  version_str_size: 
+  version_str_size:
+    description: 'Maximum length of version string'
     required: false
-    default: 16
+    default: '16'
+
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - name: Set version in file
+      shell: bash
+      run: |
+        version_str="${{ inputs.version_str }}"
+        version_str_size=${{ inputs.version_str_size }}
+        version_str="${version_str:0:$version_str_size}"
+        sed -i -E 's#${{ inputs.regexp_str }}#\1"'"${version_str}"'"#' "${{ inputs.target }}"
