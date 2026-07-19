@@ -111,19 +111,34 @@ For complete portable player with Li-Po battery operation, refer to the followin
 ### Waveshare RP2040-LCD-0.96 board (also applicable to RP2350-LCD-0.96 board)
 [RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf](doc/schematic/RPi_Pico_WAV_Player_Waveshare-RP2040-LCD096_schematic.pdf)
 
-## How to build
+## How to build with docker image
+* Builds the firmware inside [pico-sdk-dev-docker:sdk-2.3.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker) (same image used by CI). Requires Docker; no local Pico SDK setup is needed.
+* `build_docker.sh` drives the container build. Run it from the repository root.
+```
+$ git clone -b main https://github.com/elehobica/RPi_Pico_WAV_Player.git
+$ cd RPi_Pico_WAV_Player
+$ git submodule update -i
+$ ./build_docker.sh           # build both targets (default)
+$ ./build_docker.sh pico      # build only Pico (rp2040)   -> build/RPi_Pico_WAV_Player.uf2
+$ ./build_docker.sh pico2     # build only Pico 2 (rp2350) -> build2/RPi_Pico_WAV_Player.uf2
+$ ./build_docker.sh -k        # incremental build (keep build directory contents)
+```
+* Outputs: `build/RPi_Pico_WAV_Player.uf2` for Pico (rp2040), `build2/RPi_Pico_WAV_Player.uf2` for Pico 2 (rp2350)
+* Download "*.uf2" on RPI-RP2 or RP2350 drive
+
+## How to build in local
 * See ["Getting started with Raspberry Pi Pico"](https://datasheets.raspberrypi.org/pico/getting-started-with-pico.pdf)
 * Put "pico-sdk", "pico-examples" and "pico-extras" on the same level with this project folder.
 * Set environmental variables for PICO_SDK_PATH, PICO_EXTRAS_PATH and PICO_EXAMPLES_PATH
-* Confirmed with Pico SDK 2.1.1
+* Confirmed with Pico SDK 2.3.0
 ```
-> git clone -b 2.1.1 https://github.com/raspberrypi/pico-sdk.git
+> git clone -b 2.3.0 https://github.com/raspberrypi/pico-sdk.git
 > cd pico-sdk
 > git submodule update -i
 > cd ..
-> git clone -b sdk-2.1.1 https://github.com/raspberrypi/pico-examples.git
+> git clone -b sdk-2.3.0 https://github.com/raspberrypi/pico-examples.git
 >
-> git clone -b sdk-2.1.1 https://github.com/raspberrypi/pico-extras.git
+> git clone -b sdk-2.3.0 https://github.com/raspberrypi/pico-extras.git
 > 
 > git clone -b main https://github.com/elehobica/RPi_Pico_WAV_Player.git
 > cd RPi_Pico_WAV_Player
@@ -143,7 +158,7 @@ For complete portable player with Li-Po battery operation, refer to the followin
 ```
 * Put "*.uf2" on RPI-RP2 or RP2350 drive
 ### Linux
-* Build is confirmed with [pico-sdk-dev-docker:sdk-2.2.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker)
+* Build is confirmed with [pico-sdk-dev-docker:sdk-2.3.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker)
 * Confirmed with cmake-3.22.1 and arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1
 ```
 $ cd RPi_Pico_WAV_Player
@@ -153,19 +168,6 @@ $ cmake -DPICO_PLATFORM=rp2350 -DPICO_BOARD=pico2 ..  # (for Raspberry Pi Pico 2
 $ make -j4
 ```
 * Download "*.uf2" on RPI-RP2 or RP2350 drive
-### Local build with Docker (build_docker.sh)
-* `build_docker.sh` builds this project inside the same SDK image as CI ([pico-sdk-dev-docker:sdk-2.2.0](https://hub.docker.com/r/elehobica/pico-sdk-dev-docker)), so no local Pico SDK installation is required
-* Requirements: Docker, and submodules initialized (`git submodule update -i`)
-* No need to set PICO_SDK_PATH / PICO_EXTRAS_PATH / PICO_EXAMPLES_PATH (provided by the image)
-```
-$ cd RPi_Pico_WAV_Player
-$ git submodule update -i
-$ ./build_docker.sh          # build both targets  -> build/ (rp2040), build2/ (rp2350)
-$ ./build_docker.sh pico     # build for Raspberry Pi Pico 1 series only  -> build/
-$ ./build_docker.sh pico2    # build for Raspberry Pi Pico 2 only         -> build2/
-$ ./build_docker.sh -k       # incremental build (keep build directory contents)
-```
-* Download "*.uf2" from `build/` (rp2040) or `build2/` (rp2350) on RPI-RP2 or RP2350 drive
 
 ## Button Control Guide
 UI Control is available with GPIO 3 push switches or 3 button Headphone Remote Control.

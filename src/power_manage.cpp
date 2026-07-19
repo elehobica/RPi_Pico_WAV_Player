@@ -355,7 +355,10 @@ void pw_set_pll_usb_96MHz()
 
 void pm_reboot()
 {
-    watchdog_reboot(0, 0, PICO_STDIO_USB_RESET_RESET_TO_FLASH_DELAY_MS);
+    // PICO_STDIO_USB_RESET_RESET_TO_FLASH_DELAY_MS is no longer exposed since Pico SDK 2.3.0,
+    // so use a local constant with the same 100ms delay value.
+    static const uint32_t REBOOT_DELAY_MS = 100;
+    watchdog_reboot(0, 0, REBOOT_DELAY_MS);
 }
 
 bool pm_is_caused_reboot()
