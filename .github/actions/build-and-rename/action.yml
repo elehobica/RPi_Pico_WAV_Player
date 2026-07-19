@@ -28,7 +28,7 @@ runs:
   using: 'composite'
   steps:
     - name: Build
-      uses: elehobica/build-pico@v1
+      uses: elehobica/build-pico@2.2.0
       with:
         path: ${{ inputs.path }}
         build: ${{ inputs.build }}
